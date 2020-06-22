@@ -374,9 +374,11 @@ logs/source.json:
 	$(MAKE_SOURCE) --srcdir $(SRCDIR) --wkdir $(PROOFDIR) > $@
 	$(RM) -r gotos
 
-report2: logs/source.json logs/result.xml logs/property.xml logs/coverage.xml
+# Omit logs/source.json from report generation until make-sources
+# works correctly with Makefiles that invoke the compiler with
+# mutliple source files at once.
+report2: logs/result.xml logs/property.xml logs/coverage.xml
 	$(VIEWER2) \
-	--viewer-source logs/source.json \
 	--result logs/result.xml \
 	--coverage logs/coverage.xml \
 	--property logs/property.xml \
