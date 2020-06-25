@@ -20,6 +20,11 @@
 # LINK_FLAGS =
 
 # Preprocessor include paths -I...
+# Consider adding
+#     INCLUDES += -I$(CBMC_ROOT)/include
+# You will want to decide what order that comes in relative to the other
+# include directories in your project.
+#
 # INCLUDES =
 
 # Preprocessor definitions -D...
