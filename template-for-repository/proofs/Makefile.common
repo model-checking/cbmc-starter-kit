@@ -194,9 +194,10 @@ PROJECT_SOURCES ?=
 
 # The proof source files (Normally set in the proof Makefile)
 #
-# PROOF_SOURCES is the list of proof source files to compile, including
-# the proof harness, and including any function stubs being used.
-PROOF_SOURCES ?=
+# PROOF_SOURCES is the list of proof source files to compile. It is at
+# least the proof harness; individual proof Makefiles can add extra
+# proof files, typically from under the $(MODELS_DIR) directory.
+PROOF_SOURCES += $(HARNESS_FILE)
 
 ################################################################
 ################################################################
