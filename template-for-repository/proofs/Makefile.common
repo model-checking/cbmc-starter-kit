@@ -339,49 +339,49 @@ goto: $(HARNESS_GOTO).goto
 ################################################################
 # Targets to run the analysis commands
 
-logs/result.txt: $(HARNESS_GOTO).goto
+$(LOGDIR)/result.txt: $(HARNESS_GOTO).goto
 	$(call DO_CBMC,$(CBMCFLAGS) $(CHECKFLAGS) --unwinding-assertions --trace,$<,$@)
 
-logs/result.xml: $(HARNESS_GOTO).goto
+$(LOGDIR)/result.xml: $(HARNESS_GOTO).goto
 	$(call DO_CBMC,$(CBMCFLAGS) $(CHECKFLAGS) --unwinding-assertions --trace --xml-ui,$<,$@)
 
-logs/property.xml: $(HARNESS_GOTO).goto
+$(LOGDIR)/property.xml: $(HARNESS_GOTO).goto
 	$(call DO_CBMC,$(CBMCFLAGS) $(CHECKFLAGS) --unwinding-assertions --show-properties --xml-ui,$<,$@)
 
-logs/coverage.xml: $(HARNESS_GOTO).goto
+$(LOGDIR)/coverage.xml: $(HARNESS_GOTO).goto
 	$(call DO_CBMC,$(CBMCFLAGS) $(COVERFLAGS) --cover location --xml-ui,$<,$@)
 
-result: logs/result.txt
+result: $(LOGDIR)/result.txt
 
-property: logs/property.xml
+property: $(LOGDIR)/property.xml
 
-coverage: logs/coverage.xml
+coverage: $(LOGDIR)/coverage.xml
 
-report: logs/result.txt logs/property.xml logs/coverage.xml
+report: $(LOGDIR)/result.txt $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
 	$(VIEWER) \
-	--result logs/result.txt \
-	--block logs/coverage.xml \
-	--property logs/property.xml \
+	--result $(LOGDIR)/result.txt \
+	--block $(LOGDIR)/coverage.xml \
+	--property $(LOGDIR)/property.xml \
 	--srcdir $(SRCDIR) \
 	--goto $(HARNESS_GOTO).goto \
 	--htmldir html \
 
 # Caution: run make-source before running property and coverage checking
 # The current make-source script removes the goto binary
-logs/source.json:
+$(LOGDIR)/source.json:
 	mkdir -p $(dir $@)
-	$(RM) -r gotos
+	$(RM) -r $(GOTODIR)
 	$(MAKE_SOURCE) --srcdir $(SRCDIR) --wkdir $(PROOFDIR) > $@
-	$(RM) -r gotos
+	$(RM) -r $(GOTODIR)
 
 # Omit logs/source.json from report generation until make-sources
 # works correctly with Makefiles that invoke the compiler with
 # mutliple source files at once.
-report2: logs/result.xml logs/property.xml logs/coverage.xml
+report2: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
 	$(VIEWER2) \
-	--result logs/result.xml \
-	--coverage logs/coverage.xml \
-	--property logs/property.xml \
+	--result $(LOGDIR)/result.xml \
+	--coverage $(LOGDIR)/coverage.xml \
+	--property $(LOGDIR)/property.xml \
 	--srcdir $(SRCDIR) \
 	--goto $(HARNESS_GOTO).goto \
 	--reportdir report \
@@ -395,7 +395,7 @@ clean:
 
 veryclean: clean
 	$(RM) -r html report
-	$(RM) -r logs gotos
+	$(RM) -r $(LOGDIR) $(GOTODIR)
 
 .PHONY: setup_dependencies result property coverage report clean veryclean testdeps
 
