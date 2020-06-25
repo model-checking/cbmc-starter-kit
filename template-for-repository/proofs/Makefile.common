@@ -389,13 +389,13 @@ report2: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
 ################################################################
 # Targets to clean up after ourselves
 clean:
-	$(RM) $(DEPENDENT_GOTOS)
-	$(RM) TAGS*
-	$(RM) *~ \#*
+	-$(RM) $(DEPENDENT_GOTOS)
+	-$(RM) TAGS*
+	-$(RM) *~ \#*
 
 veryclean: clean
-	$(RM) -r html report
-	$(RM) -r $(LOGDIR) $(GOTODIR)
+	-$(RM) -r html report
+	-$(RM) -r $(LOGDIR) $(GOTODIR)
 
 .PHONY: setup_dependencies result property coverage report clean veryclean testdeps
 
