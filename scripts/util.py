@@ -5,11 +5,22 @@
 
 import logging
 import os
+import shutil
 
 REPOSITORY_TEMPLATES = "template-for-repository"
 PROOF_TEMPLATES = "template-for-proof"
 
 PROOF_DIR = "proofs"
+
+# There are some files that we should copy to the project repository rather than
+# symlinking. This is because users are expected to modify these files. If the
+# files were symlinks, then modifying them would dirty up this submodule, which
+# would prevent project owners from cleanly updating it.
+COPY_INSTEAD = [
+    "Makefile-project-defines",
+    "Makefile-project-targets",
+    "Makefile-project-testing",
+]
 
 ################################################################
 
@@ -64,6 +75,7 @@ def files_under_root(root):
     finally:
         os.chdir(cwd)
 
+
 def link_files(name, src, dst):
     """Link file dst/name to file src/name, return number skipped"""
 
@@ -73,13 +85,20 @@ def link_files(name, src, dst):
     os.makedirs(os.path.dirname(dst_name), exist_ok=True)
     src_link = os.path.relpath(src_name, os.path.dirname(dst_name))
 
+    if os.path.basename(name) in COPY_INSTEAD:
+        install_method = ("copy", shutil.copyfile)
+        src_link = src_name
+    else:
+        install_method = ("symlink", os.symlink)
+
     if os.path.exists(dst_name):
-        logging.warning("Skipping symlink %s -> %s: file exists",
-                        name, src_link)
+        logging.warning("Skipping %s %s -> %s: file exists",
+                        install_method[0], name, src_link)
         return 1
 
-    logging.warning("Creating symlink %s -> %s", name, src_link)
-    os.symlink(src_link, dst_name)
+    logging.warning(
+        "Creating %s %s -> %s", install_method[0], name, src_link)
+    install_method[1](src_link, dst_name)
     return 0
 
 def copy_directory_contents(src, dst):
