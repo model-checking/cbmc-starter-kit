@@ -9,26 +9,3 @@
 # unit testing or continuous integration that may depend on targets
 # defined in Makefile.common
 ################################################################
-
-################################################################
-# Generate cbmc-batch.yaml to run cbmc in continuous integration
-
-JOB_OS ?= ubuntu16
-JOB_MEMORY ?= 32000
-
-define yaml_encode_options
-       "$(shell echo $(1) | sed 's/ ,/ /g' | sed 's/ /;/g')"
-endef
-
-cbmc-batch.yaml:
-	@$(RM) $@
-	@echo 'build_memory: $(JOB_MEMORY)' > $@
-	@echo 'cbmcflags: $(strip $(call yaml_encode_options,$(CBMCFLAGS)))' >> $@
-	@echo 'coverage_memory: $(JOB_MEMORY)' >> $@
-	@echo "expected: SUCCESSFUL" >> $@
-	@echo "goto: $(HARNESS_GOTO).goto" >> $@
-	@echo "jobos: $(JOB_OS)" >> $@
-	@echo 'property_memory: $(JOB_MEMORY)' >> $@
-	@echo 'report_memory: $(JOB_MEMORY)' >> $@
-
-.PHONY: cbmc-batch.yaml
