@@ -20,6 +20,7 @@ COPY_INSTEAD = [
     "Makefile-project-defines",
     "Makefile-project-targets",
     "Makefile-project-testing",
+    ".gitignore",
 ]
 
 ################################################################
