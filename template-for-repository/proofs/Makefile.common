@@ -65,6 +65,9 @@ SHELL=/bin/bash
 
 default: report
 
+# Run all CBMC jobs in parallel for a particular proof
+MAKEFLAGS += -j4
+
 ################################################################
 ################################################################
 ## Section I: This section gives common variable definitions.
