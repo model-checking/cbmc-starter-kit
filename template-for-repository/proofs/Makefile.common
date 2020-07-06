@@ -321,7 +321,7 @@ $(HARNESS_GOTO)2.goto: $(HARNESS_GOTO)1.goto
 ifeq ($(NONDET_STATIC),"")
 	$(call DO_NOOP_COPY,"Not applying --nondet-static",$<,$@)
 else
-	$(call DO_GOTO_INSTRUMENT,$(CBMC_REMOVE_FUNCTION_BODY) $(NONDET_STATIC),$<,$@)
+	$(call DO_GOTO_INSTRUMENT,$(NONDET_STATIC),$<,$@)
 endif
 
 # Omit unused functions (sharpens coverage calculations)
