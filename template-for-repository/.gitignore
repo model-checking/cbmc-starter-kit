@@ -6,3 +6,6 @@ proofs/**/html
 
 # Emitted by CBMC Viewer
 TAGS-*
+
+# These files should be overwritten whenever prepare.py runs
+cbmc-batch.yaml
