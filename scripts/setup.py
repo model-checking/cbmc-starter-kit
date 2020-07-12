@@ -10,7 +10,7 @@ import os
 
 import util
 
-def create_makefile_template_defines(source_root, proof_root):
+def create_makefile_template_defines(source_root, proof_root, litani):
     """Create Makefile-template-defines in the proof root."""
 
     makefile = os.path.join(proof_root, "Makefile-template-defines")
@@ -21,18 +21,23 @@ def create_makefile_template_defines(source_root, proof_root):
         print("SRCDIR ?= $(abspath $(PROOF_ROOT)/{})"
               .format(os.path.relpath(source_root, proof_root)),
               file=fileobj)
+        print("LITANI ?= $(abspath $(PROOF_ROOT)/{})".format(
+            os.path.relpath(source_root, litani)), file=fileobj)
 
 def main():
     """Set up the CBMC proof infrastructure."""
 
     logging.basicConfig(format='%(levelname)s: %(message)s')
 
-    source_root = util.read_source_root()
+    source_root = util.read_path_from_stdin("the source root")
     cbmc_root = os.path.abspath('.')
-    proof_root = util.proof_root(cbmc_root)
+    proof_root = util.read_path_from_stdin(
+        "the proof root (the 'proofs' directory)")
+    litani = util.read_path_from_stdin("the litani executable")
 
     util.copy_repository_templates(cbmc_root)
-    create_makefile_template_defines(source_root, proof_root)
+    create_makefile_template_defines(
+        source_root, proof_root, litani)
 
 if __name__ == "__main__":
     main()

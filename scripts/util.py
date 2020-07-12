@@ -21,6 +21,7 @@ COPY_INSTEAD = [
     "Makefile-project-targets",
     "Makefile-project-testing",
     ".gitignore",
+    "run-cbmc-proofs.py",
 ]
 
 ################################################################
@@ -42,25 +43,8 @@ def proof_root(cbmc_root):
 
 ################################################################
 
-def read_source_root():
-    """Read path to source root from console."""
-
-    print("What is the path to the source root:  ", end="")
-    return os.path.abspath(os.path.expanduser(input()))
-
-def read_cbmc_root():
-    """Read path to cbmc root from console, default to '.'."""
-
-    print("What is the path to the cbmc root "
-          "(containing the proofs directory):  ",
-          end="")
-    return os.path.abspath(os.path.expanduser(input()))
-
-def read_proof_root():
-    """Read path to cbmc root from console, default to '.'."""
-
-    print("What is the path to the proof root (the 'proofs' directory): ",
-          end="")
+def read_path_from_stdin(description):
+    print("What is the path to {}: ".format(description), end="")
     return os.path.abspath(os.path.expanduser(input()))
 
 ################################################################
