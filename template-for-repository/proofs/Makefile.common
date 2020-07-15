@@ -582,7 +582,8 @@ veryclean: clean
 	-$(RM) -r html report
 	-$(RM) -r $(LOGDIR) $(GOTODIR)
 
-.PHONY: setup_dependencies arpa result property coverage report clean veryclean testdeps
+.PHONY: setup_dependencies arpa result property coverage report clean
+.PHONY: veryclean testdeps litani-path
 
 ################################################################
 
