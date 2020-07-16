@@ -223,7 +223,7 @@ VIEWER ?= cbmc-viewer
 MAKE_SOURCE ?= make-source
 VIEWER2 ?= cbmc-viewer
 CMAKE ?= cmake
-ARPA ?= $(CBMC_ROOT)/aws-proof-build-assistant/arpa
+ARPA ?= @echo "You must set ARPA in Makefile-project-defines to run arpa in this project"; false
 
 GOTODIR ?= $(PROOFDIR)/gotos
 LOGDIR ?= $(PROOFDIR)/logs
@@ -347,13 +347,13 @@ goto: $(HARNESS_GOTO).goto
 ################################################################
 # Targets to run Arpa
 
-arpa_cmake_project:
+$(ARPA_BLDDIR):
 	$(CMAKE) $(ARPA_CMAKE_FLAGS) \
-	-DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
-	-B $(ARPA_BLDDIR) \
-	-S $(SRCDIR)
+	  -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
+	  -B $(ARPA_BLDDIR) \
+	  -S $(SRCDIR)
 
-arpa: arpa_cmake_project
+arpa: $(ARPA_BLDDIR)
 	$(ARPA) run -cc $(ARPA_COMP_CMDS) -r $(SRCDIR)
 
 ################################################################
@@ -419,7 +419,7 @@ veryclean: clean
 	-$(RM) -r html report
 	-$(RM) -r $(LOGDIR) $(GOTODIR)
 
-.PHONY: setup_dependencies result property coverage report clean veryclean testdeps
+.PHONY: setup_dependencies arpa result property coverage report clean veryclean testdeps
 
 ################################################################
 
