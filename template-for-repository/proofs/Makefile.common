@@ -235,7 +235,7 @@ HARNESS_GOTO ?= $(GOTODIR)/$(HARNESS_FILE)
 PROJECT_GOTO ?= $(GOTODIR)/$(PROJECT)
 PROOF_GOTO ?= $(GOTODIR)/$(PROOF)
 
-ARPA_BLDDIR ?= $(PROOFDIR)/arpa_cmake
+ARPA_BLDDIR ?= $(abspath $(PROOFDIR)/arpa_cmake)
 ARPA_COMP_CMDS ?= $(ARPA_BLDDIR)/compile_commands.json
 
 ################################################################
