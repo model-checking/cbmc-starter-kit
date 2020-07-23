@@ -29,3 +29,9 @@
 
 # Preprocessor definitions -D...
 # DEFINES =
+
+# Path to arpa executable
+# ARPA =
+
+# Flags to pass to cmake for building the project
+# ARPA_CMAKE_FLAGS =
