@@ -284,7 +284,7 @@ LOG_FROM_GOTO = $(patsubst $(GOTODIR)%,$(LOGDIR)%,$(1:.goto=.txt))
 ################################################################
 # Set C compiler defines
 
-CBMCFLAGS +=  --object-bits $(CBMC_OBJECT_BITS)
+CBMCFLAGS += --object-bits $(CBMC_OBJECT_BITS) --flush
 
 DEFINES += -DCBMC=1
 DEFINES += -DCBMC_OBJECT_BITS=$(CBMC_OBJECT_BITS)
@@ -427,7 +427,6 @@ $(HARNESS_GOTO).goto: $(HARNESS_GOTO)4.goto
 	  --stdout-file $(call LOG_FROM_ENTRY,$@) \
 	  --description "$(HARNESS_ENTRY): copying final goto-binary"
 
-
 _goto: $(HARNESS_GOTO).goto
 	echo $(DEPENDENT_GOTOS)
 goto:
@@ -467,7 +466,7 @@ $(LOGDIR)/result.txt: $(HARNESS_GOTO).goto
 $(LOGDIR)/result.xml: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
 	  --command \
-	    '$(CBMC) $(CBMC_VERBOSITY) --flush $(CBMCFLAGS) $(CHECKFLAGS) --unwinding-assertions --trace --xml-ui $<' \
+	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --unwinding-assertions --trace --xml-ui $<' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --pipeline-name $(HARNESS_ENTRY) \
@@ -480,7 +479,7 @@ $(LOGDIR)/result.xml: $(HARNESS_GOTO).goto
 $(LOGDIR)/property.xml: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
 	  --command \
-	    '$(CBMC) $(CBMC_VERBOSITY) --flush $(CBMCFLAGS) $(CHECKFLAGS) --show-properties --xml-ui $<' \
+	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --show-properties --xml-ui $<' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --pipeline-name $(HARNESS_ENTRY) \
@@ -492,7 +491,7 @@ $(LOGDIR)/property.xml: $(HARNESS_GOTO).goto
 $(LOGDIR)/coverage.xml: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
 	  --command \
-	    '$(CBMC) $(CBMC_VERBOSITY) --flush $(CBMCFLAGS) $(COVERFLAGS) --cover location --xml-ui $<' \
+	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(COVERFLAGS) --cover location --xml-ui $<' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --pipeline-name $(HARNESS_ENTRY) \
