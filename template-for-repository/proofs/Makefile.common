@@ -424,8 +424,14 @@ $(HARNESS_GOTO).goto: $(HARNESS_GOTO)4.goto
 	  --stdout-file $(call LOG_FROM_ENTRY,$@) \
 	  --description "$(HARNESS_ENTRY): copying final goto-binary"
 
-goto: $(HARNESS_GOTO).goto
+
+_goto: $(HARNESS_GOTO).goto
 	echo $(DEPENDENT_GOTOS)
+goto:
+	$(LITANI) init --project $(PROJECT_NAME)
+	$(MAKE) -B _goto
+	$(LITANI) run-build
+
 
 ################################################################
 # Targets to run Arpa
@@ -493,11 +499,24 @@ $(LOGDIR)/coverage.xml: $(HARNESS_GOTO).goto
 	  --tags "stats-group:coverage computation" \
 	  --description "$(HARNESS_ENTRY): calculating coverage"
 
-result: $(LOGDIR)/result.txt
+_result: $(LOGDIR)/result.txt
+result:
+	$(LITANI) init --project $(PROJECT_NAME)
+	$(MAKE) -B _result
+	$(LITANI) run-build
 
-property: $(LOGDIR)/property.xml
 
-coverage: $(LOGDIR)/coverage.xml
+_property: $(LOGDIR)/property.xml
+property:
+	$(LITANI) init --project $(PROJECT_NAME)
+	$(MAKE) -B _property
+	$(LITANI) run-build
+
+_coverage: $(LOGDIR)/coverage.xml
+coverage:
+	$(LITANI) init --project $(PROJECT_NAME)
+	$(MAKE) -B _coverage
+	$(LITANI) run-build
 
 define VIEWER_CMD
   $(VIEWER) \
@@ -510,7 +529,7 @@ define VIEWER_CMD
 endef
 export VIEWER_CMD
 
-report: $(LOGDIR)/result.txt $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
+_report: $(LOGDIR)/result.txt $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
 	$(LITANI) add-job \
 	  --command "$$VIEWER_CMD" \
 	  --inputs $^ \
@@ -520,6 +539,10 @@ report: $(LOGDIR)/result.txt $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
 	  --tags "stats-group:report generation" \
 	  --interleave-stdout-stderr \
 	  --description "$(HARNESS_ENTRY): generating report"
+report:
+	$(LITANI) init --project $(PROJECT_NAME)
+	$(MAKE) -B _report
+	$(LITANI) run-build
 
 report:
 	$(LITANI) init --project $(PROJECT_NAME)
@@ -548,7 +571,7 @@ export VIEWER2_CMD
 # Omit logs/source.json from report generation until make-sources
 # works correctly with Makefiles that invoke the compiler with
 # mutliple source files at once.
-report2: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
+_report2: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
 	$(LITANI) add-job \
 	  --command "$$VIEWER2_CMD" \
 	  --inputs $^ \
@@ -557,6 +580,10 @@ report2: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
 	  --ci-stage report \
 	  --tags "stats-group:report generation" \
 	  --description "$(HARNESS_ENTRY): generating report"
+report2:
+	$(LITANI) init --project $(PROJECT_NAME)
+	$(MAKE) -B _report2
+	$(LITANI) run-build
 
 report2:
 	$(LITANI) init --project $(PROJECT_NAME)
@@ -579,8 +606,26 @@ veryclean: clean
 	-$(RM) -r html report
 	-$(RM) -r $(LOGDIR) $(GOTODIR)
 
-.PHONY: setup_dependencies arpa result property coverage report clean
-.PHONY: veryclean testdeps litani-path
+.PHONY: \
+  arpa \
+  clean \
+  coverage \
+  _coverage \
+  goto \
+  _goto \
+  litani-path \
+  property \
+  _property \
+  report \
+  _report \
+  report2 \
+  _report2 \
+  result \
+  _result \
+  testdeps \
+  veryclean \
+  setup_dependencies \
+  #
 
 ################################################################
 

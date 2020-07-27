@@ -13,6 +13,9 @@
 # Makefile.common.
 ################################################################
 
+# Name of this proof project, displayed in proof reports
+# PROJECT_NAME =
+
 # Path to litani executable
 # LITANI =
 
