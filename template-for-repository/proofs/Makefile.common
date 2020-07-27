@@ -288,8 +288,10 @@ DEFINES += -DCBMC_OBJECT_BITS=$(CBMC_OBJECT_BITS)
 DEFINES += -DCBMC_MAX_OBJECT_SIZE="(SIZE_MAX>>(CBMC_OBJECT_BITS+1))"
 
 # CI currently assumes cbmc invocation has at most one --unwindset
-ifneq ($(UNWINDSET),"")
-  CBMC_UNWINDSET := --unwindset $(subst $(SPACE),$(COMMA),$(strip $(UNWINDSET)))
+ifdef UNWINDSET
+  ifneq ($(strip $(UNWINDSET)),"")
+    CBMC_UNWINDSET := --unwindset $(subst $(SPACE),$(COMMA),$(strip $(UNWINDSET)))
+  endif
 endif
 CBMC_REMOVE_FUNCTION_BODY := $(patsubst %,--remove-function-body %, $(REMOVE_FUNCTION_BODY))
 
