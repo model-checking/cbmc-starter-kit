@@ -7,7 +7,7 @@ proofs/**/html
 # Emitted by CBMC Viewer
 TAGS-*
 
-# Emitted by Arpa and its validator
+# Emitted by Arpa and its validation script
 arpa_cmake/
 Makefile.arpa
 arpa-test-results.log
