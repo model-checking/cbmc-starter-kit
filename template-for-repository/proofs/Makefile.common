@@ -438,10 +438,12 @@ define yaml_encode_options
 	"$(shell echo $(1) | sed 's/ ,/ /g' | sed 's/ /;/g')"
 endef
 
+CBMCFLAGS2 = $(CBMCFLAGS) --unwinding-assertions
+
 cbmc-batch.yaml:
 	@$(RM) $@
 	@echo 'build_memory: $(JOB_MEMORY)' > $@
-	@echo 'cbmcflags: $(strip $(call yaml_encode_options,$(CBMCFLAGS)))' >> $@
+	@echo 'cbmcflags: $(strip $(call yaml_encode_options,$(CBMCFLAGS2)))' >> $@
 	@echo 'coverage_memory: $(JOB_MEMORY)' >> $@
 	@echo "expected: SUCCESSFUL" >> $@
 	@echo "goto: $(HARNESS_GOTO).goto" >> $@
