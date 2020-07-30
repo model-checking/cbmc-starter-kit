@@ -7,9 +7,11 @@ proofs/**/html
 # Emitted by CBMC Viewer
 TAGS-*
 
-# Emitted by Arpa
+# Emitted by Arpa and its validator
 arpa_cmake/
 Makefile.arpa
+arpa-test-results.log
+arpa-test-logs
 
 # These files should be overwritten whenever prepare.py runs
 cbmc-batch.yaml
