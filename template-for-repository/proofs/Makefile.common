@@ -441,7 +441,7 @@ endef
 cbmc-batch.yaml:
 	@$(RM) $@
 	@echo 'build_memory: $(JOB_MEMORY)' > $@
-	@echo 'cbmcflags: $(strip $(call yaml_encode_options,$(CBMCFLAGS)))' >> $@
+	@echo 'cbmcflags: $(strip $(call yaml_encode_options,$(CBMCFLAGS)));--unwinding-assertions' >> $@
 	@echo 'coverage_memory: $(JOB_MEMORY)' >> $@
 	@echo "expected: SUCCESSFUL" >> $@
 	@echo "goto: $(HARNESS_GOTO).goto" >> $@
