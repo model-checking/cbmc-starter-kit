@@ -3,11 +3,14 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-# This script performs validation for arpa
+# This script performs validation and data collection for Arpa
 
 makefile=Makefile
 results=arpa-test-results.log
 csv=arpa-test-results.csv
+
+overwrite_files="s2n_free_object s2n_mem_cleanup s2n_pkcs3_to_dh_params s2n_stuffer_free"
+# test_files="s2n_stuffer_skip_to_char s2n_free_object s2n_stuffer_send_to_fd s2n_mem_cleanup s2n_pkcs3_to_dh_params s2n_stuffer_free s2n_stuffer_rewrite"
 
 arpa_log=arpa-test-logs
 makefile_std_save=$arpa_log/$makefile
@@ -98,9 +101,7 @@ function make_std {
         fi
     done <<< "$sorted_deps_std"
 
-    makefile_std=$(cat  <(echo -e "$add_first") <(echo -e "$all_stubs")  <(echo -e "$add_next")  <(echo "$first_half") <(echo "$second_half"))
-    # TODO move HARNESS_ENTRY to top
-    # TODO move stubs to top
+    makefile_std=$(cat <(echo "$first_half") <(echo -e "$add_first") <(echo -e "$all_stubs")  <(echo -e "$add_next")   <(echo "$second_half"))
 
     make goto -f <(echo "$makefile_std")
 
@@ -142,8 +143,6 @@ function make_arpa {
     second_half=$(tail -n +$dep_next <(echo "$makefile_arpa"))
 
     makefile_arpa=$(cat  <(echo "$first_half") <(echo "include Makefile.arpa") <(echo -e "$all_stubs") <(echo "$second_half"))
-    # TODO move HARNESS_ENTRY to top
-    # TODO move stubs to top
 
     make goto -f <(echo "$makefile_arpa")
 
@@ -227,7 +226,7 @@ function write_to_log {
     ((t_stubs_arpa=t_stubs_arpa+n_stubs_arpa))
     r_t_deps_found=$((t_deps_com * 100 / t_deps_nesc))
 
-    echo "  4.-TOTAL STATS : #deps-in-std=$t_deps_std ($t_stubs_std stubs, $t_deps_unnesc unnesc, in $t_pfs_w_unnesc proofs), #deps-in-arpa=$t_deps_arpa, #non-stub-deps-in-common=$t_deps_com" >> ../$results
+    echo "  4.-TOTAL STATS : #deps-in-std=$t_deps_std ($t_stubs_std stubs, $t_deps_unnesc unnesc in $t_pfs_w_unnesc proofs), #deps-in-arpa=$t_deps_arpa, #non-stub-deps-in-common=$t_deps_com" >> ../$results
     echo "     \-ARPA FINDS: %of-nesc-non-stub-deps=$r_t_deps_found% ($t_deps_com/$t_deps_nesc), #additional-deps=$t_add_deps ($t_stubs_arpa stubs)" >> ../$results
 
     ##############################
@@ -254,8 +253,27 @@ function compare_and_report {
     echo "Proof,Success?,#deps-std,#deps-arpa,#deps-common" > ../$csv
 
     # compare functions list
+    overwrite=""
     is_dif=$(diff -q <(echo "$fcts_std_clean") \
         <(echo "$fcts_arpa_clean"))
+
+    # Ask user to MANUALLY confirm if result is correct
+    if [ "$is_dif" ]; then
+        if [[ "$overwrite_files" == *"$dir"* ]]; then
+            is_dif=""
+            overwrite="yes"
+        fi
+
+        # DONE MANUALLY
+        # echo -e "\n----- Here is the goto functions diff -----\n"
+        # diff <(echo "$fcts_std_clean") <(echo "$fcts_arpa_clean")
+        # echo -e "\n----- OVERWRITE? consider as a SUCCESS? -----"
+        # read overwrite
+        # if [ "$overwrite" ]; then
+        #     is_dif=""
+        # fi
+    fi
+    # END TODO
 
     # report
     ((n_prfs=n_prfs+1))
@@ -269,8 +287,14 @@ function compare_and_report {
         # goto functions are identical
         ((n_succ=n_succ+1))
         echo -n "(IDENTICAL)"
-        write_to_log SUCCESS
-        write_failure_docs
+        if [ "$overwrite" ]; then
+            write_to_log SUCCESS-OVERWRITE
+            write_failure_docs
+        else
+            write_to_log SUCCESS
+        fi
+        
+        
     fi
     echo " >"
     # echo "$deps_arpa"
@@ -279,7 +303,7 @@ function compare_and_report {
 
 # MAIN
 initialize
-for dir in s2n_mem_cleanup; do
+for dir in *; do
     if [ ! -d $dir ]; then
         continue
     fi
