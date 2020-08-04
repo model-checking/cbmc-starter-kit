@@ -53,33 +53,33 @@ function count_lines {
 
 
 function get_deps {
-    grep_out=$(grep 'PROOF_SOURCES += \$(PROOF_SOURCE).*\|PROJECT_SOURCES += .*' $2)
+    grep_out=$(grep 'PROOF_SOURCES += \$(PROOF_.*\|PROJECT_SOURCES += .*' $2)
     eval deps_$1="\$grep_out"
-    eval n_deps_$1=$(count_lines "$grep_out")
+    n_deps=$(count_lines "$grep_out")
+    eval n_deps_$1="\$n_deps"
     sorted=$(sort <<< "$grep_out")
     eval sorted_$1="\$sorted"
+    sorted_no_stubs=$(grep -v 'PROOF_SOURCES += \$(PROOF_STUB).*' <(echo "$sorted"))
+    eval sorted_no_stubs_$1="\$sorted_no_stubs"
+    n_non_stubs=$(count_lines "$sorted_no_stubs") 
+    ((n_stubs=$n_deps-$n_non_stubs))
+    eval n_stubs_$1="\$n_stubs"
     #in the sorted version, stubs are the last in line
 }
 
 
 function make_std {
     make veryclean
+    #get all dependencies and sort
     all_deps=$(grep 'PROOF_SOURCES += \$(PROOF_.*\|PROJECT_SOURCES += .*' $makefile)
     sorted_deps=$(sort <<< "$all_deps")
-    sorted_deps="${sorted_deps//$'\n'/\\'$\'\\n}"
-    echo "$sorted_deps"
-    sed '1i\
-    test' $makefile
-    sed "/PROOF_SOURCES += \$(HARNESS_FILE)/a\\
-    $sorted_deps" $makefile
-    # sed -e 's-PROOF_SOURCES += \$(PROOF_.*--g' \
-    #     -e 's-PROJECT_SOURCES += .*--g' \
-    #     -e "/PROOF_SOURCES += \$(HARNESS_FILE)/a\'$'\n\$sorted_deps"\
-    #     $makefile
-    # makefile_std=$(sed -e 's-PROOF_SOURCES += \$(PROOF_.*--g' \
-    #     -e 's-PROJECT_SOURCES += .*--g' \
-    #     -e 's-PROOF_SOURCES += $(HARNESS_FILE)-PROOF_SOURCES += $(HARNESS_FILE)\'$'\n$sorted_deps-g'\
-    #     $makefile)
+
+    # remove existing depenedencies
+    makefile_std=$(sed -e 's-PROOF_SOURCES += \$(PROOF_.*--g' \
+        -e 's-PROJECT_SOURCES += .*--g' \
+        $makefile)
+    #add sorted deps to beginning of file
+    makefile_std=$(cat <(echo "$sorted_deps") <(echo "$makefile_std"))
 
     make goto -f <(echo "$makefile_std")
 
@@ -96,15 +96,16 @@ function make_arpa {
         -e 's-INCLUDES += .*--g' \
         Makefile.arpa
 
-    makefile_temp=$(sed -e 's-PROOF_SOURCES += \$(PROOF_SOURCE).*--g' \
-        -e 's-PROJECT_SOURCES += .*--g' \
-        -e 's-PROOF_SOURCES += $(HARNESS_FILE)-PROOF_SOURCES += $(HARNESS_FILE)\'$'\ninclude Makefile.arpa-g'\
-        $makefile)
+    sorted_deps=$(sort Makefile.arpa) # can sort the whole file cuz only comments beside deps
+    echo "$sorted_deps" > Makefile.arpa
     
-        # -e 's-include ../Makefile.common-include Makefile.arpa\'$'\ninclude ../Makefile.common-g'\
-    # TODO put iclude arpa after PROOF_SOURCES += $(HARENSS_FILE)
+    # do not get rid of stubs
+    makefile_arpa=$(sed -e 's-PROOF_SOURCES += \$(PROOF_SOURCE).*--g' \
+        -e 's-PROJECT_SOURCES += .*--g' \
+        $makefile)
+    makefile_arpa=$(cat <(echo "include Makefile.arpa") <(echo "$makefile_arpa"))
 
-    make goto -f <(echo "$makefile_temp")
+    make goto -f <(echo "$makefile_arpa")
 
     get_fcts arpa
     get_deps arpa Makefile.arpa
@@ -115,7 +116,8 @@ function write_failure_docs {
     mkdir -p $arpa_log
     cp Makefile.arpa $arpa_log
     cp arpa_cmake/compile_commands.json $arpa_log
-    echo "$makefile_std" > $makefile_std_save
+    echo "$makefile_std" > $makefile_std_save-std
+    echo "$makefile_arpa" > $makefile_std_save-arpa
     echo "$fcts_std_clean" > $goto_functions_std
     echo "$fcts_arpa_clean" > $goto_functions_arpa
 }
@@ -131,18 +133,21 @@ function write_to_log {
     ##############################
     ### PER PROOF MEASUREMENTS
     ##############################
-    common_deps=$(comm -12 <(echo "$sorted_arpa") <(echo "$sorted_std"))
+    common_deps=$(comm -12 <(echo "$sorted_no_stubs_arpa") <(echo "$sorted_no_stubs_std"))
+    # n_deps_com=$(grep -c -v 'PROOF_SOURCES += \$(PROOF_STUB).*' <(echo "$common_deps"))
     n_deps_com=$(count_lines "$common_deps")
 
     # case where arpa finds correct result, with less deps
-    n_deps_nesc=$n_deps_std
+    # I CAN NEVER SAY THAT THE STUB IS UNNESC BECAUSE I AM KEEPING IT IN MAKEFILE DURING DATA GATHERING
+    # I AM ASSUMING THAT ALL STUBS ARE NECESSARY
+    n_deps_nesc=$n_deps_std-n_stubs_std
     if [ ! "$is_dif" ]; then
         # if SUCCESSFUL, adjust number of required deps
         n_deps_nesc=$n_deps_com
         # TODO create a list of unnecessarily included deps
     else
         # if FAILURE, add not found deps to list
-        deps_not_found=$(comm -13 <(echo "$sorted_arpa") <(echo "$sorted_std"))
+        deps_not_found=$(comm -13 <(echo "$sorted_no_stubs_arpa") <(echo "$sorted_no_stubs_std"))
         while read -r l; do
             to_add="$(sed -e 's-.* += --g' <<< "$l" )"
             if [[ ! "$list_deps_arpa_cannot_find" == *"$to_add"* ]]; then
@@ -150,7 +155,7 @@ function write_to_log {
             fi
         done <<< "$deps_not_found"
     fi
-    ((n_deps_unnesc=n_deps_std-n_deps_nesc))
+    ((n_deps_unnesc=n_deps_std-n_stubs_std-n_deps_nesc))
     if [ $n_deps_unnesc -gt 0 ]; then
         ((t_pfs_w_unnesc=t_pfs_w_unnesc+1))
     fi
@@ -160,8 +165,8 @@ function write_to_log {
     r_deps_found=$((n_deps_com * 100 / n_deps_nesc))
 
     # TODO warn if n_deps_arpa > n_deps_com
-    echo "  2.-PROOF STATS : #deps-in-std=$n_deps_std($n_deps_unnesc unnesc), #deps-in-arpa=$n_deps_arpa, #deps-in-common=$n_deps_com" >> ../$results
-    echo "     \-ARPA FINDS: %of-nesc-deps=$r_deps_found% ($n_deps_com/$n_deps_nesc), #additional-deps=$n_add_deps" >> ../$results
+    echo "  2.-PROOF STATS : #deps-in-std=$n_deps_std ($n_stubs_std stubs, $n_deps_unnesc unnesc), #deps-in-arpa=$n_deps_arpa ($n_stubs_arpa stubs), #non-stub-deps-in-common=$n_deps_com" >> ../$results
+    echo "     \-ARPA FINDS: %of-nesc-non-stub-deps=$r_deps_found% ($n_deps_com/$n_deps_nesc), #additional-deps=$n_add_deps ($n_stubs_arpa stubs)" >> ../$results
 
     echo "  3.- START DIFF:" >> ../$results
     dif=$(diff <(echo "$sorted_arpa") <(echo "$sorted_std"))
@@ -173,16 +178,18 @@ function write_to_log {
     ##############################
     # assuming Arpa does ot find irrelevant deps
     ((t_deps_std=t_deps_std+n_deps_std))
+    ((t_stubs_std=t_stubs_std+n_stubs_std))
     ((t_deps_nesc=t_deps_nesc+n_deps_nesc))
     ((t_deps_unnesc=t_deps_unnesc+n_deps_unnesc))
     ((t_deps_arpa=t_deps_arpa+n_deps_arpa))
     ((t_deps_com=t_deps_com+n_deps_com))
 
     ((t_add_deps=t_add_deps+n_add_deps))
+    ((t_stubs_arpa=t_stubs_arpa+n_stubs_arpa))
     r_t_deps_found=$((t_deps_com * 100 / t_deps_nesc))
 
-    echo "  4.-TOTAL STATS : #deps-in-std=$t_deps_std($t_deps_unnesc unnesc, in $t_pfs_w_unnesc proofs), #deps-in-arpa=$t_deps_arpa, #deps-in-common=$t_deps_com" >> ../$results
-    echo "     \-ARPA FINDS: %of-nesc-deps=$r_t_deps_found% ($t_deps_com/$t_deps_nesc), #additional-deps=$t_add_deps" >> ../$results
+    echo "  4.-TOTAL STATS : #deps-in-std=$t_deps_std ($t_stubs_std stubs, $t_deps_unnesc unnesc, in $t_pfs_w_unnesc proofs), #deps-in-arpa=$t_deps_arpa, #non-stub-deps-in-common=$t_deps_com" >> ../$results
+    echo "     \-ARPA FINDS: %of-nesc-non-stub-deps=$r_t_deps_found% ($t_deps_com/$t_deps_nesc), #additional-deps=$t_add_deps ($t_stubs_arpa stubs)" >> ../$results
 
     ##############################
     ### AVERAGE RATIO MEASUREMENTS
@@ -193,7 +200,7 @@ function write_to_log {
     ##############################
     ### RELEVANT LISTS
     ##############################
-    echo "  5.- START DEPS_MISSED_AT_LEAST_ONCE:" >> ../$results
+    echo "  5.- START DEPS_MISSED_AT_LEAST_ONCE (NOT STUBS):" >> ../$results
     echo -n -e "$list_deps_arpa_cannot_find" >> ../$results
     echo "  \-- END DEPS_MISSED_AT_LEAST_ONCE:" >> ../$results
     # echo "            -DEPS_FOUND_AT_LEAST_ONCE : " >> ../$results
@@ -224,6 +231,7 @@ function compare_and_report {
         ((n_succ=n_succ+1))
         echo -n "(IDENTICAL)"
         write_to_log SUCCESS
+        write_failure_docs
     fi
     echo " >"
     # echo "$deps_arpa"
@@ -232,7 +240,7 @@ function compare_and_report {
 
 # MAIN
 initialize
-for dir in s2n_blob_zeroize_free; do
+for dir in *; do
     if [ ! -d $dir ]; then
         continue
     fi
@@ -248,7 +256,7 @@ for dir in s2n_blob_zeroize_free; do
 
     # define fcts_std_clean
     echo "-- Listing goto functions for STANDARD approach"
-    make_std
+    make_std > /dev/null
 
     # define fcts_arpa_clean
     echo "-- Listing goto functions for ARPA approach"
