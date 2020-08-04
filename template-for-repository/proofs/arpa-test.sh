@@ -70,53 +70,92 @@ function get_deps {
 
 function make_std {
     make veryclean
+    get_deps std Makefile
+    # NOTE: STUBS ARE LEFT INTACT
     #get all dependencies and sort
-    all_deps=$(grep 'PROOF_SOURCES += \$(PROOF_.*\|PROJECT_SOURCES += .*' $makefile)
-    sorted_deps=$(sort <<< "$all_deps")
+    all_deps=$(grep 'PROOF_SOURCES += \$(PROOF_SOURCE).*\|PROJECT_SOURCES += .*' $makefile)
+    all_stubs=$(grep 'PROOF_SOURCES += \$(PROOF_STUB).*' $makefile)
+    sorted_deps_std=$(sort <<< "$all_deps")
 
-    # remove existing depenedencies
-    makefile_std=$(sed -e 's-PROOF_SOURCES += \$(PROOF_.*--g' \
+    # remove existing depenedencies (including stubs, which will be readded later)
+    makefile_std=$(sed  -e 's-PROOF_SOURCES += \$(PROOF_.*--g' \
         -e 's-PROJECT_SOURCES += .*--g' \
         $makefile)
+    dep_start=$(grep -n 'PROOF_SOURCES += \$(HARNESS_FILE)' <(echo "$makefile_std") | cut -f1 -d:)
+    first_half=$(head -n $dep_start <(echo "$makefile_std"))
+    ((dep_next=dep_start+1))
+    second_half=$(tail -n +$dep_next <(echo "$makefile_std"))
     #add sorted deps to beginning of file
-    makefile_std=$(cat <(echo "$sorted_deps") <(echo "$makefile_std"))
+    # echo "$sorted_deps_arpa"
+    add_first=""
+    add_next=""
+    while read -r l; do
+    # echo "$l"
+        if grep -q "$l" <(echo "$sorted_deps_arpa"); then
+            add_first+="$l\n"
+        else
+            add_next+="$l\n"
+        fi
+    done <<< "$sorted_deps_std"
+
+    makefile_std=$(cat  <(echo -e "$add_first") <(echo -e "$all_stubs")  <(echo -e "$add_next")  <(echo "$first_half") <(echo "$second_half"))
+    # TODO move HARNESS_ENTRY to top
+    # TODO move stubs to top
 
     make goto -f <(echo "$makefile_std")
 
     get_fcts std
-    get_deps std Makefile
 }
 
 
 function make_arpa {
     make veryclean
+    # NOTE: STUBS ARE LEFT INTACT
     make arpa
+    get_deps arpa Makefile.arpa
+
+
     # remove includes and defines from Makefile.arpa
+    # n_stubs_arpa=$(grep 'PROOF_SOURCES += $(PROOF_STUB).*' Makefile.arpa)
     sed -i '' -e 's-DEFINES += .*--g' \
         -e 's-INCLUDES += .*--g' \
+        -e 's-PROOF_SOURCES += $(PROOF_STUB).*--g' \
         Makefile.arpa
+    # TODO remove STUBS from Makefile arpa? (after checking if they do exist in makefile)
 
-    sorted_deps=$(sort Makefile.arpa) # can sort the whole file cuz only comments beside deps
-    echo "$sorted_deps" > Makefile.arpa
+    sorted_deps_arpa=$(sort Makefile.arpa) # can sort the whole file cuz only comments beside deps
+    echo "$sorted_deps_arpa" > Makefile.arpa
+
+    #store, in case fails
+    comp_cmds=$(cat arpa_cmake/compile_commands.json)
     
-    # do not get rid of stubs
-    makefile_arpa=$(sed -e 's-PROOF_SOURCES += \$(PROOF_SOURCE).*--g' \
+    # get stubs from Makefile
+    all_stubs=$(grep 'PROOF_SOURCES += \$(PROOF_STUB).*' $makefile)
+    # get rid of alldeps (including stubs, which will be added later)
+    makefile_arpa=$(sed -e 's-PROOF_SOURCES += \$(PROOF_.*--g' \
         -e 's-PROJECT_SOURCES += .*--g' \
         $makefile)
-    makefile_arpa=$(cat <(echo "include Makefile.arpa") <(echo "$makefile_arpa"))
+    
+    dep_start=$(grep -n 'PROOF_SOURCES += \$(HARNESS_FILE)' <(echo "$makefile_arpa") | cut -f1 -d:)
+    first_half=$(head -n $dep_start <(echo "$makefile_arpa"))
+    ((dep_next=dep_start+1))
+    second_half=$(tail -n +$dep_next <(echo "$makefile_arpa"))
+
+    makefile_arpa=$(cat  <(echo "$first_half") <(echo "include Makefile.arpa") <(echo -e "$all_stubs") <(echo "$second_half"))
+    # TODO move HARNESS_ENTRY to top
+    # TODO move stubs to top
 
     make goto -f <(echo "$makefile_arpa")
 
     get_fcts arpa
-    get_deps arpa Makefile.arpa
 }
 
 
 function write_failure_docs {
     mkdir -p $arpa_log
-    cp Makefile.arpa $arpa_log
-    cp arpa_cmake/compile_commands.json $arpa_log
+    echo "$comp_cmds" > $arpa_log/compile_commands.json
     echo "$makefile_std" > $makefile_std_save-std
+    echo "$sorted_deps_arpa" > $makefile_std_save.arpa
     echo "$makefile_arpa" > $makefile_std_save-arpa
     echo "$fcts_std_clean" > $goto_functions_std
     echo "$fcts_arpa_clean" > $goto_functions_arpa
@@ -140,7 +179,7 @@ function write_to_log {
     # case where arpa finds correct result, with less deps
     # I CAN NEVER SAY THAT THE STUB IS UNNESC BECAUSE I AM KEEPING IT IN MAKEFILE DURING DATA GATHERING
     # I AM ASSUMING THAT ALL STUBS ARE NECESSARY
-    n_deps_nesc=$n_deps_std-n_stubs_std
+    ((n_deps_nesc=$n_deps_std-$n_stubs_std))
     if [ ! "$is_dif" ]; then
         # if SUCCESSFUL, adjust number of required deps
         n_deps_nesc=$n_deps_com
@@ -240,7 +279,7 @@ function compare_and_report {
 
 # MAIN
 initialize
-for dir in *; do
+for dir in s2n_mem_cleanup; do
     if [ ! -d $dir ]; then
         continue
     fi
@@ -254,13 +293,14 @@ for dir in *; do
     look_for $makefile
     look_for $harness
 
+    # define fcts_arpa_clean
+    # Arpa goes first cuz we assume arpa finds less than or equal to the dependencies in std
+    echo "-- Listing goto functions for ARPA approach"
+    make_arpa > /dev/null
+
     # define fcts_std_clean
     echo "-- Listing goto functions for STANDARD approach"
     make_std > /dev/null
-
-    # define fcts_arpa_clean
-    echo "-- Listing goto functions for ARPA approach"
-    make_arpa > /dev/null
 
     # compare goto functions
     echo "-- Comparing results and writing report"
@@ -269,4 +309,5 @@ for dir in *; do
     # clean up
     make veryclean > /dev/null
     cd ..
-done
+done 
+
