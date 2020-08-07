@@ -7,6 +7,7 @@
 # Furthermore, it serves as a validation framework for existing CBMC proofs.
 
 # TODO add project-specific list of proofs that fail, but should be overriden due to limitations of the validation approach
+# The list below must be seperated by spaces
 manual_proof_override=""
 
 
@@ -157,7 +158,7 @@ function write_proof_stats {
         deps_not_found=$(comm -13 <(echo "$sorted_no_stubs_arpa") <(echo "$sorted_no_stubs_std"))
         while read -r l; do
             to_add="$(sed -e 's-.* += --g' <<< "$l" )"
-            if [[ ! "$list_deps_arpa_cannot_find" == *"$to_add"* ]]; then
+            if [[ ! "$list_deps_arpa_cannot_find" == *"    $to_add\n"* ]]; then
                 list_deps_arpa_cannot_find+="    $to_add\n"
             fi
         done <<< "$deps_not_found"
@@ -269,7 +270,7 @@ function ask_override {
     fi
 
     # ... or automatically.
-    if [[ "$manual_proof_override" == *"$dir"* ]]; then
+    if [[ "$manual_proof_override" =~ (^| )"$dir"($| ) ]]; then
         override="y"
         return
     else
