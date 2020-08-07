@@ -7,8 +7,7 @@
 # Furthermore, it serves as a validation framework for existing CBMC proofs.
 
 # TODO add project-specific list of proofs that fail, but should be overriden due to limitations of the validation approach
-# TODO _ remove for s2n
-manual_proof_override="s2n_blob_zeroize_free  s2n_free  s2n_free_object  s2n_pkcs3_to_dh_params  s2n_stuffer_peek_check_for_str  s2n_stuffer_read_expected_str  s2n_stuffer_write_vector_size"
+manual_proof_override=""
 
 
 function initialize {
@@ -107,12 +106,6 @@ function make_arpa {
     make veryclean
     make arpa
     get_deps arpa Makefile.arpa
-
-    # Remove defines and includes from the generated Makefile.arpa, for consistency
-    # TODO _ remove for s2n
-    sed -i '' -e 's-DEFINES += .*--g' \
-        -e 's-INCLUDES += .*--g' \
-        Makefile.arpa
 
     # remove all dependencies (except stubs) from the current makefile
     # and add the "include Makefile.arpa" line
