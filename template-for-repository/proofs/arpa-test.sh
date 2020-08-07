@@ -5,16 +5,26 @@
 
 # This script performs  data collection for Arpa.
 # Furthermore, it serves as a validation framework for existing CBMC proofs.
-manual_proof_override="s2n_free_object s2n_mem_cleanup s2n_pkcs3_to_dh_params s2n_stuffer_free"
+# TODO _ remove for s2n
+manual_proof_override="s2n_blob_zeroize_free  s2n_free  s2n_free_object  s2n_pkcs3_to_dh_params  s2n_stuffer_peek_check_for_str  s2n_stuffer_read_expected_str  s2n_stuffer_write_vector_size"
 
 
 function initialize {
+    # variable initializations
     results=arpa-test-results.log
     arpa_log=arpa-test-logs
     t_pfs_w_unnesc=0
-
-    rm -f $results
     tot_prfs=$(ls -l | grep -c ^d)
+
+    # remove existing results
+    rm -f $results
+
+    # consider command-line flag
+    if [[ "$1" == "-mo" || "$1" == "--manual-override" ]]; then
+
+        echo -e "\n<MANUAL OVERRIDING ENABLED>"
+        manual_override_flag=1
+    fi
 }
 
 
@@ -30,8 +40,24 @@ function look_for {
 }
 
 
+function proof_init {
+    # proof-specific initialisations
+    cd $dir
+    harness="$dir"_harness.c
+    rm -r -f $arpa_log
+    echo -e "\n<($cnt/$tot_prfs)-BEGIN-($dir)>"
+
+    # check if required files exist
+    look_for Makefile
+    look_for $harness
+}
+
+
 function get_fcts {
+    # this function gets the goto functions relevant to the CBMC proof
+    # and store it in a variable
     goto_fcts=$(cbmc --show-goto-functions gotos/$harness.goto)
+
     # get rid of comments
     clean_goto_fcts=$(grep -v " *//.*" <<< "$goto_fcts")
     eval fcts_$1_clean="\$clean_goto_fcts"
@@ -69,96 +95,51 @@ function make_std {
     make veryclean
     get_deps std Makefile
 
-    # get all dependencies (except for the harness itslef and for stubs) and sort
-    # the order of stubs is left intact
-    all_deps=$(grep 'PROOF_SOURCES += \$(PROOF_SOURCE).*\|PROJECT_SOURCES += .*' Makefile)
-    sorted_deps_std=$(sort <<< "$all_deps")
-    all_stubs=$(grep 'PROOF_SOURCES += \$(PROOF_STUB).*' Makefile)
-
-    # remove existing dependencies (including stubs) from the Makefile
-    makefile_std=$(sed  -e 's-PROOF_SOURCES += \$(PROOF_.*--g' \
-        -e 's-PROJECT_SOURCES += .*--g' \
-        Makefile)
-
-    # divide the file at the first dependency "PROOF_SOURCES += \$(HARNESS_FILE)"
-    dep_start=$(grep -n 'PROOF_SOURCES += \$(HARNESS_FILE)' <(echo "$makefile_std") | cut -f1 -d:)
-    first_half=$(head -n $dep_start <(echo "$makefile_std"))
-    ((dep_next=dep_start+1))
-    second_half=$(tail -n +$dep_next <(echo "$makefile_std"))
-
-    # Add the dependencies 
-    add_first=""
-    add_next=""
-    while read -r l; do
-        if grep -q "$l" <(echo "$sorted_deps_arpa"); then
-            add_first+="$l\n"
-        else
-            add_next+="$l\n"
-        fi
-    done <<< "$sorted_deps_std"
-
-    # get 
-    makefile_std=$(cat <(echo "$first_half") <(echo -e "$add_first") <(echo -e "$all_stubs")  <(echo -e "$add_next")   <(echo "$second_half"))
-    make goto -f <(echo "$makefile_std")
+    # get goto functions that are being tested
+    make goto -f Makefile
     get_fcts std
 }
 
 
 function make_arpa {
     make veryclean
-    # NOTE: STUBS ARE LEFT INTACT
     make arpa
     get_deps arpa Makefile.arpa
 
-
-    # remove includes and defines from Makefile.arpa
-    # n_stubs_arpa=$(grep 'PROOF_SOURCES += $(PROOF_STUB).*' Makefile.arpa)
-    # sed -i '' -e 's-DEFINES += .*--g' \
-    #     -e 's-INCLUDES += .*--g' \
-    #     -e 's-PROOF_SOURCES += $(PROOF_STUB).*--g' \
-    #     Makefile.arpa
-    sed -i '' -e 's-PROOF_SOURCES += $(PROOF_STUB).*--g' \
+    # Remove defines and includes from the generated Makefile.arpa, for consistency
+    # TODO _ remove for s2n
+    sed -i '' -e 's-DEFINES += .*--g' \
+        -e 's-INCLUDES += .*--g' \
         Makefile.arpa
-    # TODO remove STUBS from Makefile arpa? (after checking if they do exist in makefile)
 
-    sorted_deps_arpa=$(sort Makefile.arpa) # can sort the whole file cuz only comments beside deps
-    echo "$sorted_deps_arpa" > Makefile.arpa
-
-    #store, in case fails
-    comp_cmds=$(cat arpa_cmake/compile_commands.json)
-    
-    # get stubs from Makefile
-    all_stubs=$(grep 'PROOF_SOURCES += \$(PROOF_STUB).*' Makefile)
-    # get rid of alldeps (including stubs, which will be added later)
-    makefile_arpa=$(sed -e 's-PROOF_SOURCES += \$(PROOF_.*--g' \
+    # remove all dependencies (except stubs) from the current makefile
+    # and add the "include Makefile.arpa" line
+    makefile_for_arpa=$(sed -e 's-PROOF_SOURCES += \$(PROOF_SOURCE).*--g' \
         -e 's-PROJECT_SOURCES += .*--g' \
+        -e 's-include ../Makefile.common-include Makefile.arpa\'$'\ninclude ../Makefile.common-g'\
         Makefile)
-    
-    dep_start=$(grep -n 'PROOF_SOURCES += \$(HARNESS_FILE)' <(echo "$makefile_arpa") | cut -f1 -d:)
-    first_half=$(head -n $dep_start <(echo "$makefile_arpa"))
-    ((dep_next=dep_start+1))
-    second_half=$(tail -n +$dep_next <(echo "$makefile_arpa"))
 
-    makefile_arpa=$(cat  <(echo "$first_half") <(echo "include Makefile.arpa") <(echo -e "$all_stubs") <(echo "$second_half"))
-
-    make goto -f <(echo "$makefile_arpa")
-
+    # get goto functions that are being tested
+    make goto -f <(echo "$makefile_for_arpa")
     get_fcts arpa
 }
 
 
 function write_failure_docs {
     mkdir -p $arpa_log
-    echo "$comp_cmds" > $arpa_log/compile_commands.json
-    echo "$makefile_std" > $arpa_log/Makefile-std
-    echo "$sorted_deps_arpa" > $arpa_log/Makefile.arpa
-    echo "$makefile_arpa" > $arpa_log/Makefile-arpa
-    echo "$fcts_std_clean" > $arpa_log/goto-functions-std
-    echo "$fcts_arpa_clean" > $arpa_log/goto-functions-arpa
+    # documents related to the standard approach
+    cp Makefile $arpa_log/Makefile-for-std
+    echo "$fcts_std_clean" > $arpa_log/goto-functions-for-std
+    # documents related to the arpa approach
+    cp arpa_cmake/compile_commands.json $arpa_log
+    cp Makefile.arpa $arpa_log
+    echo "$makefile_for_arpa" > $arpa_log/Makefile-for-arpa
+    echo "$fcts_arpa_clean" > $arpa_log/goto-functions-for-arpa
 }
 
 
 function write_to_log {
+    # TODO clean this fct
     # WRITE RESULT
     echo "($cnt/$tot_prfs) - $1 - $dir" >> ../$results
 
@@ -176,7 +157,7 @@ function write_to_log {
     # I CAN NEVER SAY THAT THE STUB IS UNNESC BECAUSE I AM KEEPING IT IN MAKEFILE DURING DATA GATHERING
     # I AM ASSUMING THAT ALL STUBS ARE NECESSARY
     ((n_deps_nesc=$n_deps_std-$n_stubs_std))
-    if [ ! "$is_dif" ]; then
+    if [ ! "$failure" ]; then
         # if SUCCESSFUL, adjust number of required deps
         n_deps_nesc=$n_deps_com
         # TODO create a list of unnecessarily included deps
@@ -245,80 +226,91 @@ function write_to_log {
 }
 
 
-function compare_and_report {
+function ask_override {
+    # Overriding can either be done:
 
-    # compare functions list
-    overwrite=""
-    is_dif=$(diff -q <(echo "$fcts_std_clean") \
+    # manually ...
+    if [[ "$manual_override_flag" ]]; then
+        # print the diff to stdout, user may decide to override accordingly
+        echo -e "\n----- Here is the goto functions diff -----\n"
+        diff <(echo "$fcts_std_clean") <(echo "$fcts_arpa_clean")
+        echo ""
+
+        # The above lines may be replaced by the line below, for vs code users
+        # code --diff $arpa_log/goto-functions-for-arpa $arpa_log/goto-functions-for-std
+
+        while true; do
+            read -p "Do you wish to OVERRIDE? " override
+            case $override in
+                [YyNn]* ) return;;
+                * ) echo "Please answer yes or no.";;
+            esac
+        done
+    fi
+
+    # ... or automatically.
+    if [[ "$manual_proof_override" == *"$dir"* ]]; then
+        override="y"
+        return
+    else
+        override="n"
+        return
+    fi
+}
+
+
+function compare_and_report {
+    # COMPARE FUNCTIONS
+    override=""
+    failure=$(diff -q <(echo "$fcts_std_clean") \
         <(echo "$fcts_arpa_clean"))
 
-    # Ask user to MANUALLY confirm if result is correct
-    if [ "$is_dif" ]; then
-        if [[ "$overwrite_files" == *"$dir"* ]]; then
-            is_dif=""
-            overwrite="yes"
-        fi
-
-        # DONE MANUALLY
-        # echo -e "\n----- Here is the goto functions diff -----\n"
-        # diff <(echo "$fcts_std_clean") <(echo "$fcts_arpa_clean")
-        # echo -e "\n----- OVERWRITE? consider as a SUCCESS? -----"
-        # read overwrite
-        # if [ "$overwrite" ]; then
-        #     is_dif=""
-        # fi
-    fi
-    # END TODO
-
-    # report
+    # REPORT RESULTS
     ((n_prfs=n_prfs+1))
-    echo -n "< END - "
-    if [ "$is_dif" ]; then
-        # goto functions are different
-        echo -n "(DIFFERENT)"
-        write_to_log FAILURE
-        write_failure_docs
-    else
-        # goto functions are identical
+    if [ ! "$failure" ]; then
         ((n_succ=n_succ+1))
-        echo -n "(IDENTICAL)"
-        if [ "$overwrite" ]; then
-            write_to_log SUCCESS-OVERWRITE
-            write_failure_docs
+        echo "<END-(IDENTICAL)>"
+        write_to_log SUCCESS
+    else
+        echo "<END-(DIFFERENT)>"
+        write_failure_docs
+        # users may override failures.
+        # This option exists to assess some limitations of this approach.
+        ask_override
+
+        if [[ "$override" == [Yy]* ]]; then
+            ((n_succ=n_succ+1))
+            failure=""
+            echo "<END-(OVERRIDEN)>"
+            overriden_proofs+="$dir "
+            write_to_log SUCCESS-OVERRIDE
+            echo "< Overriden Proofs: $overriden_proofs>"
         else
-            write_to_log SUCCESS
+            not_overriden_proofs+="$dir "
+            write_to_log FAILURE
         fi
-        
-        
     fi
-    echo " >"
-    # echo "$deps_arpa"
 }
 
 
 # MAIN
-initialize
-for dir in s2n_blob_char_to_lower s2n_align_to; do
+initialize $1
+for dir in s2n_blob_zeroize_free; do
     if [ ! -d $dir ]; then
         continue
     fi
     ((cnt=cnt+1))
 
-    cd $dir
-    harness="$dir"_harness.c
-    echo -e "\n< BEGIN - ($dir) >"
-
-    # check if required files exist
-    look_for Makefile
-    look_for $harness
-
-    # define fcts_arpa_clean
-    echo "-- Listing goto functions for ARPA approach"
-    make_arpa > /dev/null
-
+    # proof-specific initializations and checks
+    proof_init
+    
     # define fcts_std_clean
     echo "-- Listing goto functions for STANDARD approach"
     make_std > /dev/null
+    
+    # define fcts_arpa_clean
+    echo "-- Listing goto functions for ARPA approach"
+    make_arpa > /dev/null
 
     # compare goto functions
     echo "-- Comparing results and writing report"
@@ -329,3 +321,4 @@ for dir in s2n_blob_char_to_lower s2n_align_to; do
     cd ..
 done 
 
+echo -e "\nHere are all the proofs that have been overriden:\n< $overriden_proofs >"
