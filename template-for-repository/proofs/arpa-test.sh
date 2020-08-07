@@ -5,6 +5,8 @@
 
 # This script performs  data collection for Arpa.
 # Furthermore, it serves as a validation framework for existing CBMC proofs.
+
+# TODO project-specific list of proofs that fail, but where results should be overriden due to limitations of the validation approach
 # TODO _ remove for s2n
 manual_proof_override="s2n_blob_zeroize_free  s2n_free  s2n_free_object  s2n_pkcs3_to_dh_params  s2n_stuffer_peek_check_for_str  s2n_stuffer_read_expected_str  s2n_stuffer_write_vector_size"
 
@@ -138,31 +140,27 @@ function write_failure_docs {
 }
 
 
-function write_to_log {
-    # TODO clean this fct
-    # WRITE RESULT
-    echo "($cnt/$tot_prfs) - $1 - $dir" >> ../$results
-
+function write_success_rate {
     r_succ=$((n_succ * 100 / n_prfs))
-    echo "  1.-SUCC RATE:#proofs=$n_prfs, #succ=$n_succ, %succ=$r_succ%" >> ../$results
+    echo "  1.-SUCC RATE:#proofs=$n_prfs, #succ=$n_succ, %succ=$r_succ%"
+}
 
-    ##############################
-    ### PER PROOF MEASUREMENTS
-    ##############################
+
+function write_proof_stats {
+
+    # get a list of common dependencies for both approaches (with/without arpa)
     common_deps=$(comm -12 <(echo "$sorted_no_stubs_arpa") <(echo "$sorted_no_stubs_std"))
-    # n_deps_com=$(grep -c -v 'PROOF_SOURCES += \$(PROOF_STUB).*' <(echo "$common_deps"))
     n_deps_com=$(count_lines "$common_deps")
 
-    # case where arpa finds correct result, with less deps
-    # I CAN NEVER SAY THAT THE STUB IS UNNESC BECAUSE I AM KEEPING IT IN MAKEFILE DURING DATA GATHERING
-    # I AM ASSUMING THAT ALL STUBS ARE NECESSARY
+    # necessary dependencies do not include stubs
     ((n_deps_nesc=$n_deps_std-$n_stubs_std))
     if [ ! "$failure" ]; then
-        # if SUCCESSFUL, adjust number of required deps
+        # if the diff is IDENTICAL, this means that the dependencies specified
+        # in bth approaches are necessary and any other dependencies used only
+        # in the standard approach are unnecessary
         n_deps_nesc=$n_deps_com
-        # TODO create a list of unnecessarily included deps
     else
-        # if FAILURE, add not found deps to list
+        # if the diff is DIFFERENT, we assume that arpa is missing some dependencies
         deps_not_found=$(comm -13 <(echo "$sorted_no_stubs_arpa") <(echo "$sorted_no_stubs_std"))
         while read -r l; do
             to_add="$(sed -e 's-.* += --g' <<< "$l" )"
@@ -170,7 +168,13 @@ function write_to_log {
                 list_deps_arpa_cannot_find+="    $to_add\n"
             fi
         done <<< "$deps_not_found"
+        # DISCLAIMER: known limitation
+        # there are cases where the existing Makefile contains a necessary dependency X and an unnecessary dependency Y
+        # if arpa is able to find Y but unable to find X, this validation script will consider that arpa is unable to find 
+        # both X and Y because the diff is DIFFERENT.
     fi
+
+    # unnecessary dependencies do not include stubs
     ((n_deps_unnesc=n_deps_std-n_stubs_std-n_deps_nesc))
     if [ $n_deps_unnesc -gt 0 ]; then
         ((t_pfs_w_unnesc=t_pfs_w_unnesc+1))
@@ -180,47 +184,70 @@ function write_to_log {
     n_missed_deps=$(($n_deps_std-$n_deps_com))
     r_deps_found=$((n_deps_com * 100 / n_deps_nesc))
 
-    # TODO warn if n_deps_arpa > n_deps_com
-    echo "  2.-PROOF STATS : #deps-in-std=$n_deps_std ($n_stubs_std stubs, $n_deps_unnesc unnesc), #deps-in-arpa=$n_deps_arpa ($n_stubs_arpa stubs), #non-stub-deps-in-common=$n_deps_com" >> ../$results
-    echo "     \-ARPA FINDS: %of-nesc-non-stub-deps=$r_deps_found% ($n_deps_com/$n_deps_nesc), #additional-deps=$n_add_deps ($n_stubs_arpa stubs)" >> ../$results
+    echo "  2.-PROOF STATS : #deps-in-std=$n_deps_std ($n_stubs_std stubs, $n_deps_unnesc unnesc), #deps-in-arpa=$n_deps_arpa ($n_stubs_arpa stubs), #non-stub-deps-in-common=$n_deps_com"
+    echo "     \-ARPA FINDS: %of-nesc-non-stub-deps=$r_deps_found% ($n_deps_com/$n_deps_nesc), #additional-deps=$n_add_deps ($n_stubs_arpa stubs)"
+}
 
-    echo "  3.- START DIFF:" >> ../$results
+
+function write_diff {
+    echo "  3.- START DIFF:"
     dif=$(diff <(echo "$sorted_arpa") <(echo "$sorted_std"))
-    sed -e 's-^-    -g' <(echo "$dif") >> ../$results
-    echo "  \-- END DIFF" >> ../$results
+    sed -e 's-^-    -g' <(echo "$dif")
+    echo "    \-- END DIFF"
+}
 
-    ##############################
-    ### RUNNING TOTAL MEASUREMENTS
-    ##############################
-    # assuming Arpa does ot find irrelevant deps
+
+function write_total_stats {
+    # measure running totals and output the relevant values
+
+    # simple running totals measurements
     ((t_deps_std=t_deps_std+n_deps_std))
     ((t_stubs_std=t_stubs_std+n_stubs_std))
     ((t_deps_nesc=t_deps_nesc+n_deps_nesc))
     ((t_deps_unnesc=t_deps_unnesc+n_deps_unnesc))
+
     ((t_deps_arpa=t_deps_arpa+n_deps_arpa))
     ((t_deps_com=t_deps_com+n_deps_com))
-
     ((t_add_deps=t_add_deps+n_add_deps))
     ((t_stubs_arpa=t_stubs_arpa+n_stubs_arpa))
+
+    # total percentage of non-stub necessary dependencies found by arpa
     r_t_deps_found=$((t_deps_com * 100 / t_deps_nesc))
-
-    echo "  4.-TOTAL STATS : #deps-in-std=$t_deps_std ($t_stubs_std stubs, $t_deps_unnesc unnesc in $t_pfs_w_unnesc proofs), #deps-in-arpa=$t_deps_arpa, #non-stub-deps-in-common=$t_deps_com" >> ../$results
-    echo "     \-ARPA FINDS: %of-nesc-non-stub-deps=$r_t_deps_found% ($t_deps_com/$t_deps_nesc), #additional-deps=$t_add_deps ($t_stubs_arpa stubs)" >> ../$results
-
-    ##############################
-    ### AVERAGE RATIO MEASUREMENTS
-    ##############################
+    echo "  4.-TOTAL STATS : #deps-in-std=$t_deps_std ($t_stubs_std stubs, $t_deps_unnesc unnesc in $t_pfs_w_unnesc proofs), #deps-in-arpa=$t_deps_arpa, #non-stub-deps-in-common=$t_deps_com"
+    echo "     \-ARPA FINDS: %of-nesc-non-stub-deps=$r_t_deps_found% ($t_deps_com/$t_deps_nesc), #additional-deps=$t_add_deps ($t_stubs_arpa stubs)"
+    
+    # average percentage of non-stub dependencies found by arpa per proof
     avg_r_deps_found=$(((avg_r_deps_found * (n_prfs -1) + r_deps_found) / n_prfs))
-    echo "     \-AVERAGE   : avg%deps_found_per_proof=$avg_r_deps_found%" >> ../$results
+    echo "     \-AVERAGE   : avg%deps_found_per_proof=$avg_r_deps_found%"
+}
 
-    ##############################
-    ### RELEVANT LISTS
-    ##############################
-    echo "  5.- START DEPS_MISSED_AT_LEAST_ONCE (NOT STUBS):" >> ../$results
-    echo -n -e "$list_deps_arpa_cannot_find" >> ../$results
-    echo "  \-- END DEPS_MISSED_AT_LEAST_ONCE:" >> ../$results
-    # echo "            -DEPS_FOUND_AT_LEAST_ONCE : " >> ../$results
-    # echo "            -DEPS_IRREL_AT_LEAST_ONCE : " >> ../$results
+
+function write_missing_deps {
+    echo "  5.- START DEPS_MISSED_AT_LEAST_ONCE (NOT STUBS):"
+    echo -n -e "$list_deps_arpa_cannot_find"
+    echo "    \-- END DEPS_MISSED_AT_LEAST_ONCE"
+}
+
+function write_overriden_proofs {
+    echo "  6.- START PROOFS_OVERRIDEN_SO_FAR:"
+    echo -n -e "$overriden_proofs"
+    echo "    \-- END PROOFS_OVERRIDEN_SO_FAR"
+}
+
+
+function write_to_log {
+    # general info
+    echo "($cnt/$tot_prfs) - $1 - $dir" >> ../$results
+    write_success_rate >> ../$results
+
+    # proof-specific results
+    write_proof_stats >> ../$results
+    write_diff >> ../$results
+
+    # total results so far
+    write_total_stats >> ../$results
+    write_missing_deps >> ../$results
+    write_overriden_proofs >> ../$results
 
     echo "" >> ../$results
 }
@@ -269,10 +296,10 @@ function compare_and_report {
     ((n_prfs=n_prfs+1))
     if [ ! "$failure" ]; then
         ((n_succ=n_succ+1))
-        echo "<END-(IDENTICAL)>"
+        echo "<($cnt/$tot_prfs)-END-(IDENTICAL)>"
         write_to_log SUCCESS
     else
-        echo "<END-(DIFFERENT)>"
+        echo "<($cnt/$tot_prfs)-END-(DIFFERENT)>"
         write_failure_docs
         # users may override failures.
         # This option exists to assess some limitations of this approach.
@@ -281,10 +308,9 @@ function compare_and_report {
         if [[ "$override" == [Yy]* ]]; then
             ((n_succ=n_succ+1))
             failure=""
-            echo "<END-(OVERRIDEN)>"
-            overriden_proofs+="$dir "
+            echo "<CORRECTION-(OVERRIDEN)>"
+            overriden_proofs+="    $dir\n"
             write_to_log SUCCESS-OVERRIDE
-            echo "< Overriden Proofs: $overriden_proofs>"
         else
             not_overriden_proofs+="$dir "
             write_to_log FAILURE
@@ -295,7 +321,7 @@ function compare_and_report {
 
 # MAIN
 initialize $1
-for dir in s2n_blob_zeroize_free; do
+for dir in *; do
     if [ ! -d $dir ]; then
         continue
     fi
@@ -320,5 +346,3 @@ for dir in s2n_blob_zeroize_free; do
     make veryclean > /dev/null
     cd ..
 done 
-
-echo -e "\nHere are all the proofs that have been overriden:\n< $overriden_proofs >"
