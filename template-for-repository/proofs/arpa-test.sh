@@ -3,29 +3,16 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-# This script performs validation and data collection for Arpa
-
-makefile=Makefile
-results=arpa-test-results.log
-csv=arpa-test-results.csv
-
-overwrite_files="s2n_free_object s2n_mem_cleanup s2n_pkcs3_to_dh_params s2n_stuffer_free"
-# test_files="s2n_stuffer_skip_to_char s2n_free_object s2n_stuffer_send_to_fd s2n_mem_cleanup s2n_pkcs3_to_dh_params s2n_stuffer_free s2n_stuffer_rewrite"
-
-arpa_log=arpa-test-logs
-makefile_std_save=$arpa_log/$makefile
-goto_functions_std=$arpa_log/goto-functions-std
-goto_functions_arpa=$arpa_log/goto-functions-arpa
-
-#data collection
-
-list_deps_arpa_cannot_find+="" 
-# list_deps_arpa_has_found_at_least_once+=""
-# list_deps_that_currently_exist_but_are_irrelevant+="" # case where arpa finds less deps but diff of show_goto_functions is the same
+# This script performs  data collection for Arpa.
+# Furthermore, it serves as a validation framework for existing CBMC proofs.
+manual_proof_override="s2n_free_object s2n_mem_cleanup s2n_pkcs3_to_dh_params s2n_stuffer_free"
 
 
 function initialize {
+    results=arpa-test-results.log
+    arpa_log=arpa-test-logs
     t_pfs_w_unnesc=0
+
     rm -f $results
     tot_prfs=$(ls -l | grep -c ^d)
 }
@@ -34,9 +21,10 @@ function initialize {
 function look_for {
     if [ ! -f $1 ]; then
         echo "-- $1 does not exist in ($dir)." 1>&2
-        echo "<SKIPPING>" 1>&2
+        echo "< SKIPPING >" 1>&2
         cd ..
-        echo "ERROR  -  $dir" >> $results
+        echo "($cnt/$tot_prfs) - ERROR - $dir" >> $results
+        echo -e "  0.- $1 does not exist in ($dir)\n" >> $results
         continue
     fi
 }
@@ -44,7 +32,7 @@ function look_for {
 
 function get_fcts {
     goto_fcts=$(cbmc --show-goto-functions gotos/$harness.goto)
-    # eval fcts_$1="\$goto_fcts"
+    # get rid of comments
     clean_goto_fcts=$(grep -v " *//.*" <<< "$goto_fcts")
     eval fcts_$1_clean="\$clean_goto_fcts"
 }
@@ -56,44 +44,52 @@ function count_lines {
 
 
 function get_deps {
+    #this function defines variables for numeric evaluation at a later stage
+
+    # we consider all dependencies except the harness file itself
     grep_out=$(grep 'PROOF_SOURCES += \$(PROOF_.*\|PROJECT_SOURCES += .*' $2)
     eval deps_$1="\$grep_out"
     n_deps=$(count_lines "$grep_out")
     eval n_deps_$1="\$n_deps"
+
+    # we sort the dependencies as we perform a diff between approaches later on
     sorted=$(sort <<< "$grep_out")
     eval sorted_$1="\$sorted"
+
+    # we remove stubs, as they are not expected to be found by arpa
     sorted_no_stubs=$(grep -v 'PROOF_SOURCES += \$(PROOF_STUB).*' <(echo "$sorted"))
     eval sorted_no_stubs_$1="\$sorted_no_stubs"
     n_non_stubs=$(count_lines "$sorted_no_stubs") 
     ((n_stubs=$n_deps-$n_non_stubs))
     eval n_stubs_$1="\$n_stubs"
-    #in the sorted version, stubs are the last in line
 }
 
 
 function make_std {
     make veryclean
     get_deps std Makefile
-    # NOTE: STUBS ARE LEFT INTACT
-    #get all dependencies and sort
-    all_deps=$(grep 'PROOF_SOURCES += \$(PROOF_SOURCE).*\|PROJECT_SOURCES += .*' $makefile)
-    all_stubs=$(grep 'PROOF_SOURCES += \$(PROOF_STUB).*' $makefile)
-    sorted_deps_std=$(sort <<< "$all_deps")
 
-    # remove existing depenedencies (including stubs, which will be readded later)
+    # get all dependencies (except for the harness itslef and for stubs) and sort
+    # the order of stubs is left intact
+    all_deps=$(grep 'PROOF_SOURCES += \$(PROOF_SOURCE).*\|PROJECT_SOURCES += .*' Makefile)
+    sorted_deps_std=$(sort <<< "$all_deps")
+    all_stubs=$(grep 'PROOF_SOURCES += \$(PROOF_STUB).*' Makefile)
+
+    # remove existing dependencies (including stubs) from the Makefile
     makefile_std=$(sed  -e 's-PROOF_SOURCES += \$(PROOF_.*--g' \
         -e 's-PROJECT_SOURCES += .*--g' \
-        $makefile)
+        Makefile)
+
+    # divide the file at the first dependency "PROOF_SOURCES += \$(HARNESS_FILE)"
     dep_start=$(grep -n 'PROOF_SOURCES += \$(HARNESS_FILE)' <(echo "$makefile_std") | cut -f1 -d:)
     first_half=$(head -n $dep_start <(echo "$makefile_std"))
     ((dep_next=dep_start+1))
     second_half=$(tail -n +$dep_next <(echo "$makefile_std"))
-    #add sorted deps to beginning of file
-    # echo "$sorted_deps_arpa"
+
+    # Add the dependencies 
     add_first=""
     add_next=""
     while read -r l; do
-    # echo "$l"
         if grep -q "$l" <(echo "$sorted_deps_arpa"); then
             add_first+="$l\n"
         else
@@ -101,10 +97,9 @@ function make_std {
         fi
     done <<< "$sorted_deps_std"
 
+    # get 
     makefile_std=$(cat <(echo "$first_half") <(echo -e "$add_first") <(echo -e "$all_stubs")  <(echo -e "$add_next")   <(echo "$second_half"))
-
     make goto -f <(echo "$makefile_std")
-
     get_fcts std
 }
 
@@ -118,9 +113,11 @@ function make_arpa {
 
     # remove includes and defines from Makefile.arpa
     # n_stubs_arpa=$(grep 'PROOF_SOURCES += $(PROOF_STUB).*' Makefile.arpa)
-    sed -i '' -e 's-DEFINES += .*--g' \
-        -e 's-INCLUDES += .*--g' \
-        -e 's-PROOF_SOURCES += $(PROOF_STUB).*--g' \
+    # sed -i '' -e 's-DEFINES += .*--g' \
+    #     -e 's-INCLUDES += .*--g' \
+    #     -e 's-PROOF_SOURCES += $(PROOF_STUB).*--g' \
+    #     Makefile.arpa
+    sed -i '' -e 's-PROOF_SOURCES += $(PROOF_STUB).*--g' \
         Makefile.arpa
     # TODO remove STUBS from Makefile arpa? (after checking if they do exist in makefile)
 
@@ -131,11 +128,11 @@ function make_arpa {
     comp_cmds=$(cat arpa_cmake/compile_commands.json)
     
     # get stubs from Makefile
-    all_stubs=$(grep 'PROOF_SOURCES += \$(PROOF_STUB).*' $makefile)
+    all_stubs=$(grep 'PROOF_SOURCES += \$(PROOF_STUB).*' Makefile)
     # get rid of alldeps (including stubs, which will be added later)
     makefile_arpa=$(sed -e 's-PROOF_SOURCES += \$(PROOF_.*--g' \
         -e 's-PROJECT_SOURCES += .*--g' \
-        $makefile)
+        Makefile)
     
     dep_start=$(grep -n 'PROOF_SOURCES += \$(HARNESS_FILE)' <(echo "$makefile_arpa") | cut -f1 -d:)
     first_half=$(head -n $dep_start <(echo "$makefile_arpa"))
@@ -153,11 +150,11 @@ function make_arpa {
 function write_failure_docs {
     mkdir -p $arpa_log
     echo "$comp_cmds" > $arpa_log/compile_commands.json
-    echo "$makefile_std" > $makefile_std_save-std
-    echo "$sorted_deps_arpa" > $makefile_std_save.arpa
-    echo "$makefile_arpa" > $makefile_std_save-arpa
-    echo "$fcts_std_clean" > $goto_functions_std
-    echo "$fcts_arpa_clean" > $goto_functions_arpa
+    echo "$makefile_std" > $arpa_log/Makefile-std
+    echo "$sorted_deps_arpa" > $arpa_log/Makefile.arpa
+    echo "$makefile_arpa" > $arpa_log/Makefile-arpa
+    echo "$fcts_std_clean" > $arpa_log/goto-functions-std
+    echo "$fcts_arpa_clean" > $arpa_log/goto-functions-arpa
 }
 
 
@@ -249,8 +246,6 @@ function write_to_log {
 
 
 function compare_and_report {
-    # write csv header
-    echo "Proof,Success?,#deps-std,#deps-arpa,#deps-common" > ../$csv
 
     # compare functions list
     overwrite=""
@@ -277,7 +272,7 @@ function compare_and_report {
 
     # report
     ((n_prfs=n_prfs+1))
-    echo -n "<END - "
+    echo -n "< END - "
     if [ "$is_dif" ]; then
         # goto functions are different
         echo -n "(DIFFERENT)"
@@ -303,7 +298,7 @@ function compare_and_report {
 
 # MAIN
 initialize
-for dir in *; do
+for dir in s2n_blob_char_to_lower s2n_align_to; do
     if [ ! -d $dir ]; then
         continue
     fi
@@ -311,14 +306,13 @@ for dir in *; do
 
     cd $dir
     harness="$dir"_harness.c
-    echo -e "\n<BEGIN - ($dir) >"
+    echo -e "\n< BEGIN - ($dir) >"
 
-    # check files
-    look_for $makefile
+    # check if required files exist
+    look_for Makefile
     look_for $harness
 
     # define fcts_arpa_clean
-    # Arpa goes first cuz we assume arpa finds less than or equal to the dependencies in std
     echo "-- Listing goto functions for ARPA approach"
     make_arpa > /dev/null
 
