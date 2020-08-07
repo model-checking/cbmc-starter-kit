@@ -6,7 +6,7 @@
 # This script performs  data collection for Arpa.
 # Furthermore, it serves as a validation framework for existing CBMC proofs.
 
-# TODO project-specific list of proofs that fail, but where results should be overriden due to limitations of the validation approach
+# TODO add project-specific list of proofs that fail, but should be overriden due to limitations of the validation approach
 # TODO _ remove for s2n
 manual_proof_override="s2n_blob_zeroize_free  s2n_free  s2n_free_object  s2n_pkcs3_to_dh_params  s2n_stuffer_peek_check_for_str  s2n_stuffer_read_expected_str  s2n_stuffer_write_vector_size"
 
@@ -185,7 +185,7 @@ function write_proof_stats {
     r_deps_found=$((n_deps_com * 100 / n_deps_nesc))
 
     echo "  2.-PROOF STATS : #deps-in-std=$n_deps_std ($n_stubs_std stubs, $n_deps_unnesc unnesc), #deps-in-arpa=$n_deps_arpa ($n_stubs_arpa stubs), #non-stub-deps-in-common=$n_deps_com"
-    echo "     \-ARPA FINDS: %of-nesc-non-stub-deps=$r_deps_found% ($n_deps_com/$n_deps_nesc), #additional-deps=$n_add_deps ($n_stubs_arpa stubs)"
+    echo "    \-ARPA FINDS: %of-nesc-non-stub-deps=$r_deps_found% ($n_deps_com/$n_deps_nesc), #additional-deps=$n_add_deps ($n_stubs_arpa stubs)"
 }
 
 
@@ -214,11 +214,11 @@ function write_total_stats {
     # total percentage of non-stub necessary dependencies found by arpa
     r_t_deps_found=$((t_deps_com * 100 / t_deps_nesc))
     echo "  4.-TOTAL STATS : #deps-in-std=$t_deps_std ($t_stubs_std stubs, $t_deps_unnesc unnesc in $t_pfs_w_unnesc proofs), #deps-in-arpa=$t_deps_arpa, #non-stub-deps-in-common=$t_deps_com"
-    echo "     \-ARPA FINDS: %of-nesc-non-stub-deps=$r_t_deps_found% ($t_deps_com/$t_deps_nesc), #additional-deps=$t_add_deps ($t_stubs_arpa stubs)"
+    echo "    \-ARPA FINDS: %of-nesc-non-stub-deps=$r_t_deps_found% ($t_deps_com/$t_deps_nesc), #additional-deps=$t_add_deps ($t_stubs_arpa stubs)"
     
     # average percentage of non-stub dependencies found by arpa per proof
     avg_r_deps_found=$(((avg_r_deps_found * (n_prfs -1) + r_deps_found) / n_prfs))
-    echo "     \-AVERAGE   : avg%deps_found_per_proof=$avg_r_deps_found%"
+    echo "    \-AVERAGE   : avg%deps_found_per_proof=$avg_r_deps_found%"
 }
 
 
