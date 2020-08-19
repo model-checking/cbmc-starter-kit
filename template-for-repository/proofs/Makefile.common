@@ -247,14 +247,6 @@ SPACE :=$() $()
 COMMA :=,
 
 ################################################################
-# Useful macros translating filenames
-
-C_FROM_GOTO = $(patsubst $(GOTODIR)%,$(SRCDIR)%,$(1:.goto=.c))
-GOTO_FROM_C = $(patsubst $(SRCDIR)%,$(GOTODIR)%,$(1:.c=.goto))
-LOG_FROM_ENTRY = $(LOGDIR)/$(notdir $(1:.goto=.txt))
-LOG_FROM_GOTO = $(patsubst $(GOTODIR)%,$(LOGDIR)%,$(1:.goto=.txt))
-
-################################################################
 # Set C compiler defines
 
 CBMCFLAGS += --object-bits $(CBMC_OBJECT_BITS) --flush
@@ -280,11 +272,9 @@ $(PROJECT_GOTO)1.goto: $(PROJECT_SOURCES)
 	  --command \
 	    '$(GOTO_CC) $(CBMC_VERBOSITY) --export-file-local-symbols $(COMPILE_FLAGS) $(INCLUDES) $(DEFINES) $^ -o $@' \
 	  --inputs $^ \
-	  --outputs $@ $(call LOG_FROM_ENTRY,$@) \
+	  --outputs $@ \
 	  --pipeline-name $(HARNESS_ENTRY) \
 	  --ci-stage build \
-	  --interleave-stdout-stderr \
-	  --stdout-file $(call LOG_FROM_ENTRY,$@) \
 	  --description "$(HARNESS_ENTRY): building project binary"
 
 # Compile proof sources
@@ -293,11 +283,9 @@ $(PROOF_GOTO)1.goto: $(PROOF_SOURCES)
 	  --command \
 	    '$(GOTO_CC) $(CBMC_VERBOSITY) --export-file-local-symbols $(COMPILE_FLAGS) $(INCLUDES) $(DEFINES) $^ -o $@' \
 	  --inputs $^ \
-	  --outputs $@ $(call LOG_FROM_ENTRY,$@) \
+	  --outputs $@ \
 	  --pipeline-name $(HARNESS_ENTRY) \
 	  --ci-stage build \
-	  --interleave-stdout-stderr \
-	  --stdout-file $(call LOG_FROM_ENTRY,$@) \
 	  --description "$(HARNESS_ENTRY): building proof binary"
 
 # Optionally remove function bodies from project sources
@@ -306,35 +294,29 @@ ifeq ($(REMOVE_FUNCTION_BODY),"")
 	$(LITANI) add-job \
 	  --command 'cp $^ $@' \
 	  --inputs $^ \
-	  --outputs $@ $(call LOG_FROM_ENTRY,$@)\
+	  --outputs $@ \
 	  --pipeline-name $(HARNESS_ENTRY) \
 	  --ci-stage build \
-	  --interleave-stdout-stderr \
-	  --stdout-file $(call LOG_FROM_ENTRY,$@) \
-	  --description "$(HARNESS_ENTRY): not removing function bodies"
+	  --description "$(HARNESS_ENTRY): not removing function bodies from project sources"
 else
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_REMOVE_FUNCTION_BODY) $^ $@' \
 	  --inputs $^ \
-	  --outputs $@ $(call LOG_FROM_ENTRY,$@) \
+	  --outputs $@ \
 	  --pipeline-name $(HARNESS_ENTRY) \
 	  --ci-stage build \
-	  --interleave-stdout-stderr \
-	  --stdout-file $(call LOG_FROM_ENTRY,$@) \
-	  --description "$(HARNESS_ENTRY): removing function bodies"
+	  --description "$(HARNESS_ENTRY): removing function bodies from project sources"
 endif
 
 # Link project and proof sources into the proof harness
 $(HARNESS_GOTO)1.goto: $(PROOF_GOTO)1.goto $(PROJECT_GOTO)2.goto
 	$(LITANI) add-job \
-	  --command '$(GOTO_CC) --function $(HARNESS_ENTRY) $^ -o $@' \
+	  --command '$(GOTO_CC) $(CBMC_VERBOSITY) --function $(HARNESS_ENTRY) $^ -o $@' \
 	  --inputs $^ \
-	  --outputs $@ $(call LOG_FROM_ENTRY,$@) \
+	  --outputs $@ \
 	  --pipeline-name $(HARNESS_ENTRY) \
 	  --ci-stage build \
-	  --interleave-stdout-stderr \
-	  --stdout-file $(call LOG_FROM_ENTRY,$@) \
 	  --description "$(HARNESS_ENTRY): linking project to proof"
 
 # Optionally fill static variable with unconstrained values
@@ -343,22 +325,18 @@ ifeq ($(NONDET_STATIC),"")
 	$(LITANI) add-job \
 	  --command 'cp $^ $@' \
 	  --inputs $^ \
-	  --outputs $@ $(call LOG_FROM_ENTRY,$@)\
+	  --outputs $@ \
 	  --pipeline-name $(HARNESS_ENTRY) \
 	  --ci-stage build \
-	  --interleave-stdout-stderr \
-	  --stdout-file $(call LOG_FROM_ENTRY,$@) \
 	  --description "$(HARNESS_ENTRY): not setting static variables to nondet"
 else
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(NONDET_STATIC) $^ $@' \
 	  --inputs $^ \
-	  --outputs $@ $(call LOG_FROM_ENTRY,$@) \
+	  --outputs $@ \
 	  --pipeline-name $(HARNESS_ENTRY) \
 	  --ci-stage build \
-	  --interleave-stdout-stderr \
-	  --stdout-file $(call LOG_FROM_ENTRY,$@) \
 	  --description "$(HARNESS_ENTRY): setting static variables to nondet"
 endif
 
@@ -368,11 +346,9 @@ $(HARNESS_GOTO)3.goto: $(HARNESS_GOTO)2.goto
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --drop-unused-functions $^ $@' \
 	  --inputs $^ \
-	  --outputs $@ $(call LOG_FROM_ENTRY,$@) \
+	  --outputs $@ \
 	  --pipeline-name $(HARNESS_ENTRY) \
 	  --ci-stage build \
-	  --interleave-stdout-stderr \
-	  --stdout-file $(call LOG_FROM_ENTRY,$@) \
 	  --description "$(HARNESS_ENTRY): dropping unused functions"
 
 # Omit initialization of unused global variables (reduces problem size)
@@ -381,32 +357,20 @@ $(HARNESS_GOTO)4.goto: $(HARNESS_GOTO)3.goto
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --slice-global-inits $^ $@' \
 	  --inputs $^ \
-	  --outputs $@ $(call LOG_FROM_ENTRY,$@) \
+	  --outputs $@ \
 	  --pipeline-name $(HARNESS_ENTRY) \
 	  --ci-stage build \
-	  --interleave-stdout-stderr \
-	  --stdout-file $(call LOG_FROM_ENTRY,$@) \
-	  --description "$(HARNESS_ENTRY): omitting unused global initializations"
+	  --description "$(HARNESS_ENTRY): slicing global initializations"
 
 # Final name for proof harness
 $(HARNESS_GOTO).goto: $(HARNESS_GOTO)4.goto
 	$(LITANI) add-job \
 	  --command 'cp $< $@' \
 	  --inputs $^ \
-	  --outputs $@ $(call LOG_FROM_ENTRY,$@)\
+	  --outputs $@ \
 	  --pipeline-name $(HARNESS_ENTRY) \
 	  --ci-stage build \
-	  --interleave-stdout-stderr \
-	  --stdout-file $(call LOG_FROM_ENTRY,$@) \
 	  --description "$(HARNESS_ENTRY): copying final goto-binary"
-
-_goto: $(HARNESS_GOTO).goto
-	echo $(DEPENDENT_GOTOS)
-goto:
-	$(LITANI) init --project $(PROJECT_NAME)
-	$(MAKE) -B _goto
-	$(LITANI) run-build
-
 
 ################################################################
 # Targets to run Arpa
@@ -452,7 +416,7 @@ $(LOGDIR)/result.xml: $(HARNESS_GOTO).goto
 $(LOGDIR)/property.xml: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
 	  --command \
-	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --show-properties --xml-ui $<' \
+	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --unwinding-assertions --show-properties --xml-ui $<' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --pipeline-name $(HARNESS_ENTRY) \
@@ -474,25 +438,6 @@ $(LOGDIR)/coverage.xml: $(HARNESS_GOTO).goto
 	  --tags "stats-group:coverage computation" \
 	  --description "$(HARNESS_ENTRY): calculating coverage"
 
-_result: $(LOGDIR)/result.txt
-result:
-	$(LITANI) init --project $(PROJECT_NAME)
-	$(MAKE) -B _result
-	$(LITANI) run-build
-
-
-_property: $(LOGDIR)/property.xml
-property:
-	$(LITANI) init --project $(PROJECT_NAME)
-	$(MAKE) -B _property
-	$(LITANI) run-build
-
-_coverage: $(LOGDIR)/coverage.xml
-coverage:
-	$(LITANI) init --project $(PROJECT_NAME)
-	$(MAKE) -B _coverage
-	$(LITANI) run-build
-
 define VIEWER_CMD
   $(VIEWER) \
     --result $(LOGDIR)/result.txt \
@@ -504,7 +449,7 @@ define VIEWER_CMD
 endef
 export VIEWER_CMD
 
-_report: $(LOGDIR)/result.txt $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
+$(PROOFDIR)/html: $(LOGDIR)/result.txt $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
 	$(LITANI) add-job \
 	  --command "$$VIEWER_CMD" \
 	  --inputs $^ \
@@ -512,17 +457,8 @@ _report: $(LOGDIR)/result.txt $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
 	  --pipeline-name $(HARNESS_ENTRY) \
 	  --ci-stage report \
 	  --tags "stats-group:report generation" \
-	  --interleave-stdout-stderr \
 	  --description "$(HARNESS_ENTRY): generating report"
-report:
-	$(LITANI) init --project $(PROJECT_NAME)
-	$(MAKE) -B _report
-	$(LITANI) run-build
 
-report:
-	$(LITANI) init --project $(PROJECT_NAME)
-	$(MAKE) -B _report
-	$(LITANI) run-build
 
 # Caution: run make-source before running property and coverage checking
 # The current make-source script removes the goto binary
@@ -546,7 +482,7 @@ export VIEWER2_CMD
 # Omit logs/source.json from report generation until make-sources
 # works correctly with Makefiles that invoke the compiler with
 # mutliple source files at once.
-_report2: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
+$(PROOFDIR)/report: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
 	$(LITANI) add-job \
 	  --command "$$VIEWER2_CMD" \
 	  --inputs $^ \
@@ -555,18 +491,55 @@ _report2: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
 	  --ci-stage report \
 	  --tags "stats-group:report generation" \
 	  --description "$(HARNESS_ENTRY): generating report"
-report2:
-	$(LITANI) init --project $(PROJECT_NAME)
-	$(MAKE) -B _report2
-	$(LITANI) run-build
-
-report2:
-	$(LITANI) init --project $(PROJECT_NAME)
-	$(MAKE) -B _report2
-	$(LITANI) run-build
 
 litani-path:
 	@echo $(LITANI)
+
+# ##############################################################
+# Phony Rules
+#
+#	These rules provide a convenient way to run a single proof up to a
+#	certain stage. Users can browse into a proof directory and run
+#	"make -Bj 3 report" to generate a report for just that proof, or
+#	"make goto" to build the goto binary. Under the hood, this runs litani
+#	for just that proof.
+
+_goto: $(HARNESS_GOTO).goto
+goto:
+	$(LITANI) init --project $(PROJECT_NAME)
+	$(MAKE) -B _goto
+	$(LITANI) run-build
+
+_result: $(LOGDIR)/result.txt
+result:
+	$(LITANI) init --project $(PROJECT_NAME)
+	$(MAKE) -B _result
+	$(LITANI) run-build
+
+_property: $(LOGDIR)/property.xml
+property:
+	$(LITANI) init --project $(PROJECT_NAME)
+	$(MAKE) -B _property
+	$(LITANI) run-build
+
+_coverage: $(LOGDIR)/coverage.xml
+coverage:
+	$(LITANI) init --project $(PROJECT_NAME)
+	$(MAKE) -B _coverage
+	$(LITANI) run-build
+
+_report: $(PROOFDIR)/html
+report:
+	$(LITANI) init --project $(PROJECT_NAME)
+	$(MAKE) -B _report
+	$(LITANI) run-build
+
+_report2: $(PROOFDIR)/report
+report2:
+	$(LITANI) init --project $(PROJECT_NAME)
+	$(MAKE) -B _report2
+	$(LITANI) run-build
+
 
 ################################################################
 # Targets to clean up after ourselves
@@ -582,24 +555,24 @@ veryclean: clean
 	-$(RM) -r $(LOGDIR) $(GOTODIR)
 
 .PHONY: \
+  _coverage \
+  _goto \
+  _property \
+  _report \
+  _report2 \
+  _result \
   arpa \
   clean \
   coverage \
-  _coverage \
   goto \
-  _goto \
   litani-path \
   property \
-  _property \
   report \
-  _report \
   report2 \
-  _report2 \
   result \
-  _result \
+  setup_dependencies \
   testdeps \
   veryclean \
-  setup_dependencies \
   #
 
 ################################################################
