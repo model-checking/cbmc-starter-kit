@@ -433,6 +433,7 @@ veryclean: clean
 
 JOB_OS ?= ubuntu16
 JOB_MEMORY ?= 32000
+EXPECTED ?= SUCCESSFUL
 
 define yaml_encode_options
 	"$(shell echo $(1) | sed 's/ ,/ /g' | sed 's/ /;/g')"
@@ -445,7 +446,7 @@ cbmc-batch.yaml:
 	@echo 'build_memory: $(JOB_MEMORY)' > $@
 	@echo 'cbmcflags: $(strip $(call yaml_encode_options,$(CI_FLAGS)))' >> $@
 	@echo 'coverage_memory: $(JOB_MEMORY)' >> $@
-	@echo "expected: SUCCESSFUL" >> $@
+	@echo "expected: $(EXPECTED)" >> $@
 	@echo "goto: $(HARNESS_GOTO).goto" >> $@
 	@echo "jobos: $(JOB_OS)" >> $@
 	@echo 'property_memory: $(JOB_MEMORY)' >> $@
