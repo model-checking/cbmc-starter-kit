@@ -433,6 +433,10 @@ veryclean: clean
 
 JOB_OS ?= ubuntu16
 JOB_MEMORY ?= 32000
+
+# Proofs that are expected to fail should set EXPECTED to
+# "FAILED" in their Makefile. Values other than SUCCESSFUL
+# or FAILED will cause a CI error.
 EXPECTED ?= SUCCESSFUL
 
 define yaml_encode_options
