@@ -446,9 +446,9 @@ cbmc-batch.yaml:
 	@echo 'build_memory: $(JOB_MEMORY)' > $@
 	@echo 'cbmcflags: $(strip $(call yaml_encode_options,$(CI_FLAGS)))' >> $@
 	@echo 'coverage_memory: $(JOB_MEMORY)' >> $@
-	@echo "expected: $(EXPECTED)" >> $@
-	@echo "goto: $(HARNESS_GOTO).goto" >> $@
-	@echo "jobos: $(JOB_OS)" >> $@
+	@echo 'expected: $(EXPECTED)' >> $@
+	@echo 'goto: $(HARNESS_GOTO).goto' >> $@
+	@echo 'jobos: $(JOB_OS)' >> $@
 	@echo 'property_memory: $(JOB_MEMORY)' >> $@
 	@echo 'report_memory: $(JOB_MEMORY)' >> $@
 
