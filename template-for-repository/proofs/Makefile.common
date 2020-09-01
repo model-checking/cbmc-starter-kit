@@ -95,7 +95,7 @@ sinclude $(PROOF_ROOT)/Makefile-project-defines
 sinclude $(PROOF_ROOT)/Makefile-template-defines
 
 # SRCDIR is the path to the root of the source tree
-SRCDIR ?= $(abspath $(../..)
+SRCDIR ?= $(abspath ../..)
 
 # PROOFDIR is the path to the directory containing the proof harness
 PROOFDIR ?= $(abspath .)
