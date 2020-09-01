@@ -119,6 +119,7 @@ CHECKFLAGS += --float-overflow-check
 CHECKFLAGS += --nan-check
 CHECKFLAGS += --pointer-check
 CHECKFLAGS += --pointer-overflow-check
+CHECKFLAGS += --pointer-primitive-check
 CHECKFLAGS += --signed-overflow-check
 CHECKFLAGS += --undefined-shift-check
 CHECKFLAGS += --unsigned-overflow-check
