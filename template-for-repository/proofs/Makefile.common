@@ -112,6 +112,9 @@ CBMCDIR ?= $(PROOF_ROOT)/cbmc
 CBMCFLAGS += --unwind 1 $(CBMC_UNWINDSET)
 
 # Additional CBMC flags used for property checking
+ifneq ($(EXTERNAL_SAT_SOLVER),)
+   CHECKFLAGS += --external-sat-solver $(EXTERNAL_SAT_SOLVER)
+endif
 CHECKFLAGS += --bounds-check
 CHECKFLAGS += --conversion-check
 CHECKFLAGS += --div-by-zero-check
