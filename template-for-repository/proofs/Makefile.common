@@ -95,7 +95,7 @@ sinclude $(PROOF_ROOT)/Makefile-project-defines
 sinclude $(PROOF_ROOT)/Makefile-template-defines
 
 # SRCDIR is the path to the root of the source tree
-SRCDIR ?= $(abspath $(../..)
+SRCDIR ?= $(abspath ../..)
 
 # PROOFDIR is the path to the directory containing the proof harness
 PROOFDIR ?= $(abspath .)
@@ -110,6 +110,11 @@ CBMCDIR ?= $(PROOF_ROOT)/cbmc
 
 # Default CBMC flags used for property checking and coverage checking
 CBMCFLAGS += --unwind 1 $(CBMC_UNWINDSET)
+CBMCFLAGS += --malloc-may-fail
+CBMCFLAGS += --malloc-fail-null
+
+# Removed DISABLED_FLAGS from CBMCFLAGS
+CBMCFLAGS := $(filter-out $(DISABLED_FLAGS),$(CBMCFLAGS))
 
 # Additional CBMC flags used for property checking
 ifneq ($(strip $(EXTERNAL_SAT_SOLVER)),)
@@ -122,9 +127,13 @@ CHECKFLAGS += --float-overflow-check
 CHECKFLAGS += --nan-check
 CHECKFLAGS += --pointer-check
 CHECKFLAGS += --pointer-overflow-check
+CHECKFLAGS += --pointer-primitive-check
 CHECKFLAGS += --signed-overflow-check
 CHECKFLAGS += --undefined-shift-check
 CHECKFLAGS += --unsigned-overflow-check
+
+# Removed DISABLED_FLAGS from CHECKFLAGS
+CHECKFLAGS := $(filter-out $(DISABLED_FLAGS),$(CHECKFLAGS))
 
 # Additional CBMC flags used for coverage checking
 COVERFLAGS +=

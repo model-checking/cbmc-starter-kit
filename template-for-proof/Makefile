@@ -1,8 +1,15 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-HARNESS_ENTRY=harness
-HARNESS_FILE=<__FUNCTION_NAME__>_harness
+# Additional flags for CBMC
+CBMCFLAGS +=
+CHECKFLAGS +=
+
+# Disabled CBMC flags
+DISABLED_FLAGS =
+
+HARNESS_ENTRY = harness
+HARNESS_FILE = <__FUNCTION_NAME__>_harness
 
 DEFINES +=
 INCLUDES +=
