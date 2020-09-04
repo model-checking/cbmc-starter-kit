@@ -113,7 +113,7 @@ CBMCFLAGS += --malloc-fail-null
 CBMCFLAGS += --malloc-may-fail
 CBMCFLAGS += --unwind 1 $(CBMC_UNWINDSET)
 
-# Removed DISABLED_FLAGS from CBMCFLAGS
+# Remove DISABLED_FLAGS from CBMCFLAGS
 CBMCFLAGS := $(filter-out $(DISABLED_FLAGS),$(CBMCFLAGS))
 
 # Additional CBMC flags used for property checking
@@ -132,7 +132,7 @@ CHECKFLAGS += --signed-overflow-check
 CHECKFLAGS += --undefined-shift-check
 CHECKFLAGS += --unsigned-overflow-check
 
-# Removed DISABLED_FLAGS from CHECKFLAGS
+# Remove DISABLED_FLAGS from CHECKFLAGS
 CHECKFLAGS := $(filter-out $(DISABLED_FLAGS),$(CHECKFLAGS))
 
 # Additional CBMC flags used for coverage checking
