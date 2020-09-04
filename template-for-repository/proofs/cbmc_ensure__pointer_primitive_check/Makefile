@@ -5,6 +5,8 @@ UNWINDSET +=
 
 CBMCFLAGS +=
 
+CHECKFLAGS += --pointer-primitive-check
+
 EXPECTED = FAILED
 
 HARNESS_ENTRY = cbmc_ensure__pointer_primitive_check_harness
