@@ -109,9 +109,9 @@ PROOFDIR ?= $(abspath .)
 CBMCDIR ?= $(PROOF_ROOT)/cbmc
 
 # Default CBMC flags used for property checking and coverage checking
-CBMCFLAGS += --unwind 1 $(CBMC_UNWINDSET)
-CBMCFLAGS += --malloc-may-fail
 CBMCFLAGS += --malloc-fail-null
+CBMCFLAGS += --malloc-may-fail
+CBMCFLAGS += --unwind 1 $(CBMC_UNWINDSET)
 
 # Removed DISABLED_FLAGS from CBMCFLAGS
 CBMCFLAGS := $(filter-out $(DISABLED_FLAGS),$(CBMCFLAGS))
