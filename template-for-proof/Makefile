@@ -4,6 +4,10 @@
 HARNESS_ENTRY=harness
 HARNESS_FILE=<__FUNCTION_NAME__>_harness
 
+# This should be a unique identifier for this proof, and will appear on the
+# Litani dashboard. It can be human-readable and contain spaces if you wish.
+PROOF_UID = <__FUNCTION_NAME__>
+
 DEFINES +=
 INCLUDES +=
 
