@@ -37,6 +37,7 @@
 #
 #         HARNESS_FILE=<HARNESS_FILE>
 #         HARNESS_ENTRY=<HARNESS_ENTRY>
+#         PROOF_UID=<PROOF_UID>
 #
 #         PROJECT_SOURCES += $(SRCDIR)/libraries/api_1.c
 #         PROJECT_SOURCES += $(SRCDIR)/libraries/api_2.c
@@ -273,9 +274,9 @@ $(PROJECT_GOTO)1.goto: $(PROJECT_SOURCES)
 	    '$(GOTO_CC) $(CBMC_VERBOSITY) --export-file-local-symbols $(COMPILE_FLAGS) $(INCLUDES) $(DEFINES) $^ -o $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
-	  --description "$(HARNESS_ENTRY): building project binary"
+	  --description "$(PROOF_UID): building project binary"
 
 # Compile proof sources
 $(PROOF_GOTO)1.goto: $(PROOF_SOURCES)
@@ -284,9 +285,9 @@ $(PROOF_GOTO)1.goto: $(PROOF_SOURCES)
 	    '$(GOTO_CC) $(CBMC_VERBOSITY) --export-file-local-symbols $(COMPILE_FLAGS) $(INCLUDES) $(DEFINES) $^ -o $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
-	  --description "$(HARNESS_ENTRY): building proof binary"
+	  --description "$(PROOF_UID): building proof binary"
 
 # Optionally remove function bodies from project sources
 $(PROJECT_GOTO)2.goto: $(PROJECT_GOTO)1.goto
@@ -295,18 +296,18 @@ ifeq ($(REMOVE_FUNCTION_BODY),"")
 	  --command 'cp $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
-	  --description "$(HARNESS_ENTRY): not removing function bodies from project sources"
+	  --description "$(PROOF_UID): not removing function bodies from project sources"
 else
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_REMOVE_FUNCTION_BODY) $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
-	  --description "$(HARNESS_ENTRY): removing function bodies from project sources"
+	  --description "$(PROOF_UID): removing function bodies from project sources"
 endif
 
 # Link project and proof sources into the proof harness
@@ -315,9 +316,9 @@ $(HARNESS_GOTO)1.goto: $(PROOF_GOTO)1.goto $(PROJECT_GOTO)2.goto
 	  --command '$(GOTO_CC) $(CBMC_VERBOSITY) --function $(HARNESS_ENTRY) $^ -o $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
-	  --description "$(HARNESS_ENTRY): linking project to proof"
+	  --description "$(PROOF_UID): linking project to proof"
 
 # Optionally fill static variable with unconstrained values
 $(HARNESS_GOTO)2.goto: $(HARNESS_GOTO)1.goto
@@ -326,18 +327,18 @@ ifeq ($(NONDET_STATIC),"")
 	  --command 'cp $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
-	  --description "$(HARNESS_ENTRY): not setting static variables to nondet"
+	  --description "$(PROOF_UID): not setting static variables to nondet"
 else
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(NONDET_STATIC) $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
-	  --description "$(HARNESS_ENTRY): setting static variables to nondet"
+	  --description "$(PROOF_UID): setting static variables to nondet"
 endif
 
 # Omit unused functions (sharpens coverage calculations)
@@ -347,9 +348,9 @@ $(HARNESS_GOTO)3.goto: $(HARNESS_GOTO)2.goto
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --drop-unused-functions $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
-	  --description "$(HARNESS_ENTRY): dropping unused functions"
+	  --description "$(PROOF_UID): dropping unused functions"
 
 # Omit initialization of unused global variables (reduces problem size)
 $(HARNESS_GOTO)4.goto: $(HARNESS_GOTO)3.goto
@@ -358,9 +359,9 @@ $(HARNESS_GOTO)4.goto: $(HARNESS_GOTO)3.goto
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --slice-global-inits $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
-	  --description "$(HARNESS_ENTRY): slicing global initializations"
+	  --description "$(PROOF_UID): slicing global initializations"
 
 # Final name for proof harness
 $(HARNESS_GOTO).goto: $(HARNESS_GOTO)4.goto
@@ -368,9 +369,9 @@ $(HARNESS_GOTO).goto: $(HARNESS_GOTO)4.goto
 	  --command 'cp $< $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
-	  --description "$(HARNESS_ENTRY): copying final goto-binary"
+	  --description "$(PROOF_UID): copying final goto-binary"
 
 ################################################################
 # Targets to run Arpa
@@ -393,12 +394,12 @@ $(LOGDIR)/result.txt: $(HARNESS_GOTO).goto
 	    '$(CBMC) $(CBMC_VERBOSITY) --flush $(CBMCFLAGS) $(CHECKFLAGS) --unwinding-assertions --trace $<' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage test \
 	  --stdout-file $@ \
 	  --ignore-returns 10 \
 	  --tags "stats-group:safety checks" \
-	  --description "$(HARNESS_ENTRY): checking safety properties"
+	  --description "$(PROOF_UID): checking safety properties"
 
 $(LOGDIR)/result.xml: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
@@ -406,12 +407,12 @@ $(LOGDIR)/result.xml: $(HARNESS_GOTO).goto
 	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --unwinding-assertions --trace --xml-ui $<' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage test \
 	  --stdout-file $@ \
 	  --ignore-returns 10 \
 	  --tags "stats-group:safety checks" \
-	  --description "$(HARNESS_ENTRY): checking safety properties"
+	  --description "$(PROOF_UID): checking safety properties"
 
 $(LOGDIR)/property.xml: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
@@ -419,11 +420,11 @@ $(LOGDIR)/property.xml: $(HARNESS_GOTO).goto
 	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --unwinding-assertions --show-properties --xml-ui $<' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage test \
 	  --stdout-file $@ \
 	  --ignore-returns 10 \
-	  --description "$(HARNESS_ENTRY): printing safety properties"
+	  --description "$(PROOF_UID): printing safety properties"
 
 $(LOGDIR)/coverage.xml: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
@@ -431,12 +432,12 @@ $(LOGDIR)/coverage.xml: $(HARNESS_GOTO).goto
 	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(COVERFLAGS) --cover location --xml-ui $<' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage test \
 	  --stdout-file $@ \
 	  --ignore-returns 10 \
 	  --tags "stats-group:coverage computation" \
-	  --description "$(HARNESS_ENTRY): calculating coverage"
+	  --description "$(PROOF_UID): calculating coverage"
 
 define VIEWER_CMD
   $(VIEWER) \
@@ -454,10 +455,10 @@ $(PROOFDIR)/html: $(LOGDIR)/result.txt $(LOGDIR)/property.xml $(LOGDIR)/coverage
 	  --command "$$VIEWER_CMD" \
 	  --inputs $^ \
 	  --outputs $(PROOFDIR)/html \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage report \
 	  --tags "stats-group:report generation" \
-	  --description "$(HARNESS_ENTRY): generating report"
+	  --description "$(PROOF_UID): generating report"
 
 
 # Caution: run make-source before running property and coverage checking
@@ -487,10 +488,10 @@ $(PROOFDIR)/report: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/covera
 	  --command "$$VIEWER2_CMD" \
 	  --inputs $^ \
 	  --outputs $(PROOFDIR)/report \
-	  --pipeline-name $(HARNESS_ENTRY) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage report \
 	  --tags "stats-group:report generation" \
-	  --description "$(HARNESS_ENTRY): generating report"
+	  --description "$(PROOF_UID): generating report"
 
 litani-path:
 	@echo $(LITANI)
@@ -606,6 +607,16 @@ cbmc-batch.yaml:
 	@echo 'report_memory: $(JOB_MEMORY)' >> $@
 
 .PHONY: cbmc-batch.yaml
+
+################################################################
+
+# Run "make echo-proof-uid" to print the proof ID of a proof. This can be
+# used by scripts to ensure that every proof has an ID, that there are
+# no duplicates, etc.
+
+.PHONY: echo-proof-uid
+echo-proof-uid:
+	@echo $(PROOF_UID)
 
 ################################################################
 
