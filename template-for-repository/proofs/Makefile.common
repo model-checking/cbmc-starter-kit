@@ -109,31 +109,40 @@ PROOFDIR ?= $(abspath .)
 CBMCDIR ?= $(PROOF_ROOT)/cbmc
 
 # Default CBMC flags used for property checking and coverage checking
-CBMCFLAGS += --malloc-fail-null
-CBMCFLAGS += --malloc-may-fail
 CBMCFLAGS += --unwind 1 $(CBMC_UNWINDSET)
-
-# Remove DISABLED_FLAGS from CBMCFLAGS
-CBMCFLAGS := $(filter-out $(DISABLED_FLAGS),$(CBMCFLAGS))
 
 # Additional CBMC flags used for property checking
 ifneq ($(strip $(EXTERNAL_SAT_SOLVER)),)
    CHECKFLAGS += --external-sat-solver $(EXTERNAL_SAT_SOLVER)
 endif
-CHECKFLAGS += --bounds-check
-CHECKFLAGS += --conversion-check
-CHECKFLAGS += --div-by-zero-check
-CHECKFLAGS += --float-overflow-check
-CHECKFLAGS += --nan-check
-CHECKFLAGS += --pointer-check
-CHECKFLAGS += --pointer-overflow-check
-CHECKFLAGS += --pointer-primitive-check
-CHECKFLAGS += --signed-overflow-check
-CHECKFLAGS += --undefined-shift-check
-CHECKFLAGS += --unsigned-overflow-check
 
-# Remove DISABLED_FLAGS from CHECKFLAGS
-CHECKFLAGS := $(filter-out $(DISABLED_FLAGS),$(CHECKFLAGS))
+CBMC_FLAG_MALLOC_MAY_FAIL ?= --malloc-may-fail
+CBMC_FLAG_MALLOC_FAIL_NULL ?= --malloc-fail-null
+CBMC_FLAG_BOUNDS_CHECK ?= --bounds-check
+CHECK_FLAG_CONVERSION_CHECK ?= --conversion-check
+CHECK_FLAG_DIV_BY_ZERO_CHECK ?= --div-by-zero-check
+CHECK_FLAG_FLOAT_OVERFLOW_CHECK ?= --float-overflow-check
+CHECK_FLAG_NAN_CHECK ?= --nan-check
+CHECK_FLAG_POINTER_CHECK ?= --pointer-check
+CHECK_FLAG_POINTER_OVERFLOW_CHECK ?= --pointer-overflow-check
+CHECK_FLAG_POINTER_PRIMITIVE_CHECK ?= --pointer-primitive-check
+CHECK_FLAG_SIGNED_OVERFLOW_CHECK ?= --signed-overflow-check
+CHECK_FLAG_UNDEFINED_SHIFT_CHECK ?= --undefined-shift-check
+CHECK_FLAG_UNSIGNED_OVERFLOW_CHECK ?= --unsigned-overflow-check
+
+CHECKFLAGS += $(CBMC_FLAG_MALLOC_MAY_FAIL)
+CHECKFLAGS += $(CBMC_FLAG_MALLOC_FAIL_NULL)
+CHECKFLAGS += $(CBMC_FLAG_BOUNDS_CHECK)
+CHECKFLAGS += $(CBMC_FLAG_CONVERSION_CHECK)
+CHECKFLAGS += $(CBMC_FLAG_DIV_BY_ZERO_CHECK)
+CHECKFLAGS += $(CBMC_FLAG_FLOAT_OVERFLOW_CHECK)
+CHECKFLAGS += $(CBMC_FLAG_NAN_CHECK)
+CHECKFLAGS += $(CBMC_FLAG_POINTER_CHECK)
+CHECKFLAGS += $(CBMC_FLAG_POINTER_OVERFLOW_CHECK)
+CHECKFLAGS += $(CBMC_FLAG_POINTER_PRIMITIVE_CHECK)
+CHECKFLAGS += $(CBMC_FLAG_SIGNED_OVERFLOW_CHECK)
+CHECKFLAGS += $(CBMC_FLAG_UNDEFINED_SHIFT_CHECK)
+CHECKFLAGS += $(CBMC_FLAG_UNSIGNED_OVERFLOW_CHECK)
 
 # Additional CBMC flags used for coverage checking
 COVERFLAGS +=
