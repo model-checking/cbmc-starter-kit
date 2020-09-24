@@ -6,7 +6,7 @@
 /**
  * A negative test for --signed-overflow-check flag
  */
-void signed_overflow_check_harness() {
-    int overflow, offset;
-    overflow += offset;
+void signed_underflow_check_harness() {
+    int underflow, offset;
+    underflow -= offset;
 }
