@@ -111,24 +111,36 @@ CBMCDIR ?= $(PROOF_ROOT)/cbmc
 # Default CBMC flags used for property checking and coverage checking
 CBMCFLAGS += --unwind 1 $(CBMC_UNWINDSET)
 
-# Additional CBMC flags used for property checking
 ifneq ($(strip $(EXTERNAL_SAT_SOLVER)),)
    CHECKFLAGS += --external-sat-solver $(EXTERNAL_SAT_SOLVER)
 endif
 
+# Additional CBMC flags used for property checking
+#
+# Each variable below controls a specific property checking flag
+# within CBMC. If desired, a property flag can be disabled within
+# a particular proof by nulling the corresponding variable. For
+# instance, the following line:
+#
+#     CHECK_FLAG_POINTER_CHECK =
+#
+# would disable the --pointer-check CBMC flag within:
+#
+# a. an entire project when added to Makefile-project-defines
+# b. a specific proof when added to the harness Makefile
 CBMC_FLAG_MALLOC_MAY_FAIL ?= --malloc-may-fail
 CBMC_FLAG_MALLOC_FAIL_NULL ?= --malloc-fail-null
 CBMC_FLAG_BOUNDS_CHECK ?= --bounds-check
-CHECK_FLAG_CONVERSION_CHECK ?= --conversion-check
-CHECK_FLAG_DIV_BY_ZERO_CHECK ?= --div-by-zero-check
-CHECK_FLAG_FLOAT_OVERFLOW_CHECK ?= --float-overflow-check
-CHECK_FLAG_NAN_CHECK ?= --nan-check
-CHECK_FLAG_POINTER_CHECK ?= --pointer-check
-CHECK_FLAG_POINTER_OVERFLOW_CHECK ?= --pointer-overflow-check
-CHECK_FLAG_POINTER_PRIMITIVE_CHECK ?= --pointer-primitive-check
-CHECK_FLAG_SIGNED_OVERFLOW_CHECK ?= --signed-overflow-check
-CHECK_FLAG_UNDEFINED_SHIFT_CHECK ?= --undefined-shift-check
-CHECK_FLAG_UNSIGNED_OVERFLOW_CHECK ?= --unsigned-overflow-check
+CBMC_FLAG_CONVERSION_CHECK ?= --conversion-check
+CBMC_FLAG_DIV_BY_ZERO_CHECK ?= --div-by-zero-check
+CBMC_FLAG_FLOAT_OVERFLOW_CHECK ?= --float-overflow-check
+CBMC_FLAG_NAN_CHECK ?= --nan-check
+CBMC_FLAG_POINTER_CHECK ?= --pointer-check
+CBMC_FLAG_POINTER_OVERFLOW_CHECK ?= --pointer-overflow-check
+CBMC_FLAG_POINTER_PRIMITIVE_CHECK ?= --pointer-primitive-check
+CBMC_FLAG_SIGNED_OVERFLOW_CHECK ?= --signed-overflow-check
+CBMC_FLAG_UNDEFINED_SHIFT_CHECK ?= --undefined-shift-check
+CBMC_FLAG_UNSIGNED_OVERFLOW_CHECK ?= --unsigned-overflow-check
 
 CHECKFLAGS += $(CBMC_FLAG_MALLOC_MAY_FAIL)
 CHECKFLAGS += $(CBMC_FLAG_MALLOC_FAIL_NULL)
