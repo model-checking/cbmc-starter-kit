@@ -6,8 +6,8 @@ with the complete set of property-checking flags
 which we consider to be part of the best practice.
 
 To enable these tests in CI jobs,
-copy the negative test directories into `../proofs`.
+copy this (`negative_tests`) directory into `../proofs`.
 
 If a property-checking flag is not used used by your project,
 you might want to disable the corresponding negative test.
-To do so, simply delete the particular negative test directory from `../proofs`.
+To do so, simply delete the particular test directory from `../proofs/negative_tests`.
