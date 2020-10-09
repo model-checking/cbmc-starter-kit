@@ -49,10 +49,10 @@ def main():
     logging.basicConfig(format='%(levelname)s: %(message)s')
 
     print("What is the function name?  ", end="")
-    function = input()
+    function = input().strip()
 
     print("What is the source file that defines the function?  ", end="")
-    source_file = os.path.abspath(os.path.expanduser(input()))
+    source_file = os.path.abspath(os.path.expanduser(input().strip()))
 
     source_root = util.read_source_root()
     proof_root = util.read_proof_root()
