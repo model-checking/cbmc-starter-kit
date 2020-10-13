@@ -51,7 +51,7 @@ These answers should be found in one of three places:
 * Document the decision to omit one of these property-checking flags.
   There are valid reasons to omit them either for a project or for an
   individual proof. But the decision and the reason for the decision
-  must be document either in a project readme or a proof readme file.
+  must be documented either in a project readme or a proof readme file.
 
 * CBMC checks assertions in the code.  This is understood and need not be
   documented.
@@ -67,18 +67,18 @@ These answers should be found in one of three places:
 
 * Define an
   [`is_valid()` predicate](PROOF-WRITING.md##the-is_valid-function)
-  as describe in the training material for every nontrivial data structure.
+  as described in the training material for every nontrivial data structure.
 
 * Gather the definitions of `ensure_allocated` and `is_valid` in a common
   location, most commonly in the `proofs/sources` subdirectory of the
   starter kit.
 
-* Check that every instance of `__CPROVER_assume` appears either a proof
+* Check that every instance of `__CPROVER_assume` appears in a proof
   harness. Some exceptions are required.  For example, it may be necessary
   in an `ensure_allocated` to assume `length < CBMC_MAX_OBJECT_SIZE` before
   invoking `malloc(length)` to avoid a false positive about malloc'ing a
   too-big object. But every instance of `__CPROVER_assume` in supporting code
-  could be copied into the proof harness.  The goal is for all proof
+  should be copied into the proof harness.  The goal is for all proof
   assumptions to be documented in one place.
 
 * Check that every preprocessor definition related to bounds on input size or
