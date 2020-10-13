@@ -26,7 +26,9 @@ These answers should be found in one of three places:
 
 ## Properties checked
 
-* Run cbmc with the following property-checking flags
+Check the following:
+
+* All of the standard property-checking flags are used:
 
 	* --malloc-may-fail
 	* --malloc-fail-null
@@ -42,47 +44,58 @@ These answers should be found in one of three places:
 	* --undefined-shift-check
 	* --unsigned-overflow-check
 
-  The starter kit uses these flags by default.  But the user of the starter kit
-  may disable any one of these flags by editing project Makefile.common or
+  Note that the starter kit uses these flags by default.
+  Note, however, that a developer may disable any one of these flags
+  by editing project Makefile.common or
   by setting a makefile variable to the empty string
   (as in `CBMC_FLAG_MALLOC_MAY_FAIL = `)
   in the project Makefile-project-defines or a proof Makefile.
+  These are the places to look for deviations.
 
-* Document the decision to omit one of these property-checking flags.
-  There are valid reasons to omit them either for a project or for an
+* All deviations from the standard property-checking flags are documented.
+
+  There are valid reasons to omit flags either for a project or for an
   individual proof. But the decision and the reason for the decision
   must be documented either in a project readme or a proof readme file.
 
-* CBMC checks assertions in the code.  This is understood and need not be
-  documented.
+CBMC checks assertions in the code.  This is understood and need not be
+documented.
 
 ## Assumptions made
 
-* Define an
+Check the following:
+
+* All nontrivial data structures have an
   [`ensure_allocated` function](PROOF-WRITING.md#the-ensure_allocated-function)
-  as described in the training material for every nontrivial data structure.
+  as described in the training material.
+
   Feel free to use any naming scheme that makes sense for your project --- some
   projects use `allocate_X` in place of `ensure_allocated_X` --- but be
   consistent.
 
-* Define an
+* All nontrivial data structures have an
   [`is_valid()` predicate](PROOF-WRITING.md##the-is_valid-function)
   as described in the training material for every nontrivial data structure.
 
-* Gather the definitions of `ensure_allocated` and `is_valid` in a common
-  location, most commonly in the `proofs/sources` subdirectory of the
-  starter kit.
+* All definitions of `ensure_allocated` functions and `is_valid` predicates
+  appear in a common location.
 
-* Check that every instance of `__CPROVER_assume` appears in a proof
-  harness. Some exceptions are required.  For example, it may be necessary
+  These definitions are most commonly stored in the `proofs/sources`
+  subdirectory of the starter kit. Definitions are stored here and used
+  consistently in the proofs.
+
+* All instances of `__CPROVER_assume` appear in a proof harness.
+
+  Note that some exceptions are required.  For example, it may be necessary
   in an `ensure_allocated` to assume `length < CBMC_MAX_OBJECT_SIZE` before
   invoking `malloc(length)` to avoid a false positive about malloc'ing a
   too-big object. But every instance of `__CPROVER_assume` in supporting code
   should be copied into the proof harness.  The goal is for all proof
   assumptions to be documented in one place.
 
-* Check that every preprocessor definition related to bounds on input size or
-  otherwise related to proof assumptions is defined in the proof Makefile.
+* All preprocessor definitions related to bounds on input size or
+  otherwise related to proof assumptions appear in the proof Makefile.
+
   In particular, do not embed definitions in the supporting code or header
   files. The goal is for all proof assumptions to be documented in one place.
 
