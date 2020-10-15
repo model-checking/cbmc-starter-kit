@@ -618,6 +618,10 @@ cbmc-batch.yaml:
 echo-proof-uid:
 	@echo $(PROOF_UID)
 
+.PHONY: echo-project-name
+echo-project-name:
+	@echo $(PROJECT_NAME)
+
 ################################################################
 
 # Project-specific targets requiring values defined above
