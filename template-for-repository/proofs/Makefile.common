@@ -83,7 +83,16 @@ default: report
 
 # Absolute path to the directory containing this Makefile.common
 # See https://ftp.gnu.org/old-gnu/Manuals/make-3.80/html_node/make_17.html
-PROOF_ROOT = $(dir $(abspath $(filter %/Makefile.common,$(MAKEFILE_LIST))))
+#
+# Note: We compute the absolute paths to the makefiles in MAKEFILE_LIST
+# before we filter the list of makefiles for %/Makefile.common.
+# Otherwise an invocation of the form "make -f Makefile.common" will set
+# MAKEFILE_LIST to "Makefile.common" which will fail to match the
+# pattern %/Makefile.common.
+#
+MAKEFILE_PATHS = $(foreach makefile,$(MAKEFILE_LIST),$(abspath $(makefile)))
+PROOF_ROOT = $(dir $(filter %/Makefile.common,$(MAKEFILE_PATHS)))
+
 CBMC_ROOT = $(shell dirname $(PROOF_ROOT))
 PROOF_STUB = $(CBMC_ROOT)/stubs
 PROOF_SOURCE = $(CBMC_ROOT)/sources
