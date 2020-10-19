@@ -22,7 +22,7 @@ def read_proof_template(filename):
 
 def write_proof_template(lines, filename, directory):
     with open(os.path.join(directory, filename), "w") as data:
-        data.write('\n'.join(lines)+'\n')
+        data.writelines(line + '\n' for line in lines)
 
 def rename_proof_harness(function, directory):
     shutil.move(os.path.join(directory, "FUNCTION_harness.c"),
