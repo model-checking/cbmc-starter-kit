@@ -48,14 +48,10 @@ def main():
 
     logging.basicConfig(format='%(levelname)s: %(message)s')
 
-    print("What is the function name?  ", end="")
-    function = input()
-
-    print("What is the source file that defines the function?  ", end="")
-    source_file = os.path.abspath(os.path.expanduser(input()))
-
-    source_root = util.read_source_root()
-    proof_root = util.read_proof_root()
+    function = util.read_function_name()
+    source_file = util.read_source_path()
+    source_root = util.read_source_root_path()
+    proof_root = util.read_proof_root_path()
 
     proof_dir = os.path.abspath(function)
     os.mkdir(proof_dir)

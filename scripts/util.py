@@ -36,16 +36,27 @@ def templates_root():
 
     return os.path.dirname(script_dir())
 
-def proof_root(cbmc_root):
-    """Directory containing the CBMC proofs."""
-
-    return os.path.abspath(os.path.join(cbmc_root, PROOF_DIR))
-
 ################################################################
+# Read configuration information from the standard input
+
+def read_from_stdin():
+    return input().strip()
 
 def read_path_from_stdin(description):
-    print("What is the path to {}: ".format(description), end="")
-    return os.path.abspath(os.path.expanduser(input()))
+    print("What is the path to {}? ".format(description), end="")
+    return os.path.abspath(os.path.expanduser(read_from_stdin()))
+
+def read_source_root_path():
+    return read_path_from_stdin("the source root")
+def read_proof_root_path():
+    return read_path_from_stdin("the proof root (the 'proofs' directory)")
+def read_litani_path():
+    return read_path_from_stdin("the litani executable")
+def read_source_path():
+    return read_path_from_stdin("the source file defining the function")
+def read_function_name():
+    print("What is the function name?  ", end="")
+    return read_from_stdin()
 
 ################################################################
 

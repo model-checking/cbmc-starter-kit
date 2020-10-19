@@ -29,11 +29,10 @@ def main():
 
     logging.basicConfig(format='%(levelname)s: %(message)s')
 
-    source_root = util.read_path_from_stdin("the source root")
+    source_root = util.read_source_root_path()
     cbmc_root = os.path.abspath('.')
-    proof_root = util.read_path_from_stdin(
-        "the proof root (the 'proofs' directory)")
-    litani = util.read_path_from_stdin("the litani executable")
+    proof_root = util.read_proof_root_path()
+    litani = util.read_litani_path()
 
     util.copy_repository_templates(cbmc_root)
     create_makefile_template_defines(
