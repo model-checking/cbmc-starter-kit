@@ -63,7 +63,7 @@ def get_project_name():
     logging.debug(" ".join(cmd))
     proc = subprocess.run(cmd, universal_newlines=True, stdout=subprocess.PIPE)
     if proc.returncode:
-        logging.warning("could not run make to determine project name")
+        logging.critical("could not run make to determine project name")
         sys.exit(1)
     if not proc.stdout.strip():
         logging.warning(
@@ -153,7 +153,7 @@ def get_proof_dirs(proof_root, proof_list, proof_marker):
             yield root
 
     if proofs_remaining:
-        logging.error(
+        logging.critical(
             "The following proofs were not found: %s",
             ", ".join(proofs_remaining))
         sys.exit(1)
@@ -167,7 +167,7 @@ def run_build(litani, jobs):
     logging.debug(" ".join(cmd))
     proc = subprocess.run(cmd)
     if proc.returncode:
-        logging.error("Failed to run litani run-build")
+        logging.critical("Failed to run litani run-build")
         sys.exit(1)
 
 
@@ -181,7 +181,7 @@ def get_litani_path(proof_root):
     logging.debug(" ".join(cmd))
     proc = subprocess.run(cmd, universal_newlines=True, stdout=subprocess.PIPE)
     if proc.returncode:
-        logging.error("Could not determine path to litani")
+        logging.critical("Could not determine path to litani")
         sys.exit(1)
     return proc.stdout.strip()
 
@@ -213,13 +213,13 @@ async def main():
         logging.debug(" ".join(cmd))
         proc = subprocess.run(cmd)
         if proc.returncode:
-            logging.error("Failed to run litani init")
+            logging.critical("Failed to run litani init")
             sys.exit(1)
 
     proof_dirs = list(get_proof_dirs(
         proof_root, args.proofs, args.proof_marker))
     if not proof_dirs:
-        logging.error("No proof directories found")
+        logging.critical("No proof directories found")
         sys.exit(1)
 
     proof_queue = asyncio.Queue()
@@ -246,7 +246,7 @@ async def main():
     print("", file=sys.stderr)
 
     if counter["fail"]:
-        logging.error(
+        logging.critical(
             "Failed to configure the following proofs:\n%s", "\n".join(
                 [str(f) for f in counter["fail"]]))
 
