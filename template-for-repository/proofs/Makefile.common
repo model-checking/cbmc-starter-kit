@@ -121,9 +121,19 @@ CBMCDIR ?= $(PROOF_ROOT)/cbmc
 # Default CBMC flags used for property checking and coverage checking
 CBMCFLAGS += --unwind 1 $(CBMC_UNWINDSET) --flush
 
+# Do property checking with the external SAT solver given by
+# EXTERNAL_SAT_SOLVER.  Do coverage checking with the default solver,
+# since coverage checking requires the use of an incremental solver.
+#
+# For a particular proof, if the default solver is faster, do property
+# checking with the default solver by including this definition in the
+# proof Makefile:
+#         USE_EXTERNAL_SAT_SOLVER =
+#
 ifneq ($(strip $(EXTERNAL_SAT_SOLVER)),)
-   CHECKFLAGS += --external-sat-solver $(EXTERNAL_SAT_SOLVER)
+   USE_EXTERNAL_SAT_SOLVER ?= --external-sat-solver $(EXTERNAL_SAT_SOLVER)
 endif
+CHECKFLAGS += $(USE_EXTERNAL_SAT_SOLVER)
 
 # Property checking flags
 #
