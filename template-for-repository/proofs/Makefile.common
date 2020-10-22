@@ -124,6 +124,9 @@ CBMCFLAGS += --unwind 1 $(CBMC_UNWINDSET) --flush
 # Do property checking with the external SAT solver given by
 # EXTERNAL_SAT_SOLVER.  Do coverage checking with the default solver,
 # since coverage checking requires the use of an incremental solver.
+# The EXTERNAL_SAT_SOLVER variable is typically set (if it is at all)
+# as an environment variable or as a makefile variable in
+# Makefile-project-defines.
 #
 # For a particular proof, if the default solver is faster, do property
 # checking with the default solver by including this definition in the
