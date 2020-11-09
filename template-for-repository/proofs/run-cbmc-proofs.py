@@ -160,7 +160,7 @@ def get_proof_dirs(proof_root, proof_list, proof_marker):
 
 
 def run_build(litani, jobs):
-    cmd = [str(litani), "run-build"]
+    cmd = [str(litani), "run-build", "--exit-zero-on-fail"]
     if jobs:
         cmd.extend(["-j", str(jobs)])
 
