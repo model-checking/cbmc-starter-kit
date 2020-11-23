@@ -138,6 +138,36 @@ ifneq ($(strip $(EXTERNAL_SAT_SOLVER)),)
 endif
 CHECKFLAGS += $(USE_EXTERNAL_SAT_SOLVER)
 
+# If these proofs are to be built multiple times with different
+# configurations, each proof needs to have a unique name. The PROOF_UID
+# variable defined in each proof Makefile will be the same each time. So
+# the PROOF_SUFFIX variable can be set to a fresh value by an external
+# process to distinguish between different configurations.
+#
+#	For example, the following sequence:
+#
+#				litani init
+#
+#				EXPORT PROOF_SUFFIX="without_flag"
+#				run-cbmc-proofs.py --no-standalone
+#
+#				EXPORT PROOF_SUFFIX="with_flag"
+#				EXPORT CHECKFLAGS="--my-cool-new-flag"
+#				run-cbmc-proofs.py --no-standalone
+#
+#				litani run-build
+#
+#	will initiate a single litani build that builds the proofs twice, once
+#	with a flag and once without; the proofs' names will be suffixed with
+#	the PROOF_SUFFIX so that they can be distinguished in the report.
+ifneq ($(strip $(PROOF_SUFFIX)),)
+PROOF_UNIQUE_NAME = "$(PROOF_UID)_$(PROOF_SUFFIX)"
+else
+PROOF_UNIQUE_NAME = $(PROOF_UID)
+endif
+
+
+
 # Property checking flags
 #
 # Each variable below controls a specific property checking flag
@@ -334,9 +364,9 @@ $(PROJECT_GOTO)1.goto: $(PROJECT_SOURCES)
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/project_sources-log.txt \
 	  --interleave-stdout-stderr \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --ci-stage build \
-	  --description "$(PROOF_UID): building project binary"
+	  --description "$(PROOF_UNIQUE_NAME): building project binary"
 
 # Compile proof sources
 $(PROOF_GOTO)1.goto: $(PROOF_SOURCES)
@@ -347,9 +377,9 @@ $(PROOF_GOTO)1.goto: $(PROOF_SOURCES)
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/proof_sources-log.txt \
 	  --interleave-stdout-stderr \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --ci-stage build \
-	  --description "$(PROOF_UID): building proof binary"
+	  --description "$(PROOF_UNIQUE_NAME): building proof binary"
 
 # Optionally remove function bodies from project sources
 $(PROJECT_GOTO)2.goto: $(PROJECT_GOTO)1.goto
@@ -358,9 +388,9 @@ ifeq ($(REMOVE_FUNCTION_BODY),"")
 	  --command 'cp $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --ci-stage build \
-	  --description "$(PROOF_UID): not removing function bodies from project sources"
+	  --description "$(PROOF_UNIQUE_NAME): not removing function bodies from project sources"
 else
 	$(LITANI) add-job \
 	  --command \
@@ -369,9 +399,9 @@ else
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/remove_function_body-log.txt \
 	  --interleave-stdout-stderr \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --ci-stage build \
-	  --description "$(PROOF_UID): removing function bodies from project sources"
+	  --description "$(PROOF_UNIQUE_NAME): removing function bodies from project sources"
 endif
 
 # Link project and proof sources into the proof harness
@@ -382,9 +412,9 @@ $(HARNESS_GOTO)1.goto: $(PROOF_GOTO)1.goto $(PROJECT_GOTO)2.goto
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/link_proof_project-log.txt \
 	  --interleave-stdout-stderr \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --ci-stage build \
-	  --description "$(PROOF_UID): linking project to proof"
+	  --description "$(PROOF_UNIQUE_NAME): linking project to proof"
 
 # Optionally fill static variable with unconstrained values
 $(HARNESS_GOTO)2.goto: $(HARNESS_GOTO)1.goto
@@ -393,9 +423,9 @@ ifeq ($(NONDET_STATIC),"")
 	  --command 'cp $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --ci-stage build \
-	  --description "$(PROOF_UID): not setting static variables to nondet"
+	  --description "$(PROOF_UNIQUE_NAME): not setting static variables to nondet"
 else
 	$(LITANI) add-job \
 	  --command \
@@ -404,9 +434,9 @@ else
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/nondet_static-log.txt \
 	  --interleave-stdout-stderr \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --ci-stage build \
-	  --description "$(PROOF_UID): setting static variables to nondet"
+	  --description "$(PROOF_UNIQUE_NAME): setting static variables to nondet"
 endif
 
 # Omit unused functions (sharpens coverage calculations)
@@ -418,9 +448,9 @@ $(HARNESS_GOTO)3.goto: $(HARNESS_GOTO)2.goto
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/drop_unused_functions-log.txt \
 	  --interleave-stdout-stderr \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --ci-stage build \
-	  --description "$(PROOF_UID): dropping unused functions"
+	  --description "$(PROOF_UNIQUE_NAME): dropping unused functions"
 
 # Omit initialization of unused global variables (reduces problem size)
 $(HARNESS_GOTO)4.goto: $(HARNESS_GOTO)3.goto
@@ -431,9 +461,9 @@ $(HARNESS_GOTO)4.goto: $(HARNESS_GOTO)3.goto
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/slice_global_inits-log.txt \
 	  --interleave-stdout-stderr \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --ci-stage build \
-	  --description "$(PROOF_UID): slicing global initializations"
+	  --description "$(PROOF_UNIQUE_NAME): slicing global initializations"
 
 # Final name for proof harness
 $(HARNESS_GOTO).goto: $(HARNESS_GOTO)4.goto
@@ -441,9 +471,9 @@ $(HARNESS_GOTO).goto: $(HARNESS_GOTO)4.goto
 	  --command 'cp $< $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --ci-stage build \
-	  --description "$(PROOF_UID): copying final goto-binary"
+	  --description "$(PROOF_UNIQUE_NAME): copying final goto-binary"
 
 ################################################################
 # Targets to run Arpa
@@ -466,13 +496,13 @@ $(LOGDIR)/result.txt: $(HARNESS_GOTO).goto
 	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --trace $<' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --ci-stage test \
 	  --stdout-file $@ \
 	  --stderr-file $(LOGDIR)/result-err-log.txt \
 	  --ignore-returns 10 \
 	  --tags "stats-group:safety checks" \
-	  --description "$(PROOF_UID): checking safety properties"
+	  --description "$(PROOF_UNIQUE_NAME): checking safety properties"
 
 $(LOGDIR)/result.xml: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
@@ -480,13 +510,13 @@ $(LOGDIR)/result.xml: $(HARNESS_GOTO).goto
 	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --trace --xml-ui $<' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --ci-stage test \
 	  --stdout-file $@ \
 	  --stderr-file $(LOGDIR)/result-err-log.txt \
 	  --ignore-returns 10 \
 	  --tags "stats-group:safety checks" \
-	  --description "$(PROOF_UID): checking safety properties"
+	  --description "$(PROOF_UNIQUE_NAME): checking safety properties"
 
 $(LOGDIR)/property.xml: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
@@ -494,12 +524,12 @@ $(LOGDIR)/property.xml: $(HARNESS_GOTO).goto
 	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --show-properties --xml-ui $<' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --ci-stage test \
 	  --stdout-file $@ \
 	  --stderr-file $(LOGDIR)/property-err-log.txt \
 	  --ignore-returns 10 \
-	  --description "$(PROOF_UID): printing safety properties"
+	  --description "$(PROOF_UNIQUE_NAME): printing safety properties"
 
 $(LOGDIR)/coverage.xml: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
@@ -507,13 +537,13 @@ $(LOGDIR)/coverage.xml: $(HARNESS_GOTO).goto
 	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(COVERFLAGS) --cover location --xml-ui $<' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --ci-stage test \
 	  --stdout-file $@ \
 	  --stderr-file $(LOGDIR)/coverage-err-log.txt \
 	  --ignore-returns 10 \
 	  --tags "stats-group:coverage computation" \
-	  --description "$(PROOF_UID): calculating coverage"
+	  --description "$(PROOF_UNIQUE_NAME): calculating coverage"
 
 define VIEWER_CMD
   $(VIEWER) \
@@ -531,12 +561,12 @@ $(PROOFDIR)/html: $(LOGDIR)/result.txt $(LOGDIR)/property.xml $(LOGDIR)/coverage
 	  --command "$$VIEWER_CMD" \
 	  --inputs $^ \
 	  --outputs $(PROOFDIR)/html \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --ci-stage report \
 	  --stdout-file $(LOGDIR)/viewer-log.txt \
 	  --interleave-stdout-stderr \
 	  --tags "stats-group:report generation" \
-	  --description "$(PROOF_UID): generating report"
+	  --description "$(PROOF_UNIQUE_NAME): generating report"
 
 
 # Caution: run make-source before running property and coverage checking
@@ -566,12 +596,12 @@ $(PROOFDIR)/report: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/covera
 	  --command "$$VIEWER2_CMD" \
 	  --inputs $^ \
 	  --outputs $(PROOFDIR)/report \
-	  --pipeline-name "$(PROOF_UID)" \
+	  --pipeline-name "$(PROOF_UNIQUE_NAME)" \
 	  --stdout-file $(LOGDIR)/viewer-log.txt \
 	  --interleave-stdout-stderr \
 	  --ci-stage report \
 	  --tags "stats-group:report generation" \
-	  --description "$(PROOF_UID): generating report"
+	  --description "$(PROOF_UNIQUE_NAME): generating report"
 
 litani-path:
 	@echo $(LITANI)
