@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+
+import argparse
+import decimal
+import json
+import pathlib
+import sys
+
+
+DESCRIPTION = """
+Return 0 if CBMC coverage for a proof is as high as expected, 1 otherwise
+"""
+
+EPILOG = """
+This script checks reads the JSON coverage file emitted when cbmc-viewer-2 runs
+on CBMC's output files. It compares the coverage value in the JSON file with the
+user-specified expected coverage number.  If CBMC's coverage is below the
+expected value, this script exits abnormally.
+
+CBMC's coverage number is used to ensure that CBMC has explored the code as
+completely as possible, and that the assumptions made in the proof are not so
+restrictive that they prevent CBMC from exercising all code paths. A drop in
+coverage compared to the expected result typically calls for proof-writers to
+investigate and ensure that the proof still holds.
+"""
+
+
+def percentage(string):
+    if string[-1] == "%":
+        string = string[:-1]
+    try:
+        return int(string)
+    except ValueError:
+        raise argparse.ArgumentTypeError("not an integer value: '%s'" % string)
+
+
+def existing_file(path):
+    possible_file = pathlib.Path(path)
+    if not possible_file.exists():
+        raise argparse.ArgumentTypeError("file not found: '%s'" % path)
+    return possible_file
+
+
+def main():
+    pars = argparse.ArgumentParser(description=DESCRIPTION, epilog=EPILOG)
+    for arg in [{
+            "flags": ["--coverage-file"],
+            "help": "JSON file emitted by cbmc-viewer-2 containing coverage info",
+            "type": existing_file,
+            "required": True,
+            "metavar": "F",
+    }, {
+            "flags": ["--expected-coverage"],
+            "help": "integral value as a percent (percentage sign optional)",
+            "type": percentage,
+            "required": True,
+            "metavar": "INT%",
+    }]:
+        flags = arg.pop("flags")
+        pars.add_argument(*flags, **arg)
+    args = pars.parse_args()
+
+    with open(args.coverage_file) as handle:
+        cov_data = json.load(handle)
+    actual_cov = cov_data["viewer-coverage"]["overall_coverage"]["percentage"]
+
+    # The value in the cbmc-viewer JSON file is a float (0.0--1.0). Convert it
+    # into a percentage without incorrectly truncating the fractional part
+    ctx = decimal.Context(prec=2, rounding=decimal.ROUND_HALF_EVEN)
+    cov_dec = ctx.create_decimal(actual_cov)
+    cov_percent = cov_dec * 100
+
+    print("Expected %d%%, got %d%%" % (args.expected_coverage, cov_percent))
+
+    if cov_percent != args.expected_coverage:
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
