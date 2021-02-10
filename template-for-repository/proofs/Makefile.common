@@ -565,13 +565,51 @@ $(PROOFDIR)/report: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/covera
 	$(LITANI) add-job \
 	  --command "$$VIEWER2_CMD" \
 	  --inputs $^ \
-	  --outputs $(PROOFDIR)/report \
+	  --outputs \
+	      $(PROOFDIR)/report \
+	      $(PROOFDIR)/report/json/viewer-coverage.json \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --stdout-file $(LOGDIR)/viewer-log.txt \
 	  --interleave-stdout-stderr \
 	  --ci-stage report \
 	  --tags "stats-group:report generation" \
 	  --description "$(PROOF_UID): generating report"
+
+
+ifneq ($(strip $(EXPECTED_COVERAGE)),)
+coverage-check: $(PROOFDIR)/report
+	$(LITANI) add-job \
+	  --inputs $(PROOFDIR)/report/json/viewer-coverage.json \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --interleave-stdout-stderr \
+	  --ci-stage report \
+	  --description "$(PROOF_UID): checking coverage" \
+	  --command \
+	      "./check-coverage  \
+	      --coverage-file $(PROOFDIR)/report/json/viewer-coverage.json \
+	      --expected-coverage $(EXPECTED_COVERAGE)"
+
+else ifneq ($(strip $(ENFORCE_COVERAGE_CHECKS)),)
+coverage-check: $(PROOFDIR)/report
+	$(LITANI) add-job \
+	  --command "echo 'This project enforces coverage checks for all proofs, but this proof has not set a value for EXPECTED_COVERAGE in its Makefile'; /usr/bin/false" \
+	  --inputs $(PROOFDIR)/report/json/viewer-coverage.json \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage report \
+	  --description "$(PROOF_UID): checking coverage"
+
+else
+coverage-check: $(PROOFDIR)/report
+	$(LITANI) add-job \
+	  --command "echo 'Skipping coverage check because EXPECTED_COVERAGE was not set in the Makefile for this proof'" \
+	  --inputs $(PROOFDIR)/report/json/viewer-coverage.json \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage report \
+	  --description "$(PROOF_UID): checking coverage"
+
+endif
+
+
 
 litani-path:
 	@echo $(LITANI)
@@ -615,7 +653,7 @@ report:
 	$(MAKE) -B _report
 	$(LITANI) run-build
 
-_report2: $(PROOFDIR)/report
+_report2: $(PROOFDIR)/report coverage-check
 report2:
 	$(LITANI) init --project $(PROJECT_NAME)
 	$(MAKE) -B _report2
@@ -645,6 +683,7 @@ veryclean: clean
   arpa \
   clean \
   coverage \
+  coverage-check \
   goto \
   litani-path \
   property \

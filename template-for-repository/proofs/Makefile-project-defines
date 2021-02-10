@@ -35,3 +35,12 @@
 
 # Flags to pass to cmake for building the project
 # ARPA_CMAKE_FLAGS =
+
+# Set ENFORCE_COVERAGE_CHECKS to a non-empty value to enforce that every proof
+# defines an expected CBMC coverage, which will be checked when running the
+# proof. Proofs define an expected coverage by setting the EXPECTED_COVERAGE
+# variable in the proof Makefile to a percentage value, e.g.
+#
+#     EXPECTED_COVERAGE = 98%
+#
+# ENFORCE_COVERAGE_CHECKS =
