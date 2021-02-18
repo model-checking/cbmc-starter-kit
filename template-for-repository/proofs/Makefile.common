@@ -263,6 +263,14 @@ PROJECT_SOURCES ?=
 # the proof harness, and including any function stubs being used.
 PROOF_SOURCES ?=
 
+# The number of seconds that CBMC should be allowed to run for before
+# being forcefully terminated. Currently, this is set to be less than
+# the time limit for a CodeBuild job, which is eight hours. If a proof
+# run takes longer than the time limit of the CI environment, the
+# environment will halt the proof run without updating the Litani
+# report, making the proof run appear to "hang".
+CBMC_TIMEOUT ?= 21600
+
 ################################################################
 ################################################################
 ## Section II: This section is for project-specific definitions
@@ -471,6 +479,7 @@ $(LOGDIR)/result.txt: $(HARNESS_GOTO).goto
 	  --stdout-file $@ \
 	  --stderr-file $(LOGDIR)/result-err-log.txt \
 	  --ignore-returns 10 \
+	  --timeout $(CBMC_TIMEOUT) \
 	  --tags "stats-group:safety checks" \
 	  --description "$(PROOF_UID): checking safety properties"
 
@@ -485,6 +494,7 @@ $(LOGDIR)/result.xml: $(HARNESS_GOTO).goto
 	  --stdout-file $@ \
 	  --stderr-file $(LOGDIR)/result-err-log.txt \
 	  --ignore-returns 10 \
+	  --timeout $(CBMC_TIMEOUT) \
 	  --tags "stats-group:safety checks" \
 	  --description "$(PROOF_UID): checking safety properties"
 
@@ -512,6 +522,7 @@ $(LOGDIR)/coverage.xml: $(HARNESS_GOTO).goto
 	  --stdout-file $@ \
 	  --stderr-file $(LOGDIR)/coverage-err-log.txt \
 	  --ignore-returns 10 \
+	  --timeout $(CBMC_TIMEOUT) \
 	  --tags "stats-group:coverage computation" \
 	  --description "$(PROOF_UID): calculating coverage"
 
