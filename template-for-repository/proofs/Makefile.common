@@ -211,7 +211,7 @@ COVERFLAGS += $(CBMC_FLAG_MALLOC_FAIL_NULL)
 # (ignoring initializers and default zero-initialization).  The
 # --nondet-static-exclude VAR excludes VAR for the variables
 # initialized with unconstrained values.
-NONDET_STATIC ?=
+NONDET_STATIC ?= ""
 
 # Flags to pass to goto-cc for compilation and linking
 COMPILE_FLAGS ?=
@@ -270,6 +270,23 @@ PROOF_SOURCES ?=
 # environment will halt the proof run without updating the Litani
 # report, making the proof run appear to "hang".
 CBMC_TIMEOUT ?= 21600
+
+# Proof writers could add function contracts or loop invariants in
+# CBMC proofs. They should follow three distinct processes:
+# 1. Check whether a function contract is sound, where CHECK_FUNCTION_CONTRACTS
+#    contains the list of functions with contracts to be checked.
+# 2. Replace function calls with their correspondent function contracts,
+#    where USE_FUNCTION_CONTRACTS contains the list of functions with
+#    contracts to be replaced. One must check separately whether a function
+#    contract is sound before replacing it.
+# 3. Apply loop invariants during verification, where APPLY_LOOP_INVARIANTS
+#    contains the list of functions with loop invariants to be applied.
+#    This option is currently unavailable.
+CHECK_FUNCTION_CONTRACTS ?= ""
+CBMC_CHECK_FUNCTION_CONTRACTS := $(patsubst %,--enforce-contract %, $(CHECK_FUNCTION_CONTRACTS))
+
+USE_FUNCTION_CONTRACTS ?= ""
+CBMC_USE_FUNCTION_CONTRACTS := $(patsubst %,--replace-call-with-contract %, $(USE_FUNCTION_CONTRACTS))
 
 ################################################################
 ################################################################
@@ -394,8 +411,54 @@ $(HARNESS_GOTO)1.goto: $(PROOF_GOTO)1.goto $(PROJECT_GOTO)2.goto
 	  --ci-stage build \
 	  --description "$(PROOF_UID): linking project to proof"
 
-# Optionally fill static variable with unconstrained values
+# Optionally check function contracts
 $(HARNESS_GOTO)2.goto: $(HARNESS_GOTO)1.goto
+ifeq ($(CHECK_FUNCTION_CONTRACTS),"")
+	$(LITANI) add-job \
+	  --command 'cp $^ $@' \
+	  --inputs $^ \
+	  --outputs $@ \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): not checking function contracts"
+else
+	$(LITANI) add-job \
+	  --command \
+	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_CHECK_FUNCTION_CONTRACTS) $^ $@' \
+	  --inputs $^ \
+	  --outputs $@ \
+	  --stdout-file $(LOGDIR)/code_contracts.txt \
+	  --interleave-stdout-stderr \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): checking function contracts"
+endif
+
+# Optionally replace function calls with function contracts
+$(HARNESS_GOTO)3.goto: $(HARNESS_GOTO)2.goto
+ifeq ($(USE_FUNCTION_CONTRACTS),"")
+	$(LITANI) add-job \
+	  --command 'cp $^ $@' \
+	  --inputs $^ \
+	  --outputs $@ \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): not replacing function calls with function contracts"
+else
+	$(LITANI) add-job \
+	  --command \
+	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_USE_FUNCTION_CONTRACTS) $^ $@' \
+	  --inputs $^ \
+	  --outputs $@ \
+	  --stdout-file $(LOGDIR)/code_contracts.txt \
+	  --interleave-stdout-stderr \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): replacing function calls with function contracts"
+endif
+
+# Optionally fill static variable with unconstrained values
+$(HARNESS_GOTO)4.goto: $(HARNESS_GOTO)3.goto
 ifeq ($(NONDET_STATIC),"")
 	$(LITANI) add-job \
 	  --command 'cp $^ $@' \
@@ -418,7 +481,7 @@ else
 endif
 
 # Omit unused functions (sharpens coverage calculations)
-$(HARNESS_GOTO)3.goto: $(HARNESS_GOTO)2.goto
+$(HARNESS_GOTO)5.goto: $(HARNESS_GOTO)4.goto
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --drop-unused-functions $^ $@' \
@@ -431,7 +494,7 @@ $(HARNESS_GOTO)3.goto: $(HARNESS_GOTO)2.goto
 	  --description "$(PROOF_UID): dropping unused functions"
 
 # Omit initialization of unused global variables (reduces problem size)
-$(HARNESS_GOTO)4.goto: $(HARNESS_GOTO)3.goto
+$(HARNESS_GOTO)6.goto: $(HARNESS_GOTO)5.goto
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --slice-global-inits $^ $@' \
@@ -444,7 +507,7 @@ $(HARNESS_GOTO)4.goto: $(HARNESS_GOTO)3.goto
 	  --description "$(PROOF_UID): slicing global initializations"
 
 # Final name for proof harness
-$(HARNESS_GOTO).goto: $(HARNESS_GOTO)4.goto
+$(HARNESS_GOTO).goto: $(HARNESS_GOTO)6.goto
 	$(LITANI) add-job \
 	  --command 'cp $< $@' \
 	  --inputs $^ \
