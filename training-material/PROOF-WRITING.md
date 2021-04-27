@@ -162,18 +162,18 @@ We recommend approaching writing a proof-harness as an iterative process:
    For example, for the harness given above, an initial harness might look like:
 
    ```
-void aws_array_list_get_at_ptr_harness() {
-    /* initialization */
-    struct aws_array_list* list;
+   void aws_array_list_get_at_ptr_harness() {
+       /* initialization */
+       struct aws_array_list* list;
 
-    /* generate unconstrained inputs */
-    void **val;
-    size_t index;
+       /* generate unconstrained inputs */
+       void **val;
+       size_t index;
 
-    /* call function under verification */
-     aws_array_list_get_at_ptr(list, val, index);
-}
-	```
+       /* call function under verification */
+       aws_array_list_get_at_ptr(list, val, index);
+   }
+   ```
 
    Note that we are leaving the inputs to the function completely unconstrained: we are simply declaring them on the stack, and then using them without assigning any values to them.
    In a normal C compiler, this would be undefined behaviour.
