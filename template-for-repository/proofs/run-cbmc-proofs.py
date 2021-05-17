@@ -10,6 +10,7 @@ import logging
 import math
 import os
 import pathlib
+import re
 import subprocess
 import sys
 
@@ -186,10 +187,35 @@ def get_litani_path(proof_root):
     return proc.stdout.strip()
 
 
-async def configure_proof_dirs(queue, counter):
+def check_uid_uniqueness(proof_dir, proof_uids):
+    with (pathlib.Path(proof_dir) / "Makefile").open() as handle:
+        for line in handle:
+            m = re.match(r"^PROOF_UID\s*=\s*(?P<uid>\w+)", line)
+            if not m:
+                continue
+            if m["uid"] not in proof_uids:
+                proof_uids[m["uid"]] = proof_dir
+                return
+
+            logging.critical(
+                "The Makefile in directory '%s' should have a different "
+                "PROOF_UID than the Makefile in directory '%s'",
+                proof_dir, proof_uids[m["uid"]])
+            sys.exit(1)
+
+    logging.critical(
+        "The Makefile in directory '%s' should contain a line like", proof_dir)
+    logging.critical("PROOF_UID = ...")
+    logging.critical("with a unique identifier for the proof.")
+    sys.exit(1)
+
+
+async def configure_proof_dirs(queue, counter, proof_uids):
     while True:
         print_counter(counter)
         path = str(await queue.get())
+
+        check_uid_uniqueness(path, proof_uids)
 
         proc = await asyncio.create_subprocess_exec(
             "nice", "-n", "15", "make", "-B", "--quiet", "_report", cwd=path)
@@ -234,10 +260,12 @@ async def main():
         "width": int(math.log10(len(proof_dirs))) + 1
     }
 
+    proof_uids = {}
     tasks = []
+
     for _ in range(task_pool_size()):
         task = asyncio.create_task(configure_proof_dirs(
-            proof_queue, counter))
+            proof_queue, counter, proof_uids))
         tasks.append(task)
 
     await proof_queue.join()
