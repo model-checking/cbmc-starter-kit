@@ -278,6 +278,19 @@ async def main():
 
     if not args.no_standalone:
         cmd = [str(litani), "init", *init_pools, "--project", args.project_name]
+
+        if "output_directory_flags" in litani_caps:
+            out_prefix = proof_root / "output"
+            out_symlink = out_prefix / "latest"
+            out_index = out_symlink / "html" / "index.html"
+            cmd.extend([
+                "--output-prefix", str(out_prefix),
+                "--output-symlink", str(out_symlink),
+            ])
+            print(
+                "For your convenience, the output of this run will be "
+                "symbolically linked to %s" % str(out_index))
+
         logging.debug(" ".join(cmd))
         proc = subprocess.run(cmd)
         if proc.returncode:
