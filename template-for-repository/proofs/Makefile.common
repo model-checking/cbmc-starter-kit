@@ -138,6 +138,22 @@ ifneq ($(strip $(EXTERNAL_SAT_SOLVER)),)
 endif
 CHECKFLAGS += $(USE_EXTERNAL_SAT_SOLVER)
 
+# Job pools
+# For version of Litani that are new enough (where `litani print-capabilities`
+# prints "pools"), proofs for which `EXPENSIVE = true` is set can be added to a
+# "job pool" that forces only a single "expensive" proof to run at a time. All
+# other proofs will be built in parallel as usual. To enable this feature, set
+# the ENABLE_POOLS variable when running Make, like
+#     `make ENABLE_POOLS=true report`
+
+ifeq ($(strip $(ENABLE_POOLS)),)
+  POOL =
+else ifeq ($(strip $(EXPENSIVE)),)
+  POOL =
+else
+  POOL = --pool expensive
+endif
+
 # Property checking flags
 #
 # Each variable below controls a specific property checking flag
@@ -533,6 +549,7 @@ arpa: $(ARPA_BLDDIR)
 
 $(LOGDIR)/result.txt: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
+	  $(POOL) \
 	  --command \
 	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --trace $<' \
 	  --inputs $^ \
@@ -548,6 +565,7 @@ $(LOGDIR)/result.txt: $(HARNESS_GOTO).goto
 
 $(LOGDIR)/result.xml: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
+	  $(POOL) \
 	  --command \
 	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --trace --xml-ui $<' \
 	  --inputs $^ \
@@ -576,6 +594,7 @@ $(LOGDIR)/property.xml: $(HARNESS_GOTO).goto
 
 $(LOGDIR)/coverage.xml: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
+	  $(POOL) \
 	  --command \
 	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(COVERFLAGS) --cover location --xml-ui $<' \
 	  --inputs $^ \

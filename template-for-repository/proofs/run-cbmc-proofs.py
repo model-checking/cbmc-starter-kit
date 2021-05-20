@@ -6,6 +6,7 @@
 
 import argparse
 import asyncio
+import json
 import logging
 import math
 import os
@@ -187,6 +188,19 @@ def get_litani_path(proof_root):
     return proc.stdout.strip()
 
 
+def get_litani_capabilities(litani_path):
+    cmd = [litani_path, "print-capabilities"]
+    proc = subprocess.run(
+        cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    if proc.returncode:
+        return []
+    try:
+        return json.loads(proc.stdout)
+    except RuntimeError:
+        logging.warning("Could not load litani capabilities: '%s'", proc.stdout)
+        return []
+
+
 def check_uid_uniqueness(proof_dir, proof_uids):
     with (pathlib.Path(proof_dir) / "Makefile").open() as handle:
         for line in handle:
@@ -210,15 +224,18 @@ def check_uid_uniqueness(proof_dir, proof_uids):
     sys.exit(1)
 
 
-async def configure_proof_dirs(queue, counter, proof_uids):
+async def configure_proof_dirs(queue, counter, proof_uids, enable_pools):
     while True:
         print_counter(counter)
         path = str(await queue.get())
 
         check_uid_uniqueness(path, proof_uids)
 
+        pools = ["ENABLE_POOLS=true"] if enable_pools else []
+
         proc = await asyncio.create_subprocess_exec(
-            "nice", "-n", "15", "make", "-B", "--quiet", "_report", cwd=path)
+            "nice", "-n", "15", "make", *pools, "-B", "--quiet", "_report",
+            cwd=path)
         await proc.wait()
         counter["fail" if proc.returncode else "pass"].append(path)
         counter["complete"] += 1
@@ -234,8 +251,12 @@ async def main():
     proof_root = pathlib.Path(__file__).resolve().parent
     litani = get_litani_path(proof_root)
 
+    litani_caps = get_litani_capabilities(litani)
+    enable_pools = "pools" in litani_caps
+    init_pools = ["--pools", "expensive:1"] if enable_pools else []
+
     if not args.no_standalone:
-        cmd = [str(litani), "init", "--project", args.project_name]
+        cmd = [str(litani), "init", *init_pools, "--project", args.project_name]
         logging.debug(" ".join(cmd))
         proc = subprocess.run(cmd)
         if proc.returncode:
@@ -265,7 +286,7 @@ async def main():
 
     for _ in range(task_pool_size()):
         task = asyncio.create_task(configure_proof_dirs(
-            proof_queue, counter, proof_uids))
+            proof_queue, counter, proof_uids, enable_pools))
         tasks.append(task)
 
     await proof_queue.join()
