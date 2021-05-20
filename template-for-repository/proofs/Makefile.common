@@ -537,13 +537,13 @@ $(LOGDIR)/result.txt: $(HARNESS_GOTO).goto
 	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --trace $<' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage test \
 	  --stdout-file $@ \
-	  --stderr-file $(LOGDIR)/result-err-log.txt \
 	  --ignore-returns 10 \
 	  --timeout $(CBMC_TIMEOUT) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --tags "stats-group:safety checks" \
+	  --stderr-file $(LOGDIR)/result-err-log.txt \
 	  --description "$(PROOF_UID): checking safety properties"
 
 $(LOGDIR)/result.xml: $(HARNESS_GOTO).goto
@@ -552,13 +552,13 @@ $(LOGDIR)/result.xml: $(HARNESS_GOTO).goto
 	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --trace --xml-ui $<' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage test \
 	  --stdout-file $@ \
-	  --stderr-file $(LOGDIR)/result-err-log.txt \
 	  --ignore-returns 10 \
 	  --timeout $(CBMC_TIMEOUT) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --tags "stats-group:safety checks" \
+	  --stderr-file $(LOGDIR)/result-err-log.txt \
 	  --description "$(PROOF_UID): checking safety properties"
 
 $(LOGDIR)/property.xml: $(HARNESS_GOTO).goto
@@ -567,11 +567,11 @@ $(LOGDIR)/property.xml: $(HARNESS_GOTO).goto
 	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --show-properties --xml-ui $<' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage test \
 	  --stdout-file $@ \
-	  --stderr-file $(LOGDIR)/property-err-log.txt \
 	  --ignore-returns 10 \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --stderr-file $(LOGDIR)/property-err-log.txt \
 	  --description "$(PROOF_UID): printing safety properties"
 
 $(LOGDIR)/coverage.xml: $(HARNESS_GOTO).goto
@@ -580,13 +580,13 @@ $(LOGDIR)/coverage.xml: $(HARNESS_GOTO).goto
 	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(COVERFLAGS) --cover location --xml-ui $<' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage test \
 	  --stdout-file $@ \
-	  --stderr-file $(LOGDIR)/coverage-err-log.txt \
 	  --ignore-returns 10 \
 	  --timeout $(CBMC_TIMEOUT) \
+	  --pipeline-name "$(PROOF_UID)" \
 	  --tags "stats-group:coverage computation" \
+	  --stderr-file $(LOGDIR)/coverage-err-log.txt \
 	  --description "$(PROOF_UID): calculating coverage"
 
 define VIEWER_CMD
