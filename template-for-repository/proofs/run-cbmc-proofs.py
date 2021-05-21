@@ -77,6 +77,13 @@ def get_project_name():
 
 
 def get_args():
+    def yes_no_auto(value):
+        if value not in ["yes", "no", "auto"]:
+            raise argparse.ArgumentTypeError(
+                "Allowed values for --restrict-expensive-jobs : "
+                "yes,no,auto.")
+        return value
+
     pars = argparse.ArgumentParser(
         description=DESCRIPTION, epilog=EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -106,6 +113,22 @@ def get_args():
             "help": (
                 "name of file that marks proof directories. Default: "
                 "%(default)s"),
+    }, {
+            "flags": ["--restrict-expensive-jobs"],
+            "metavar": "<yes|no|auto>",
+            "default": "auto",
+            "type": yes_no_auto,
+            "help": (
+                "Limit parallelism of expensive jobs. Default: 'auto' "
+                "(enable iff Litani is new enough to support it)."),
+    }, {
+            "flags": ["--expensive-jobs-parallelism"],
+            "metavar": "N",
+            "default": 1,
+            "type": int,
+            "help": (
+                "how many proof jobs marked 'EXPENSIVE' to run in parallel. "
+                "Default: %(default)s"),
     }, {
             "flags": ["--verbose"],
             "action": "store_true",
@@ -224,6 +247,24 @@ def check_uid_uniqueness(proof_dir, proof_uids):
     sys.exit(1)
 
 
+def should_enable_pools(litani_caps, args, litani_path):
+    if args.enable_expensive_jobs == "no":
+        return False
+    if args.restrict_expensive_jobs == "yes":
+        if "pools" not in litani_caps:
+            logging.warning(
+                "`--enable-expensive-job-pool yes` was passed on the command "
+                "line, but Litani version at %s is not new enough to support "
+                "this feature.", str(litani_path))
+            return False
+        return True
+    if args.restrict_expensive_jobs == "auto":
+        return "pools" in litani_caps
+    raise RuntimeError(
+        "Impossible value for --restrict-expensive-jobs '%s'" %
+        args.restrict_expensive_jobs)
+
+
 async def configure_proof_dirs(queue, counter, proof_uids, enable_pools):
     while True:
         print_counter(counter)
@@ -252,8 +293,10 @@ async def main():
     litani = get_litani_path(proof_root)
 
     litani_caps = get_litani_capabilities(litani)
-    enable_pools = "pools" in litani_caps
-    init_pools = ["--pools", "expensive:1"] if enable_pools else []
+    enable_pools = should_enable_pools(litani_caps, args, litani)
+    init_pools = [
+        "--pools", f"expensive:{args.expensive_jobs_parallelism}"
+    ] if enable_pools else []
 
     if not args.no_standalone:
         cmd = [str(litani), "init", *init_pools, "--project", args.project_name]
