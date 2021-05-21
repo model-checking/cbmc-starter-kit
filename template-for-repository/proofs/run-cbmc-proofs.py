@@ -275,6 +275,7 @@ async def configure_proof_dirs(queue, counter, proof_uids, enable_pools):
         pools = ["ENABLE_POOLS=true"] if enable_pools else []
 
         proc = await asyncio.create_subprocess_exec(
+            # Allow interactive tasks to preempt proof configuration
             "nice", "-n", "15", "make", *pools, "-B", "--quiet", "_report",
             cwd=path)
         await proc.wait()
