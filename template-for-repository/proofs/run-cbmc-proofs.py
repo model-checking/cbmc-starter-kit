@@ -53,6 +53,12 @@ just the CBMC ones. In that case, you would run `litani init`
 yourself; then run `run-cbmc-proofs --no-standalone`; add any
 additional jobs that you want to execute with `litani add-job`; and
 finally run `litani run-build`.
+
+The litani dashboard will be written under the `output` directory; the
+cbmc-viewer reports remain in the `$PROOF_DIR/report` directory. The
+HTML dashboard from the latest Litani run will always be symlinked to
+`output/latest/html/index.html`, so you can keep that page open in
+your browser and reload the page whenever you re-run this script.
 """
 
 
@@ -288,8 +294,8 @@ async def main():
                 "--output-symlink", str(out_symlink),
             ])
             print(
-                "For your convenience, the output of this run will be "
-                "symbolically linked to %s" % str(out_index))
+                "\nFor your convenience, the output of this run will be "
+                "symbolically linked to %s\n" % str(out_index))
 
         logging.debug(" ".join(cmd))
         proc = subprocess.run(cmd)
