@@ -141,10 +141,28 @@ CHECKFLAGS += $(USE_EXTERNAL_SAT_SOLVER)
 # Job pools
 # For version of Litani that are new enough (where `litani print-capabilities`
 # prints "pools"), proofs for which `EXPENSIVE = true` is set can be added to a
-# "job pool" that forces only a single "expensive" proof to run at a time. All
-# other proofs will be built in parallel as usual. To enable this feature, set
+# "job pool" that restricts how many expensive proofs are run at a time. All
+# other proofs will be built in parallel as usual.
+#
+# In more detail: all compilation, instrumentation, and report jobs are run with
+# full parallelism as usual, even for expensive proofs. The CBMC jobs for
+# non-expensive proofs are also run in parallel. The only difference is that the
+# CBMC safety checks and coverage checks for expensive proofs are run with a
+# restricted parallelism level. At any one time, only N of these jobs are run at
+# once, amongst all the proofs.
+#
+# To configure N, Litani needs to be initialized with a pool called "expensive".
+# For example, to only run two CBMC safety/coverage jobs at a time from amongst
+# all the proofs, you would initialize litani like
+#         litani init --pools expensive:2
+# The run-cbmc-proofs.py script takes care of this initialization through the
+# --expensive-jobs-parallelism flag.
+#
+# To enable this feature, set
 # the ENABLE_POOLS variable when running Make, like
-#     `make ENABLE_POOLS=true report`
+#         `make ENABLE_POOLS=true report`
+# The run-cbmc-proofs.py script takes care of this through the
+# --restrict-expensive-jobs flag.
 
 ifeq ($(strip $(ENABLE_POOLS)),)
   POOL =
