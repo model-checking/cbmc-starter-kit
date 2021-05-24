@@ -60,6 +60,7 @@ HTML dashboard from the latest Litani run will always be symlinked to
 `output/latest/html/index.html`, so you can keep that page open in
 your browser and reload the page whenever you re-run this script.
 """
+# 70 characters stops here ----------------------------------------> |
 
 
 def get_project_name():
