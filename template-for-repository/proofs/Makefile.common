@@ -305,22 +305,28 @@ PROOF_SOURCES ?=
 # report, making the proof run appear to "hang".
 CBMC_TIMEOUT ?= 21600
 
-# Proof writers could add function contracts or loop invariants in
-# CBMC proofs. They should follow three distinct processes:
-# 1. Check whether a function contract is sound, where CHECK_FUNCTION_CONTRACTS
-#    contains the list of functions with contracts to be checked.
-# 2. Replace function calls with their correspondent function contracts,
-#    where USE_FUNCTION_CONTRACTS contains the list of functions with
-#    contracts to be replaced. One must check separately whether a function
-#    contract is sound before replacing it.
-# 3. Apply loop invariants during verification, where APPLY_LOOP_INVARIANTS
-#    contains the list of functions with loop invariants to be applied.
-#    This option is currently unavailable.
+# Proof writers could add function contracts in their source code.
+# These contracts are ignored by default, but may be enabled in two distinct
+# contexts using the following two variables:
+# 1. To check whether one or more function contracts are sound with respect to
+#    the function implementation, CHECK_FUNCTION_CONTRACTS should be a list of
+#    function names.
+# 2. To replace calls to certain functions with their correspondent function
+#    contracts, USE_FUNCTION_CONTRACTS should be a list of function names.
+#    One must check separately whether a function contract is sound before
+#    replacing it in calling contexts.
 CHECK_FUNCTION_CONTRACTS ?= ""
 CBMC_CHECK_FUNCTION_CONTRACTS := $(patsubst %,--enforce-contract %, $(CHECK_FUNCTION_CONTRACTS))
 
 USE_FUNCTION_CONTRACTS ?= ""
 CBMC_USE_FUNCTION_CONTRACTS := $(patsubst %,--replace-call-with-contract %, $(USE_FUNCTION_CONTRACTS))
+
+# Similarly, proof writers could also add loop contracts in their source code
+# to obtain unbounded correctness proofs. Unlike function contracts, loop
+# contracts are not reusable and thus are checked and used simultaneously.
+# These contracts are also ignored by default, but may be enabled by setting
+# the APPLY_LOOP_CONTRACTS variable to 1.
+APPLY_LOOP_CONTRACTS ?= 0
 
 ################################################################
 ################################################################
@@ -461,7 +467,7 @@ else
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_CHECK_FUNCTION_CONTRACTS) $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --stdout-file $(LOGDIR)/code_contracts.txt \
+	  --stdout-file $(LOGDIR)/check_function_contracts-log.txt \
 	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
@@ -484,15 +490,38 @@ else
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_USE_FUNCTION_CONTRACTS) $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --stdout-file $(LOGDIR)/code_contracts.txt \
+	  --stdout-file $(LOGDIR)/use_function_contracts-log.txt \
 	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): replacing function calls with function contracts"
 endif
 
-# Optionally fill static variable with unconstrained values
+# Optionally apply loop contracts
 $(HARNESS_GOTO)4.goto: $(HARNESS_GOTO)3.goto
+ifneq ($(APPLY_LOOP_CONTRACTS),1)
+	$(LITANI) add-job \
+	  --command 'cp $^ $@' \
+	  --inputs $^ \
+	  --outputs $@ \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): not applying loop contracts"
+else
+	$(LITANI) add-job \
+	  --command \
+	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --apply-loop-contracts $^ $@' \
+	  --inputs $^ \
+	  --outputs $@ \
+	  --stdout-file $(LOGDIR)/apply_loop_contracts-log.txt \
+	  --interleave-stdout-stderr \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): applying loop contracts"
+endif
+
+# Optionally fill static variable with unconstrained values
+$(HARNESS_GOTO)5.goto: $(HARNESS_GOTO)4.goto
 ifeq ($(NONDET_STATIC),"")
 	$(LITANI) add-job \
 	  --command 'cp $^ $@' \
@@ -515,7 +544,7 @@ else
 endif
 
 # Omit unused functions (sharpens coverage calculations)
-$(HARNESS_GOTO)5.goto: $(HARNESS_GOTO)4.goto
+$(HARNESS_GOTO)6.goto: $(HARNESS_GOTO)5.goto
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --drop-unused-functions $^ $@' \
@@ -528,7 +557,7 @@ $(HARNESS_GOTO)5.goto: $(HARNESS_GOTO)4.goto
 	  --description "$(PROOF_UID): dropping unused functions"
 
 # Omit initialization of unused global variables (reduces problem size)
-$(HARNESS_GOTO)6.goto: $(HARNESS_GOTO)5.goto
+$(HARNESS_GOTO)7.goto: $(HARNESS_GOTO)6.goto
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --slice-global-inits $^ $@' \
@@ -541,7 +570,7 @@ $(HARNESS_GOTO)6.goto: $(HARNESS_GOTO)5.goto
 	  --description "$(PROOF_UID): slicing global initializations"
 
 # Final name for proof harness
-$(HARNESS_GOTO).goto: $(HARNESS_GOTO)6.goto
+$(HARNESS_GOTO).goto: $(HARNESS_GOTO)7.goto
 	$(LITANI) add-job \
 	  --command 'cp $< $@' \
 	  --inputs $^ \
