@@ -172,6 +172,14 @@ else
   POOL = --pool expensive
 endif
 
+# Similar to the pool feature above. If Litani is new enough, enable
+# profiling CBMC's memory use.
+ifeq ($(strip $(ENABLE_MEMORY_PROFILING)),)
+  MEMORY_PROFILING =
+else
+  MEMORY_PROFILING = --profile-memory
+endif
+
 # Property checking flags
 #
 # Each variable below controls a specific property checking flag
@@ -603,6 +611,7 @@ $(LOGDIR)/result.txt: $(HARNESS_GOTO).goto
 	  --outputs $@ \
 	  --ci-stage test \
 	  --stdout-file $@ \
+	  $(MEMORY_PROFILING) \
 	  --ignore-returns 10 \
 	  --timeout $(CBMC_TIMEOUT) \
 	  --pipeline-name "$(PROOF_UID)" \
@@ -619,6 +628,7 @@ $(LOGDIR)/result.xml: $(HARNESS_GOTO).goto
 	  --outputs $@ \
 	  --ci-stage test \
 	  --stdout-file $@ \
+	  $(MEMORY_PROFILING) \
 	  --ignore-returns 10 \
 	  --timeout $(CBMC_TIMEOUT) \
 	  --pipeline-name "$(PROOF_UID)" \
@@ -648,6 +658,7 @@ $(LOGDIR)/coverage.xml: $(HARNESS_GOTO).goto
 	  --outputs $@ \
 	  --ci-stage test \
 	  --stdout-file $@ \
+	  $(MEMORY_PROFILING) \
 	  --ignore-returns 10 \
 	  --timeout $(CBMC_TIMEOUT) \
 	  --pipeline-name "$(PROOF_UID)" \

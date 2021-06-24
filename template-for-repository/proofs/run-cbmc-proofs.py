@@ -114,6 +114,10 @@ def get_args():
                 "name of file that marks proof directories. Default: "
                 "%(default)s"),
     }, {
+            "flags": ["--no-memory-profile"],
+            "action": "store_true",
+            "help": "disable memory profiling, even if Litani supports it"
+    }, {
             "flags": ["--no-expensive-limit"],
             "action": "store_true",
             "help": "do not limit parallelism of 'EXPENSIVE' jobs",
@@ -243,13 +247,20 @@ def check_uid_uniqueness(proof_dir, proof_uids):
     sys.exit(1)
 
 
+def should_enable_memory_profiling(litani_caps, args):
+    if args.no_memory_profile:
+        return False
+    return "memory_profile" in litani_caps
+
+
 def should_enable_pools(litani_caps, args):
     if args.no_expensive_limit:
         return False
     return "pools" in litani_caps
 
 
-async def configure_proof_dirs(queue, counter, proof_uids, enable_pools):
+async def configure_proof_dirs(
+    queue, counter, proof_uids, enable_pools, enable_memory_profiling):
     while True:
         print_counter(counter)
         path = str(await queue.get())
@@ -257,11 +268,13 @@ async def configure_proof_dirs(queue, counter, proof_uids, enable_pools):
         check_uid_uniqueness(path, proof_uids)
 
         pools = ["ENABLE_POOLS=true"] if enable_pools else []
+        profiling = [
+            "ENABLE_MEMORY_PROFILING=true"] if enable_memory_profiling else []
 
         proc = await asyncio.create_subprocess_exec(
             # Allow interactive tasks to preempt proof configuration
-            "nice", "-n", "15", "make", *pools, "-B", "--quiet", "_report",
-            cwd=path)
+            "nice", "-n", "15", "make", *pools, *profiling, "-B", "--quiet",
+            "_report", cwd=path)
         await proc.wait()
         counter["fail" if proc.returncode else "pass"].append(path)
         counter["complete"] += 1
@@ -325,9 +338,12 @@ async def main():
     proof_uids = {}
     tasks = []
 
+    enable_memory_profiling = should_enable_memory_profiling(litani_caps, args)
+
     for _ in range(task_pool_size()):
         task = asyncio.create_task(configure_proof_dirs(
-            proof_queue, counter, proof_uids, enable_pools))
+            proof_queue, counter, proof_uids, enable_pools,
+            enable_memory_profiling))
         tasks.append(task)
 
     await proof_queue.join()
