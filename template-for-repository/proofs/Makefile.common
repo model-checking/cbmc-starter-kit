@@ -686,7 +686,6 @@ $(PROOFDIR)/html: $(LOGDIR)/result.txt $(LOGDIR)/property.xml $(LOGDIR)/coverage
 	  --ci-stage report \
 	  --stdout-file $(LOGDIR)/viewer-log.txt \
 	  --interleave-stdout-stderr \
-	  --tags "stats-group:report generation" \
 	  --description "$(PROOF_UID): generating report"
 
 
@@ -721,7 +720,6 @@ $(PROOFDIR)/report: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/covera
 	  --stdout-file $(LOGDIR)/viewer-log.txt \
 	  --interleave-stdout-stderr \
 	  --ci-stage report \
-	  --tags "stats-group:report generation" \
 	  --description "$(PROOF_UID): generating report"
 
 litani-path:
