@@ -107,7 +107,7 @@ def get_args():
             "default": get_project_name(),
             "help": "project name for report. Default: %(default)s",
     }, {
-            "flags": ["--proof-marker"],
+            "flags": ["--marker-file"],
             "metavar": "FILE",
             "default": "cbmc-proof.txt",
             "help": (
@@ -162,7 +162,7 @@ def print_counter(counter):
             **counter), end="", file=sys.stderr)
 
 
-def get_proof_dirs(proof_root, proof_list, proof_marker):
+def get_proof_dirs(proof_root, proof_list, marker_file):
     if proof_list is not None:
         proofs_remaining = list(proof_list)
     else:
@@ -174,7 +174,7 @@ def get_proof_dirs(proof_root, proof_list, proof_marker):
             continue
         if proof_list and proof_name in proofs_remaining:
             proofs_remaining.remove(proof_name)
-        if proof_marker in fyles:
+        if marker_file in fyles:
             yield root
 
     if proofs_remaining:
@@ -318,7 +318,7 @@ async def main():
             sys.exit(1)
 
     proof_dirs = list(get_proof_dirs(
-        proof_root, args.proofs, args.proof_marker))
+        proof_root, args.proofs, args.marker_file))
     if not proof_dirs:
         logging.critical("No proof directories found")
         sys.exit(1)
