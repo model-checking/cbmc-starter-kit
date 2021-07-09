@@ -21,7 +21,6 @@ COPY_INSTEAD = [
     "Makefile-project-targets",
     "Makefile-project-testing",
     ".gitignore",
-    "run-cbmc-proofs.py",
 ]
 
 ################################################################
