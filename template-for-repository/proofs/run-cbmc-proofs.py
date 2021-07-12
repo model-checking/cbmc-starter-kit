@@ -297,7 +297,10 @@ async def main():
     ] if enable_pools else []
 
     if not args.no_standalone:
-        cmd = [str(litani), "init", *init_pools, "--project", args.project_name]
+        cmd = [
+            str(litani), "init", *init_pools, "--project", args.project_name,
+            "--no-print-out-dir",
+        ]
 
         if "output_directory_flags" in litani_caps:
             out_prefix = proof_root / "output"
