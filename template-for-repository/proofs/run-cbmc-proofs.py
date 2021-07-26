@@ -287,7 +287,7 @@ async def main():
     args = get_args()
     set_up_logging(args.verbose)
 
-    proof_root = pathlib.Path(__file__).resolve().parent
+    proof_root = pathlib.Path(os.getcwd())
     litani = get_litani_path(proof_root)
 
     litani_caps = get_litani_capabilities(litani)
