@@ -438,7 +438,7 @@ $(PROOF_GOTO)1.goto: $(PROOF_SOURCES)
 	  --ci-stage build \
 	  --description "$(PROOF_UID): building proof binary"
 
-# Optionally restrict function pointers and remove function bodies from project sources
+# Optionally remove function bodies from project sources
 $(PROJECT_GOTO)2.goto: $(PROJECT_GOTO)1.goto
 ifeq ($(REMOVE_FUNCTION_BODY),"")
 	$(LITANI) add-job \
@@ -451,7 +451,7 @@ ifeq ($(REMOVE_FUNCTION_BODY),"")
 else
 	$(LITANI) add-job \
 	  --command \
-	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_RESTRICT_FUNCTION_POINTER) $(CBMC_REMOVE_FUNCTION_BODY) $^ $@' \
+	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_REMOVE_FUNCTION_BODY) $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/remove_function_body-log.txt \
@@ -461,8 +461,31 @@ else
 	  --description "$(PROOF_UID): removing function bodies from project sources"
 endif
 
+# Optionally restrict function pointers from project sources
+$(PROJECT_GOTO)3.goto: $(PROJECT_GOTO)2.goto
+ifeq ($(RESTRICT_FUNCTION_POINTER),"")
+	$(LITANI) add-job \
+	  --command 'cp $^ $@' \
+	  --inputs $^ \
+	  --outputs $@ \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): not restricting function pointers in project sources"
+else
+	$(LITANI) add-job \
+	  --command \
+	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_RESTRICT_FUNCTION_POINTER) $^ $@' \
+	  --inputs $^ \
+	  --outputs $@ \
+	  --stdout-file $(LOGDIR)/restrict_function_pointer-log.txt \
+	  --interleave-stdout-stderr \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): restricting function pointers in project sources"
+endif
+
 # Link project and proof sources into the proof harness
-$(HARNESS_GOTO)1.goto: $(PROOF_GOTO)1.goto $(PROJECT_GOTO)2.goto
+$(HARNESS_GOTO)1.goto: $(PROOF_GOTO)1.goto $(PROJECT_GOTO)3.goto
 	$(LITANI) add-job \
 	  --command '$(GOTO_CC) $(CBMC_VERBOSITY) --function $(HARNESS_ENTRY) $^ -o $@' \
 	  --inputs $^ \
