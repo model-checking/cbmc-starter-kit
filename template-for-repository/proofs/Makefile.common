@@ -304,6 +304,8 @@ REMOVE_FUNCTION_BODY ?=
 # rewritten to a case switch over a finite list of functions.
 # If some possible target functions are omitted from the list a counter
 # example trace will be found by CBMC, i.e. the transformation is sound.
+# If the target functions are file-local symbols, then mangled names must
+# be used.
 RESTRICT_FUNCTION_POINTER ?=
 
 # The project source files (Normally set set in the proof Makefile)
