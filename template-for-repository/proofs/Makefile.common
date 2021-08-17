@@ -293,6 +293,19 @@ UNWINDSET ?=
 # The list should include the names of functions being stubbed out.
 REMOVE_FUNCTION_BODY ?=
 
+# CBMC function pointer restriction (Normally set in the proof Makefile)
+#
+# RESTRICT_FUNCTION_POINTER is a list of function pointer restriction 
+# instructions of the form:
+#
+#    <fun_id>.function_pointer_call.<N>/<fun_id>[,<fun_id>]*
+#
+# The function pointer call number <N> in the specified function gets
+# rewritten to a case switch over a finite list of functions.
+# If some possible target functions are omitted from the list a counter
+# example trace will be found by CBMC, i.e. the transformation is sound.
+RESTRICT_FUNCTION_POINTER ?=
+
 # The project source files (Normally set set in the proof Makefile)
 #
 # PROJECT_SOURCES is the list of project source files to compile,
@@ -394,6 +407,7 @@ ifdef UNWINDSET
   endif
 endif
 CBMC_REMOVE_FUNCTION_BODY := $(patsubst %,--remove-function-body %, $(REMOVE_FUNCTION_BODY))
+CBMC_RESTRICT_FUNCTION_POINTER := $(patsubst %,--restrict-function-pointer %, $(RESTRICT_FUNCTION_POINTER))
 
 ################################################################
 # Build targets that make the relevant .goto files
@@ -424,7 +438,7 @@ $(PROOF_GOTO)1.goto: $(PROOF_SOURCES)
 	  --ci-stage build \
 	  --description "$(PROOF_UID): building proof binary"
 
-# Optionally remove function bodies from project sources
+# Optionally restrict function pointers and remove function bodies from project sources
 $(PROJECT_GOTO)2.goto: $(PROJECT_GOTO)1.goto
 ifeq ($(REMOVE_FUNCTION_BODY),"")
 	$(LITANI) add-job \
@@ -437,7 +451,7 @@ ifeq ($(REMOVE_FUNCTION_BODY),"")
 else
 	$(LITANI) add-job \
 	  --command \
-	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_REMOVE_FUNCTION_BODY) $^ $@' \
+	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_RESTRICT_FUNCTION_POINTER) $(CBMC_REMOVE_FUNCTION_BODY) $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/remove_function_body-log.txt \
