@@ -256,8 +256,8 @@ COVERFLAGS += $(CBMC_FLAG_MALLOC_FAIL_NULL)
 NONDET_STATIC ?= ""
 
 # Flags to pass to goto-cc for compilation and linking
-COMPILE_FLAGS ?=
-LINK_FLAGS ?=
+COMPILE_FLAGS ?= -Wall
+LINK_FLAGS ?= -Wall
 
 # Preprocessor include paths -I...
 INCLUDES ?=
@@ -295,7 +295,7 @@ REMOVE_FUNCTION_BODY ?=
 
 # CBMC function pointer restriction (Normally set in the proof Makefile)
 #
-# RESTRICT_FUNCTION_POINTER is a list of function pointer restriction 
+# RESTRICT_FUNCTION_POINTER is a list of function pointer restriction
 # instructions of the form:
 #
 #    <fun_id>.function_pointer_call.<N>/<fun_id>[,<fun_id>]*
@@ -489,7 +489,7 @@ endif
 # Link project and proof sources into the proof harness
 $(HARNESS_GOTO)1.goto: $(PROOF_GOTO)1.goto $(PROJECT_GOTO)3.goto
 	$(LITANI) add-job \
-	  --command '$(GOTO_CC) $(CBMC_VERBOSITY) --function $(HARNESS_ENTRY) $^ -o $@' \
+	  --command '$(GOTO_CC) $(CBMC_VERBOSITY) --function $(HARNESS_ENTRY) $^ $(LINK_FLAGS) -o $@' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/link_proof_project-log.txt \
