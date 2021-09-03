@@ -491,18 +491,28 @@ $(HARNESS_GOTO)1.goto: $(PROOF_GOTO)1.goto $(PROJECT_GOTO)3.goto
 	$(LITANI) add-job \
 	  --command '$(GOTO_CC) $(CBMC_VERBOSITY) --function $(HARNESS_ENTRY) $^ $(LINK_FLAGS) -o $@' \
 	  --inputs $^ \
-	  --outputs $@ \
+	  --outputs $@ $(LOGDIR)/link_proof_project-log.txt \
 	  --stdout-file $(LOGDIR)/link_proof_project-log.txt \
 	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): linking project to proof"
 
+.PHONY: $(PROOF_UID)_link_check
+$(PROOF_UID)_link_check: $(HARNESS_GOTO)1.goto
+	$(LITANI) add-job \
+	  --command '$(PROOF_ROOT)check-link-stage --link-log $(LOGDIR)/link_proof_project-log.txt' \
+	  --inputs $(LOGDIR)/link_proof_project-log.txt \
+	  --phony-outputs $@ \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): Checking for function declaration"
+
 # Optionally check function contracts
-$(HARNESS_GOTO)2.goto: $(HARNESS_GOTO)1.goto
+$(HARNESS_GOTO)2.goto: $(HARNESS_GOTO)1.goto $(PROOF_UID)_link_check
 ifeq ($(CHECK_FUNCTION_CONTRACTS),"")
 	$(LITANI) add-job \
-	  --command 'cp $^ $@' \
+	  --command 'cp $< $@' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --pipeline-name "$(PROOF_UID)" \

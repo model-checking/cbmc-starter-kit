@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+
+import argparse
+import logging
+import re
+import sys
+import textwrap
+
+
+def get_args():
+    pars = argparse.ArgumentParser()
+    for arg in [{
+            "flags": ["--link-log"],
+            "required": True,
+    }]:
+        flags = arg.pop("flags")
+        pars.add_argument(*flags, **arg)
+    return pars.parse_args()
+
+
+def check_missing_declaration(log):
+    ok = True
+    buf = None
+    pat = re.compile(r"definition in module .+proofs")
+    for line in log:
+        if pat.search(line):
+            ok = False
+            logging.error("The following output:")
+            logging.error("  %s", buf)
+            logging.error("  %s", line)
+            logging.error(textwrap.dedent("""\
+                means that the function being proved was not correctly declared
+                in the proof harness. Ensure that you declare the function (or
+                include the header file where it is declared) in the proof
+                harness. If you are writing a proof for a static function, the
+                function declaration should start with `__CPROVER_file_local`.
+                """))
+        buf = line
+    return ok
+
+
+def get_checks():
+    return [
+        check_missing_declaration,
+    ]
+
+
+def main():
+    logging.basicConfig(format="%(message)s")
+    args = get_args()
+    with open(args.link_log) as handle:
+        link_log = handle.read().splitlines()
+    ok = True
+    for check in get_checks():
+        ok &= check(link_log)
+    sys.exit(0 if ok else 1)
+
+
+if __name__ == "__main__":
+    main()
