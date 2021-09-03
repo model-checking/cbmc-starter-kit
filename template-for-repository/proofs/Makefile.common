@@ -705,29 +705,6 @@ $(LOGDIR)/coverage.xml: $(HARNESS_GOTO).goto
 	  --stderr-file $(LOGDIR)/coverage-err-log.txt \
 	  --description "$(PROOF_UID): calculating coverage"
 
-define VIEWER_CMD
-  $(VIEWER) \
-    --result $(LOGDIR)/result.txt \
-    --block $(LOGDIR)/coverage.xml \
-    --property $(LOGDIR)/property.xml \
-    --srcdir $(SRCDIR) \
-    --goto $(HARNESS_GOTO).goto \
-    --htmldir $(PROOFDIR)/html
-endef
-export VIEWER_CMD
-
-$(PROOFDIR)/html: $(LOGDIR)/result.txt $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
-	$(LITANI) add-job \
-	  --command "$$VIEWER_CMD" \
-	  --inputs $^ \
-	  --outputs $(PROOFDIR)/html \
-	  --pipeline-name "$(PROOF_UID)" \
-	  --ci-stage report \
-	  --stdout-file $(LOGDIR)/viewer-log.txt \
-	  --interleave-stdout-stderr \
-	  --description "$(PROOF_UID): generating report"
-
-
 # Caution: run make-source before running property and coverage checking
 # The current make-source script removes the goto binary
 $(LOGDIR)/source.json:
@@ -797,11 +774,8 @@ coverage:
 	$(MAKE) -B _coverage
 	$(LITANI) run-build
 
-_report: $(PROOFDIR)/html
-report:
-	$(LITANI) init --project $(PROJECT_NAME)
-	$(MAKE) -B _report
-	$(LITANI) run-build
+_report: _report2
+report: report2
 
 _report2: $(PROOFDIR)/report
 report2:
