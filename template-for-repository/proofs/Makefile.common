@@ -797,18 +797,15 @@ coverage:
 	$(MAKE) -B _coverage
 	$(LITANI) run-build
 
-_report: $(PROOFDIR)/html
-report:
+_report1: $(PROOFDIR)/html
+_report2: $(PROOFDIR)/report
+_report:
+	cbmc-viewer --version >/dev/null 2>&1 && $(MAKE) -B _report2 || $(MAKE) -B _report1
+
+report report1 report2:
 	$(LITANI) init --project $(PROJECT_NAME)
 	$(MAKE) -B _report
 	$(LITANI) run-build
-
-_report2: $(PROOFDIR)/report
-report2:
-	$(LITANI) init --project $(PROJECT_NAME)
-	$(MAKE) -B _report2
-	$(LITANI) run-build
-
 
 ################################################################
 # Targets to clean up after ourselves
