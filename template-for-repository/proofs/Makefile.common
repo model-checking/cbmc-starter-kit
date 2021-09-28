@@ -351,6 +351,11 @@ CBMC_USE_FUNCTION_CONTRACTS := $(patsubst %,--replace-call-with-contract %, $(US
 # the APPLY_LOOP_CONTRACTS variable to 1.
 APPLY_LOOP_CONTRACTS ?= 0
 
+# Silence makefile output (eg, long litani commands) unless VERBOSE is set.
+ifndef VERBOSE
+    MAKEFLAGS := $(MAKEFLAGS) -s
+endif
+
 ################################################################
 ################################################################
 ## Section II: This section is for project-specific definitions
@@ -775,26 +780,38 @@ litani-path:
 
 _goto: $(HARNESS_GOTO).goto
 goto:
+	@ echo Running 'litani init'
 	$(LITANI) init --project $(PROJECT_NAME)
+	@ echo Running 'litani add-job'
 	$(MAKE) -B _goto
+	@ echo Running 'litani build'
 	$(LITANI) run-build
 
 _result: $(LOGDIR)/result.txt
 result:
+	@ echo Running 'litani init'
 	$(LITANI) init --project $(PROJECT_NAME)
+	@ echo Running 'litani add-job'
 	$(MAKE) -B _result
+	@ echo Running 'litani build'
 	$(LITANI) run-build
 
 _property: $(LOGDIR)/property.xml
 property:
+	@ echo Running 'litani init'
 	$(LITANI) init --project $(PROJECT_NAME)
+	@ echo Running 'litani add-job'
 	$(MAKE) -B _property
+	@ echo Running 'litani build'
 	$(LITANI) run-build
 
 _coverage: $(LOGDIR)/coverage.xml
 coverage:
+	@ echo Running 'litani init'
 	$(LITANI) init --project $(PROJECT_NAME)
+	@ echo Running 'litani add-job'
 	$(MAKE) -B _coverage
+	@ echo Running 'litani build'
 	$(LITANI) run-build
 
 _report1: $(PROOFDIR)/html
@@ -803,8 +820,11 @@ _report:
 	cbmc-viewer --version >/dev/null 2>&1 && $(MAKE) -B _report2 || $(MAKE) -B _report1
 
 report report1 report2:
+	@ echo Running 'litani init'
 	$(LITANI) init --project $(PROJECT_NAME)
+	@ echo Running 'litani add-job'
 	$(MAKE) -B _report
+	@ echo Running 'litani build'
 	$(LITANI) run-build
 
 ################################################################
