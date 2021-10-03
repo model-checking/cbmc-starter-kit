@@ -130,6 +130,13 @@ def get_args():
                 "how many proof jobs marked 'EXPENSIVE' to run in parallel. "
                 "Default: %(default)s"),
     }, {
+            "flags": ["--target"],
+            "metavar": "T",
+            "default": "_report",
+            "help":
+                "which target to run (see 'Phony Rules' in Makefile.common). "
+                "default: %(default)s ",
+    }, {
             "flags": ["--verbose"],
             "action": "store_true",
             "help": "verbose output",
@@ -260,7 +267,7 @@ def should_enable_pools(litani_caps, args):
 
 
 async def configure_proof_dirs(
-    queue, counter, proof_uids, enable_pools, enable_memory_profiling):
+    queue, counter, proof_uids, enable_pools, enable_memory_profiling, target):
     while True:
         print_counter(counter)
         path = str(await queue.get())
@@ -274,7 +281,7 @@ async def configure_proof_dirs(
         proc = await asyncio.create_subprocess_exec(
             # Allow interactive tasks to preempt proof configuration
             "nice", "-n", "15", "make", *pools, *profiling, "-B", "--quiet",
-            "_report", cwd=path)
+            target, cwd=path)
         await proc.wait()
         counter["fail" if proc.returncode else "pass"].append(path)
         counter["complete"] += 1
@@ -346,7 +353,7 @@ async def main():
     for _ in range(task_pool_size()):
         task = asyncio.create_task(configure_proof_dirs(
             proof_queue, counter, proof_uids, enable_pools,
-            enable_memory_profiling))
+            enable_memory_profiling, args.target))
         tasks.append(task)
 
     await proof_queue.join()
