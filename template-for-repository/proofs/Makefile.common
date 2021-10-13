@@ -814,10 +814,15 @@ coverage:
 	@ echo Running 'litani build'
 	$(LITANI) run-build
 
+# Choose the invocation of cbmc-viewer depending on which version of
+# cbmc-viewer is installed.  The --version flag is not implemented in
+# version 1 --- it is an "unrecognized argument" --- but it is
+# implemented in version 2.
 _report1: $(PROOFDIR)/html
 _report2: $(PROOFDIR)/report
 _report:
-	cbmc-viewer --version >/dev/null 2>&1 && $(MAKE) -B _report2 || $(MAKE) -B _report1
+	(cbmc-viewer --version 2>&1 | grep "unrecognized argument" > /dev/null) && \
+		$(MAKE) -B _report1 || $(MAKE) -B _report2
 
 report report1 report2:
 	@ echo Running 'litani init'
