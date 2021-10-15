@@ -126,7 +126,9 @@ def find_apache_references(proofdir=None):
 def remove_apache_reference(path, extension='backup'):
     apache_references = [
         '# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.',
-        '# SPDX-License-Identifier: Apache-2.0'
+        '# SPDX-License-Identifier: Apache-2.0',
+        '/* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved. */',
+        '/* SPDX-License-Identifier: Apache-2.0 */'      
     ]
     backup = path + '.' + extension
     shutil.move(path, backup)
@@ -147,9 +149,6 @@ def remove_apache_reference(path, extension='backup'):
 def remove_apache_references(paths):
     removed = False
     for path in paths:
-        if not maybe_a_copied_file(path):
-            logging.debug('Skipping %s', path)
-            continue
         logging.debug('Updating %s', path)
         removed = remove_apache_reference(path) or removed
     return removed
