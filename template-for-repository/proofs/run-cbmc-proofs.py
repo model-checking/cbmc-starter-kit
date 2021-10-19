@@ -66,6 +66,7 @@ your browser and reload the page whenever you re-run this script.
 def get_project_name():
     cmd = [
         "make",
+        "--no-print-directory",
         "-f", "Makefile.common",
         "echo-project-name",
     ]
@@ -199,6 +200,7 @@ def run_build(litani, jobs):
 def get_litani_path(proof_root):
     cmd = [
         "make",
+        "--no-print-directory",
         "PROOF_ROOT=%s" % proof_root,
         "-f", "Makefile.common",
         "litani-path",
