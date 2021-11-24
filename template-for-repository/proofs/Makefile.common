@@ -507,10 +507,59 @@ else
 	  --description "$(PROOF_UID): restricting function pointers in project sources"
 endif
 
+# Optionally fill static variable with unconstrained values
+$(HARNESS_GOTO)3.goto: $(HARNESS_GOTO)2.goto
+ifeq ($(NONDET_STATIC),"")
+	$(LITANI) add-job \
+	  --command 'cp $^ $@' \
+	  --inputs $^ \
+	  --outputs $@ \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): not setting static variables to nondet"
+else
+	$(LITANI) add-job \
+	  --command \
+	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(NONDET_STATIC) $^ $@' \
+	  --inputs $^ \
+	  --outputs $@ \
+	  --stdout-file $(LOGDIR)/nondet_static-log.txt \
+	  --interleave-stdout-stderr \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): setting static variables to nondet"
+endif
+
+# Omit unused functions (sharpens coverage calculations)
+$(HARNESS_GOTO)4.goto: $(HARNESS_GOTO)3.goto
+	$(LITANI) add-job \
+	  --command \
+	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --drop-unused-functions $^ $@' \
+	  --inputs $^ \
+	  --outputs $@ \
+	  --stdout-file $(LOGDIR)/drop_unused_functions-log.txt \
+	  --interleave-stdout-stderr \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): dropping unused functions"
+
+# Omit initialization of unused global variables (reduces problem size)
+$(HARNESS_GOTO)5.goto: $(HARNESS_GOTO)4.goto
+	$(LITANI) add-job \
+	  --command \
+	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --slice-global-inits $^ $@' \
+	  --inputs $^ \
+	  --outputs $@ \
+	  --stdout-file $(LOGDIR)/slice_global_inits-log.txt \
+	  --interleave-stdout-stderr \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): slicing global initializations"
+
 # Optionally replace function calls with function contracts
 # This must be done before enforcing function contracts,
 # since contract enforcement inlines all function calls.
-$(HARNESS_GOTO)3.goto: $(HARNESS_GOTO)2.goto
+$(HARNESS_GOTO)6.goto: $(HARNESS_GOTO)5.goto
 ifeq ($(USE_FUNCTION_CONTRACTS),"")
 	$(LITANI) add-job \
 	  --command 'cp $^ $@' \
@@ -536,7 +585,7 @@ endif
 # This must be done before enforcing function contracts,
 # since loop unwinding does not replicate writeset snapshots
 # that might be introduced during contract enforcement.
-$(HARNESS_GOTO)4.goto: $(HARNESS_GOTO)3.goto
+$(HARNESS_GOTO)7.goto: $(HARNESS_GOTO)6.goto
 ifeq ($(UNWINDSET),"")
 	$(LITANI) add-job \
 	  --command 'cp $^ $@' \
@@ -559,7 +608,7 @@ else
 endif
 
 # Optionally apply loop contracts
-$(HARNESS_GOTO)5.goto: $(HARNESS_GOTO)4.goto
+$(HARNESS_GOTO)8.goto: $(HARNESS_GOTO)7.goto
 ifneq ($(APPLY_LOOP_CONTRACTS),1)
 	$(LITANI) add-job \
 	  --command 'cp $^ $@' \
@@ -582,7 +631,7 @@ else
 endif
 
 # Optionally check function contracts
-$(HARNESS_GOTO)6.goto: $(HARNESS_GOTO)5.goto
+$(HARNESS_GOTO)9.goto: $(HARNESS_GOTO)8.goto
 ifeq ($(CHECK_FUNCTION_CONTRACTS),"")
 	$(LITANI) add-job \
 	  --command 'cp $^ $@' \
@@ -603,55 +652,6 @@ else
 	  --ci-stage build \
 	  --description "$(PROOF_UID): checking function contracts"
 endif
-
-# Optionally fill static variable with unconstrained values
-$(HARNESS_GOTO)7.goto: $(HARNESS_GOTO)6.goto
-ifeq ($(NONDET_STATIC),"")
-	$(LITANI) add-job \
-	  --command 'cp $^ $@' \
-	  --inputs $^ \
-	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
-	  --ci-stage build \
-	  --description "$(PROOF_UID): not setting static variables to nondet"
-else
-	$(LITANI) add-job \
-	  --command \
-	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(NONDET_STATIC) $^ $@' \
-	  --inputs $^ \
-	  --outputs $@ \
-	  --stdout-file $(LOGDIR)/nondet_static-log.txt \
-	  --interleave-stdout-stderr \
-	  --pipeline-name "$(PROOF_UID)" \
-	  --ci-stage build \
-	  --description "$(PROOF_UID): setting static variables to nondet"
-endif
-
-# Omit unused functions (sharpens coverage calculations)
-$(HARNESS_GOTO)8.goto: $(HARNESS_GOTO)7.goto
-	$(LITANI) add-job \
-	  --command \
-	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --drop-unused-functions $^ $@' \
-	  --inputs $^ \
-	  --outputs $@ \
-	  --stdout-file $(LOGDIR)/drop_unused_functions-log.txt \
-	  --interleave-stdout-stderr \
-	  --pipeline-name "$(PROOF_UID)" \
-	  --ci-stage build \
-	  --description "$(PROOF_UID): dropping unused functions"
-
-# Omit initialization of unused global variables (reduces problem size)
-$(HARNESS_GOTO)9.goto: $(HARNESS_GOTO)8.goto
-	$(LITANI) add-job \
-	  --command \
-	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --slice-global-inits $^ $@' \
-	  --inputs $^ \
-	  --outputs $@ \
-	  --stdout-file $(LOGDIR)/slice_global_inits-log.txt \
-	  --interleave-stdout-stderr \
-	  --pipeline-name "$(PROOF_UID)" \
-	  --ci-stage build \
-	  --description "$(PROOF_UID): slicing global initializations"
 
 # Final name for proof harness
 $(HARNESS_GOTO).goto: $(HARNESS_GOTO)9.goto
