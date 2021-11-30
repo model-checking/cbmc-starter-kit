@@ -119,11 +119,7 @@ PROOFDIR ?= $(abspath .)
 CBMCDIR ?= $(PROOF_ROOT)/cbmc
 
 # Default CBMC flags used for property checking and coverage checking.
-#
-# Any remaining loops (not unwound and not transformed using contracts)
-# are only unwound once (`--unwind 1`) to avoid CBMC potentially going
-# into an infinite loop in trying to unwind them.
-CBMCFLAGS += --unwind 1 --flush
+CBMCFLAGS += --unwind 1 $(CBMC_UNWINDSET) --flush
 
 # Do property checking with the external SAT solver given by
 # EXTERNAL_SAT_SOLVER.  Do coverage checking with the default solver,
@@ -581,10 +577,26 @@ else
 	  --description "$(PROOF_UID): replacing function calls with function contracts"
 endif
 
-# Optionally unwind specified loops
-# This must be done before enforcing function contracts,
-# since loop unwinding does not replicate writeset snapshots
-# that might be introduced during contract enforcement.
+# Optionally unwind loops
+#
+# Loop unwinding must be done before enforcing function contracts, because
+# loop unwinding does not replicate writeset snapshots that might be
+# introduced during contract enforcement.
+#
+# CBMC has its own model of standard library functions like strcmp.  These
+# functions do not appear in the goto program, they are added to the goto
+# program by CBMC itself.  For this reason, we will need to pass these loop
+# unwinding instructions again to the invocation of CBMC to unwind any loops
+# remaining in functions like strcmp.  We could pull these functions into the
+# goto program with `goto-instrument --add-library`, but enforcing function
+# contracts currently assumes they are missing.
+#
+# The meaning of `--unwindset LOOP:N` depends on the program invoked.  The
+# program goto-instrument will unwind the loop N times.  The program cbmc will
+# unwind the loop N-1 times.  Unwinding with goto-instrument instead of cbmc
+# is obviously sound, but may lead to performance issues if the loops is big
+# and the difference between unwinding N-1 and N is big.
+#
 $(HARNESS_GOTO)7.goto: $(HARNESS_GOTO)6.goto
 ifeq ($(UNWINDSET),"")
 	$(LITANI) add-job \
