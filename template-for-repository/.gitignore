@@ -8,11 +8,6 @@ proofs/output
 # Emitted by CBMC Viewer
 TAGS-*
 
-# Emitted by Arpa
-arpa_cmake/
-arpa-validation-logs/
-Makefile.arpa
-
 # Emitted by litani
 .ninja_deps
 .ninja_log

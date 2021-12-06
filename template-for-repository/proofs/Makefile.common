@@ -378,7 +378,6 @@ VIEWER ?= cbmc-viewer
 MAKE_SOURCE ?= make-source
 VIEWER2 ?= cbmc-viewer
 CMAKE ?= cmake
-ARPA ?= @echo "You must set ARPA in Makefile-project-defines to run arpa in this project"; false
 
 GOTODIR ?= $(PROOFDIR)/gotos
 LOGDIR ?= $(PROOFDIR)/logs
@@ -389,9 +388,6 @@ PROOF ?= proof
 HARNESS_GOTO ?= $(GOTODIR)/$(HARNESS_FILE)
 PROJECT_GOTO ?= $(GOTODIR)/$(PROJECT)
 PROOF_GOTO ?= $(GOTODIR)/$(PROOF)
-
-ARPA_BLDDIR ?= $(abspath $(PROOFDIR)/arpa_cmake)
-ARPA_COMP_CMDS ?= $(ARPA_BLDDIR)/compile_commands.json
 
 ################################################################
 # Useful macros for values that are hard to reference
@@ -676,18 +672,6 @@ $(HARNESS_GOTO).goto: $(HARNESS_GOTO)9.goto
 	  --description "$(PROOF_UID): copying final goto-binary"
 
 ################################################################
-# Targets to run Arpa
-
-$(ARPA_BLDDIR):
-	$(CMAKE) $(ARPA_CMAKE_FLAGS) \
-	  -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
-	  -B $(ARPA_BLDDIR) \
-	  -S $(SRCDIR)
-
-arpa: $(ARPA_BLDDIR)
-	$(ARPA) run -cc $(ARPA_COMP_CMDS) -r $(SRCDIR)
-
-################################################################
 # Targets to run the analysis commands
 
 $(LOGDIR)/result.txt: $(HARNESS_GOTO).goto
@@ -882,8 +866,6 @@ clean:
 	-$(RM) $(DEPENDENT_GOTOS)
 	-$(RM) TAGS*
 	-$(RM) *~ \#*
-	-$(RM) Makefile.arpa
-	-$(RM) -r $(ARPA_BLDDIR)
 
 veryclean: clean
 	-$(RM) -r html report
@@ -896,7 +878,6 @@ veryclean: clean
   _report \
   _report2 \
   _result \
-  arpa \
   clean \
   coverage \
   goto \
