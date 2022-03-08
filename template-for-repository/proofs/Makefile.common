@@ -119,7 +119,8 @@ PROOFDIR ?= $(abspath .)
 CBMCDIR ?= $(PROOF_ROOT)/cbmc
 
 # Default CBMC flags used for property checking and coverage checking.
-CBMCFLAGS += --unwind 1 $(CBMC_UNWINDSET) --flush
+UNWIND_COUNT = 1
+CBMCFLAGS += --unwind $(UNWIND_COUNT) $(CBMC_UNWINDSET) --flush
 
 # Do property checking with the external SAT solver given by
 # EXTERNAL_SAT_SOLVER.  Do coverage checking with the default solver,
@@ -617,6 +618,11 @@ else
 endif
 
 # Optionally apply loop contracts
+#
+# When applied, the instrumentation introduces a backjump to prove both
+# the base case and then the step case on the same loop.
+# Therefore, it is necessary to unwind this twice: once for the base case,
+# and once more for the step case.
 $(HARNESS_GOTO)8.goto: $(HARNESS_GOTO)7.goto
 ifneq ($(APPLY_LOOP_CONTRACTS),1)
 	$(LITANI) add-job \
@@ -627,6 +633,7 @@ ifneq ($(APPLY_LOOP_CONTRACTS),1)
 	  --ci-stage build \
 	  --description "$(PROOF_UID): not applying loop contracts"
 else
+	$(eval UNWIND_COUNT=2)
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --apply-loop-contracts $^ $@' \
