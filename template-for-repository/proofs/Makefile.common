@@ -119,8 +119,7 @@ PROOFDIR ?= $(abspath .)
 CBMCDIR ?= $(PROOF_ROOT)/cbmc
 
 # Default CBMC flags used for property checking and coverage checking.
-UNWIND_COUNT = 1
-CBMCFLAGS += --unwind $(UNWIND_COUNT) $(CBMC_UNWINDSET) --flush
+CBMCFLAGS += --flush
 
 # Do property checking with the external SAT solver given by
 # EXTERNAL_SAT_SOLVER.  Do coverage checking with the default solver,
@@ -278,12 +277,26 @@ DEFINES ?=
 # bound.
 CBMC_OBJECT_BITS ?= 8
 
-# CBMC loop unwinding (Normally set in the proof Makefile)
+# CBMC default loop unwinding (Normally set in the proof Makefile)
 #
-# UNWINDSET is a list of pairs of the form foo.1:4 meaning that
+# UNWIND sets the default unwinding for loops. The default UNWIND is set to 1
+# below, but users may set it to any constant or even an empty value.
+# An UNWIND value of 2, for instance, indicates that CBMC should unwind
+# all remaining loops (after any previous unwinding steps) no more than 2 times.
+# An empty UNWIND value indicates no default unwinding for loops, and lets CBMC
+# unwind loops until it can prove that no more iterations are possible.
+UNWIND ?= 1
+
+# CBMC individual loop unwinding (Normally set in the proof Makefile)
+#
+# UNWINDSET overrides the default unwinding set by UNWIND for individual loops.
+# It is a list of pairs of the form foo.1:4 meaning that
 # CBMC should unwind loop 1 in function foo no more than 4 times.
 # For historical reasons, the number 4 is one more than the number
 # of times CBMC actually unwinds the loop.
+#
+# The UNWINDSET takes precedence over loop contracts. That is, CBMC will unwind
+# all loops in the UNWINDSET, including those that have loop contracts.
 UNWINDSET ?=
 
 # CBMC function removal (Normally set set in the proof Makefile)
@@ -404,6 +417,10 @@ COMPILE_FLAGS += --object-bits $(CBMC_OBJECT_BITS)
 DEFINES += -DCBMC=1
 DEFINES += -DCBMC_OBJECT_BITS=$(CBMC_OBJECT_BITS)
 DEFINES += -DCBMC_MAX_OBJECT_SIZE="(SIZE_MAX>>(CBMC_OBJECT_BITS+1))"
+
+ifdef UNWIND
+  CBMC_UNWIND := --unwind $(UNWIND)
+endif
 
 # CI currently assumes cbmc invocation has at most one --unwindset
 ifdef UNWINDSET
@@ -575,10 +592,10 @@ else
 	  --description "$(PROOF_UID): replacing function calls with function contracts"
 endif
 
-# Optionally unwind loops
+# Optionally unwind individual loops in the UNWINDSET
 #
-# Loop unwinding must be done before enforcing function contracts, because
-# loop unwinding does not replicate writeset snapshots that might be
+# Loop unwinding must be done before enforcing function and loop contracts,
+# because loop unwinding does not replicate writeset snapshots that might be
 # introduced during contract enforcement.
 #
 # CBMC has its own model of standard library functions like strcmp.  These
@@ -594,7 +611,6 @@ endif
 # unwind the loop N-1 times.  Unwinding with goto-instrument instead of cbmc
 # is obviously sound, but may lead to performance issues if the loops is big
 # and the difference between unwinding N-1 and N is big.
-#
 $(HARNESS_GOTO)7.goto: $(HARNESS_GOTO)6.goto
 ifeq ($(UNWINDSET),"")
 	$(LITANI) add-job \
@@ -603,26 +619,27 @@ ifeq ($(UNWINDSET),"")
 	  --outputs $@ \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
-	  --description "$(PROOF_UID): not unwinding loops"
+	  --description "$(PROOF_UID): nothing in UNWINDSET"
 else
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_UNWINDSET) $(CBMC_FLAG_UNWINDING_ASSERTIONS) $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --stdout-file $(LOGDIR)/unwind_loops-log.txt \
+	  --stdout-file $(LOGDIR)/unwindset-log.txt \
 	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
-	  --description "$(PROOF_UID): unwinding loops"
+	  --description "$(PROOF_UID): unwinding loops in UNWINDSET"
 endif
 
 # Optionally apply loop contracts
 #
-# When applied, the instrumentation introduces a backjump to prove both
-# the base case and then the step case on the same loop.
-# Therefore, it is necessary to unwind this twice: once for the base case,
-# and once more for the step case.
+# Unroll loops twice when applying loop contracts.
+# The instrumentation for loop contracts introduces a back jump to prove
+# both the base case and the induction step of the induction,
+# and we need to unroll both iterations.
+# So we raise UNWIND to 2 if it was set to a value less than 2.
 $(HARNESS_GOTO)8.goto: $(HARNESS_GOTO)7.goto
 ifneq ($(APPLY_LOOP_CONTRACTS),1)
 	$(LITANI) add-job \
@@ -633,7 +650,9 @@ ifneq ($(APPLY_LOOP_CONTRACTS),1)
 	  --ci-stage build \
 	  --description "$(PROOF_UID): not applying loop contracts"
 else
-	$(eval UNWIND_COUNT=2)
+	$( if [ -n ${UNWIND} ] && [ ${UNWIND} -lt 2 ]; then \
+		eval UNWIND=2 ; \
+	fi )
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --apply-loop-contracts $^ $@' \
@@ -646,8 +665,41 @@ else
 	  --description "$(PROOF_UID): applying loop contracts"
 endif
 
-# Optionally check function contracts
+# Optionally unwind all remaining loops
+#
+# Loop unwinding must be done before enforcing function contracts, because
+# loop unwinding does not replicate writeset snapshots that might be
+# introduced during contract enforcement.
+#
+# The meaning of `--unwind N` depends on the program invoked.  The
+# program goto-instrument will unwind the loop N times.  The program cbmc will
+# unwind the loop N-1 times.  Unwinding with goto-instrument instead of cbmc
+# is obviously sound, but may lead to performance issues if the loops is big
+# and the difference between unwinding N-1 and N is big.
 $(HARNESS_GOTO)9.goto: $(HARNESS_GOTO)8.goto
+ifeq ($(UNWIND),"")
+	$(LITANI) add-job \
+	  --command 'cp $^ $@' \
+	  --inputs $^ \
+	  --outputs $@ \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): not unwinding remaining loops"
+else
+	$(LITANI) add-job \
+	  --command \
+	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_UNWIND) $(CBMC_FLAG_UNWINDING_ASSERTIONS) $^ $@' \
+	  --inputs $^ \
+	  --outputs $@ \
+	  --stdout-file $(LOGDIR)/unwind-log.txt \
+	  --interleave-stdout-stderr \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): unwinding remaining loops"
+endif
+
+# Optionally check function contracts
+$(HARNESS_GOTO)10.goto: $(HARNESS_GOTO)9.goto
 ifeq ($(CHECK_FUNCTION_CONTRACTS),"")
 	$(LITANI) add-job \
 	  --command 'cp $^ $@' \
@@ -670,7 +722,7 @@ else
 endif
 
 # Final name for proof harness
-$(HARNESS_GOTO).goto: $(HARNESS_GOTO)9.goto
+$(HARNESS_GOTO).goto: $(HARNESS_GOTO)10.goto
 	$(LITANI) add-job \
 	  --command 'cp $< $@' \
 	  --inputs $^ \
