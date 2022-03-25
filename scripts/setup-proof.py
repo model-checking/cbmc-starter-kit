@@ -18,16 +18,16 @@ def proof_template_filenames():
 
 def read_proof_template(filename):
     directory = os.path.join(util.templates_root(), util.PROOF_TEMPLATES)
-    with open(os.path.join(directory, filename)) as data:
+    with open(os.path.join(directory, filename), encoding='utf-8') as data:
         return data.read().splitlines()
 
 def write_proof_template(lines, filename, directory):
-    with open(os.path.join(directory, filename), "w") as data:
+    with open(os.path.join(directory, filename), "w", encoding='utf-8') as data:
         data.writelines(line + '\n' for line in lines)
 
 def rename_proof_harness(function, directory):
     shutil.move(os.path.join(directory, "FUNCTION_harness.c"),
-                os.path.join(directory, "{}_harness.c".format(function)))
+                os.path.join(directory, f"{function}_harness.c"))
 
 def patch_function_name(lines, function):
     return [line.replace("<__FUNCTION_NAME__>", function) for line in lines]

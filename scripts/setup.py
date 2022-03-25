@@ -42,7 +42,7 @@ def create_makefile_template_defines(
     if os.path.exists(makefile):
         logging.warning("Overwriting %s", makefile)
 
-    with open(makefile, "w") as fileobj:
+    with open(makefile, "w", encoding='utf-8') as fileobj:
         print(SRCDIR_TEXT.format(os.path.relpath(source_root, proof_root)),
               file=fileobj)
         print(LITANI_TEXT.format(os.path.relpath(litani, proof_root)),
@@ -62,7 +62,8 @@ def main():
 
     util.copy_repository_templates(cbmc_root)
     create_makefile_template_defines(
-        proof_root, source_root, litani, project_name)
+        proof_root, source_root, litani, project_name
+    )
 
 if __name__ == "__main__":
     main()
