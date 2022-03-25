@@ -9,6 +9,7 @@ import logging
 import os
 import shutil
 
+import repository
 import util
 
 def proof_template_filenames():
@@ -48,10 +49,10 @@ def main():
 
     logging.basicConfig(format='%(levelname)s: %(message)s')
 
-    function = util.read_function_name()
-    source_file = util.read_source_path()
-    source_root = util.read_source_root_path()
-    proof_root = util.read_proof_root_path()
+    function = util.ask_for_function_name()
+    source_file = util.ask_for_source_file(function)
+    source_root = repository.repository_root()
+    proof_root = repository.proofs_root()
 
     proof_dir = os.path.abspath(function)
     os.mkdir(proof_dir)
