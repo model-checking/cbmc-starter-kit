@@ -114,7 +114,7 @@ def link_files(name, src, dst):
                         install_method[0], name, src_link)
         return 1
 
-    logging.warning(
+    logging.debug(
         "Creating %s %s -> %s", install_method[0], name, src_link)
     install_method[1](src_link, dst_name)
     return 0
