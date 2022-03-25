@@ -119,7 +119,7 @@ def link_files(name, src, dst):
     install_method[1](src_link, dst_name)
     return 0
 
-def copy_directory_contents(src, dst):
+def copy_directory_contents(src, dst, exclude=None):
     """Link the contents of one directory into another."""
 
     src = os.path.normpath(src)
@@ -131,6 +131,8 @@ def copy_directory_contents(src, dst):
     skipped = 0
     for name in files_under_root(src):
         name = os.path.normpath(name)
+        if exclude and name.startswith(exclude):
+            continue
         skipped += link_files(name, src, dst)
 
     if skipped:
@@ -142,4 +144,5 @@ def copy_repository_templates(cbmc_root):
 
     copy_directory_contents(os.path.join(templates_root(),
                                          REPOSITORY_TEMPLATES),
-                            cbmc_root)
+                            cbmc_root,
+                            exclude="negative_tests")
