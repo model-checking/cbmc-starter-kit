@@ -3,9 +3,11 @@
 
 """Methods of manipulating the templates repository."""
 
+from pathlib import Path
 import logging
 import os
 import shutil
+import repository
 
 REPOSITORY_TEMPLATES = "template-for-repository"
 PROOF_TEMPLATES = "template-for-proof"
@@ -36,34 +38,47 @@ def templates_root():
     return os.path.dirname(script_dir())
 
 ################################################################
-# Read configuration information from the standard input
+# Ask the user for set up information
 
-def read_from_stdin():
-    return input().strip()
+def ask_for_project_name():
+    """Ask user for project name."""
 
-def read_path_from_stdin(description):
-    print("What is the path to {}? ".format(description), end="")
-    return os.path.abspath(os.path.expanduser(read_from_stdin()))
+    return input("What is the project name? ").strip()
 
-def read_source_root_path():
-    return read_path_from_stdin("the source root")
+def ask_for_function_name():
+    """Ask user for function name."""
 
-def read_proof_root_path():
-    return read_path_from_stdin("the 'proofs' directory (usually '.')")
+    return input("What is the function name? ").strip()
 
-def read_litani_path():
-    return read_path_from_stdin("the litani script")
+def ask_for_source_file(func, cwd=None, repo=None):
+    """Ask user to select path to source file defining function func."""
 
-def read_source_path():
-    return read_path_from_stdin("the source file defining the function")
+    cwd = Path(cwd or Path.cwd()).resolve()
+    repo = Path(repo or repository.repository_root(cwd=cwd)).resolve()
+    sources = repository.function_sources(func, cwd=cwd, repo=repo, abspath=False)
+    options = sources + ["The source file is not listed here"]
+    choices = [str(idx) for idx in range(len(options))]
 
-def read_function_name():
-    print("What is the function name? ", end="")
-    return read_from_stdin()
+    index = "0"
+    if sources:
+        print(f"These source files define a function '{func}':")
+        for index, source in enumerate(options):
+            print(f" {index:3} {source}")
+        index = input(
+            f"Select a source file (the options are {', '.join(choices)}): "
+        ).strip()
 
-def read_project_name():
-    print("What is the project name? ", end="")
-    return read_from_stdin()
+    if not index in choices:
+        raise UserWarning(f"{index} is not in {', '.join(choices)}")
+    if not index in choices[:-1]:
+        src = input(f"Enter path to source file defining {func}: ").strip()
+    else:
+        src = sources[int(index)]
+    src = Path(src)
+    if not src.is_file():
+        raise UserWarning(f"Source file '{src}' does not exist")
+
+    return src
 
 ################################################################
 

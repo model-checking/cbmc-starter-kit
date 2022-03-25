@@ -5,9 +5,11 @@
 
 """Set up the CBMC proof instrastructure."""
 
+from pathlib import Path
 import logging
 import os
 
+import repository
 import util
 
 SRCDIR_TEXT = """
@@ -52,19 +54,11 @@ def main():
 
     logging.basicConfig(format='%(levelname)s: %(message)s')
 
-    source_root = util.read_source_root_path()
-
-    # the script is being run in the cbmc root
-    cbmc_root = os.path.abspath('.')
-
-    # the script is creating the proof root
-    proof_root = os.path.abspath('proofs')
-
-    # the script is linking to the litani script within the litani submodule
-    litani = util.read_litani_path()
-
-    # the name of the project used in project verification reports
-    project_name = util.read_project_name()
+    cbmc_root = Path.cwd()
+    proof_root = cbmc_root / "proofs"
+    source_root = repository.repository_root()
+    litani = repository.litani_root() / 'litani'
+    project_name = util.ask_for_project_name()
 
     util.copy_repository_templates(cbmc_root)
     create_makefile_template_defines(
