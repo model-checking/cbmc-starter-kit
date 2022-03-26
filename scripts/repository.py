@@ -1,6 +1,7 @@
 """Discover repository properties like repository root, proof root, etc."""
 
 from pathlib import Path
+from subprocess import Popen, PIPE
 import subprocess
 import logging
 import json
@@ -156,62 +157,49 @@ def starter_kit_root(submodules=None, repo=None, abspath=True):
 # Discover the set of all source files in the repository that define a
 # function named func.
 
-def repo_sources(repo='.'):
-    """Paths to all source files within a repository.
+def run(cmd, cwd=None, stdin=None):
+    """Run a command with string stdin on stdin, return stdout and stderr."""
 
-    Return a list of paths to C source files found under the
-    repository root (paths are relative to the repository root)."""
+    try:
+        with Popen(cmd, cwd=cwd, text=True, stdin=PIPE, stdout=PIPE, stderr=PIPE) as pipe:
+            stdout, stderr = pipe.communicate(input=stdin)
+        if pipe.returncode:
+            logging.debug("Nonzero return code %s: command: '%s'", pipe.returncode, ' '.join(cmd))
+            logging.debug("Nonzero return code %s: stderr: '%s'", pipe.returncode, pipe.stderr)
+            return None, None
+        return stdout, stderr
+    except FileNotFoundError:
+        logging.debug("FileNotFoundError: command '%s'", ' '.join(cmd))
+        return None, None
+
+def function_tags(repo='.'):
+    """List of tags for function definitions in respository source files.
+
+    Each tag is a dict '{"name": function, "path": source}' naming a
+    function and a source file defining the function."""
 
     repo = Path(repo).resolve()
-    try:
-        cmd = ['find', '.', '-name', '*.c']
-        kwds = {'cwd': repo, 'capture_output': True, 'text': True}
-        return subprocess.run(cmd, **kwds, check=True).stdout.splitlines()
-    except subprocess.CalledProcessError as error:
-        logging.debug("Failed to run find in %s", repo)
-        logging.debug(error)
+
+    find_cmd = ['find', '.', '-name', '*.c']
+    find_stdout, _ = run(find_cmd, cwd=repo)
+    if find_stdout is None: # run() logs errors on debug
         return []
 
-def function_tags(sources, repo='.'):
-    """Tags for all function definitions in source files.
-
-    Return a list of function definitions found in a list of source
-    files.  Restrict source files to existing files under the root repo.
-    Describe each function definition with a dict
-      {"name": function_name, "path": source_path}
-    giving the function name and the path to the defining source file."""
-
-    def sources_under_root(sources, repo):
-        """Restrict sources to paths under repo relative to repo."""
-
-        srcs = []
-        for src in sources:
-            path = (repo / src).resolve()
-            try:
-                if not path.is_file():
-                    raise ValueError
-                srcs.append(path.relative_to(repo))
-            except ValueError: # path is not a file or not relative to repo
-                logging.debug("Skipping %s: not a file under %s", src, repo)
-                continue
-        return [str(src) for src in srcs]
-
-    repo = Path(repo).resolve()
-    sources = sources_under_root(sources, repo)
-    try:
-        cmd = [
-            'ctags',
-            '--c-types=f', # include only function definition tags
-            '--output-format=json', # each line is one json blob for one tag
-            '--fields=NF' # each json blob is {name="function", path="source"}
-        ] + sources
-        kwds = {'cwd': repo, 'capture_output': True, 'text': True}
-        lines = subprocess.run(cmd, **kwds, check=True).stdout.splitlines()
-        return json.loads(f"[{','.join(lines)}]")
-    except subprocess.CalledProcessError as error:
-        logging.debug("Can't run ctags in %s", repo)
-        logging.debug(error)
+    ctags_cmd = [
+        'ctags',
+        '-L', '-', # read from standard input
+        '--c-types=f', # include only function definition tags
+        '--output-format=json', # each line is one json blob for one tag
+        '--fields=NF' # each json blob is {name="function", path="source"}
+    ]
+    ctags_stdout, _ = run(ctags_cmd, cwd=repo, stdin=find_stdout)
+    if ctags_stdout is None: # run() logs errors on debug
         return []
+
+    blobs = ctags_stdout.splitlines()  # a list of json blobs
+    blob = '[' + ','.join(blobs) + ']' # a json blob
+    try:
+        return json.loads(blob)
     except json.decoder.JSONDecodeError as error:
         logging.debug("Can't load json output of ctags in %s", repo)
         logging.debug(error)
@@ -232,8 +220,7 @@ def function_sources(func, cwd='.', repo='.', abspath=True):
     cwd = Path(cwd).resolve()
     repo = Path(repo).resolve()
 
-    sources = repo_sources(repo)
-    tags = function_tags(sources, repo)
+    tags = function_tags(repo)
     paths = function_paths(func, tags)
 
     path_to_repo = repo if abspath else path_to_ancestor(cwd, repo)
