@@ -68,9 +68,9 @@ def ask_for_source_file(func, cwd=None, repo=None):
             f"Select a source file (the options are {', '.join(choices)}): "
         ).strip()
 
-    if not index in choices:
+    if index not in choices:
         raise UserWarning(f"{index} is not in {', '.join(choices)}")
-    if not index in choices[:-1]:
+    if index not in choices[:-1]:
         src = input(f"Enter path to source file defining {func}: ").strip()
     else:
         src = sources[int(index)]
