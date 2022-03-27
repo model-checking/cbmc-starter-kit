@@ -91,21 +91,28 @@ def load_submodules(repo=None):
         # Output of git config is lines of the form
         #   submodule.ORGANIZATION/REPOSITORY.path=PATH
         #   submodule.ORGANIZATION/REPOSITORY.url=URL
-        match = re.match(r"^submodule\.([^=]+)\.([^=]+) *= *(.+)", line)
+        # Parsing config output with a simple regular expression will
+        # fail if PATH or URL contains path= or url= as a substring.
+        match = re.match(r"^submodule\.(.+)\.(path|url)=(.+)", line)
         if not match:
             logging.debug("Can't parse git config output: '%s'", line)
             continue
 
         name, key, value = [string.strip() for string in match.groups()[0:3]]
+        if key == 'path':
+            value = Path(value)
+            if not value.is_dir(): # Maybe PATH included path= as a substring...
+                logging.debug("Not a directory: path %s for submodule %s", value, name)
         submodules[name] = submodules.get(name, {})
         submodules[name][key] = value
+
     return submodules
 
 def submodule_root(url, submodules=None, repo=None, abspath=True):
     """Look up path to root of submodule url in submodules."""
 
     url = url.lower()
-    repo = repo or repository_root()
+    repo = Path(repo) if repo else repository_root()
     submodules = submodules or load_submodules(repo=repo)
 
     for _, config in submodules.items():
@@ -115,26 +122,35 @@ def submodule_root(url, submodules=None, repo=None, abspath=True):
         if not config_url or not config_url.lower() in [url, url+".git"]:
             continue
         if not config_path:
+            logging.debug("Can't find path to submodule '%s'", url)
             logging.debug("Found submodule config = %s", config)
-            raise UserWarning(f"Can't find path to submodule '{url}'")
-        return Path(repo/config_path if abspath else config_path)
+            return None
+        return repo/config_path if abspath else config_path
 
+    logging.debug("Can't find submodule '%s'", url)
     logging.debug("Found submodules = %s", submodules)
-    raise UserWarning(f"Can't find submodule '{url}'")
+    return None
+
 
 def litani_root(submodules=None, repo=None, abspath=True):
     """Root of litani submodule."""
 
-    litani = 'https://github.com/awslabs/aws-build-accumulator'
-    return submodule_root(litani, submodules, repo, abspath)
+    litani1 = 'https://github.com/awslabs/aws-build-accumulator'
+    litani2 = 'git@github.com:awslabs/aws-build-accumulator'
+    return (submodule_root(litani1, submodules, repo, abspath) or
+            submodule_root(litani2, submodules, repo, abspath))
 
 def starter_kit_root(submodules=None, repo=None, abspath=True):
     """Root of starter kit submodule."""
 
-    old_starter = 'https://github.com/awslabs/aws-templates-for-cbmc-proofs'
-    new_starter = 'https://github.com/model-checking/cbmc-starter-kit'
-    return (submodule_root(old_starter, submodules, repo, abspath) or
-            submodule_root(new_starter, submodules, repo, abspath))
+    old_starter1 = 'https://github.com/awslabs/aws-templates-for-cbmc-proofs'
+    old_starter2 = 'git@github.com:awslabs/aws-templates-for-cbmc-proofs'
+    new_starter1 = 'https://github.com/model-checking/cbmc-starter-kit'
+    new_starter2 = 'git@github.com:model-checking/cbmc-starter-kit'
+    return (submodule_root(old_starter1, submodules, repo, abspath) or
+            submodule_root(old_starter2, submodules, repo, abspath) or
+            submodule_root(new_starter1, submodules, repo, abspath) or
+            submodule_root(new_starter2, submodules, repo, abspath))
 
 ################################################################
 # Discover the set of all source files in the repository that define a
