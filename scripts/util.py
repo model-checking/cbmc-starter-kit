@@ -58,19 +58,19 @@ def ask_for_source_file(func, cwd=None, repo=None):
     sources = repository.function_sources(func, cwd=cwd, repo=repo, abspath=False)
     options = sources + ["The source file is not listed here"]
     choices = [str(idx) for idx in range(len(options))]
+    index = choices[-1]
 
-    index = "0"
     if sources:
         print(f"These source files define a function '{func}':")
-        for index, source in enumerate(options):
-            print(f" {index:3} {source}")
+        for idx, src in enumerate(options):
+            print(f" {idx:3} {src}")
         index = input(
             f"Select a source file (the options are {', '.join(choices)}): "
-        ).strip()
+        ).strip() or choices[-1]
 
     if index not in choices:
         raise UserWarning(f"{index} is not in {', '.join(choices)}")
-    if index not in choices[:-1]:
+    if index == choices[-1]:
         src = input(f"Enter path to source file defining {func}: ").strip()
     else:
         src = sources[int(index)]
