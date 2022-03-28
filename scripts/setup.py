@@ -8,6 +8,7 @@
 from pathlib import Path
 import logging
 import os
+import shutil
 
 import repository
 import util
@@ -21,7 +22,7 @@ SRCDIR ?= $(abspath $(PROOF_ROOT)/{})
 LITANI_TEXT = """
 # Absolute path to the litani script.
 #
-LITANI ?= $(abspath $(PROOF_ROOT)/{})
+LITANI ?= {}
 """
 
 PROJECT_TEXT = """
@@ -45,8 +46,7 @@ def create_makefile_template_defines(
     with open(makefile, "w", encoding='utf-8') as fileobj:
         print(SRCDIR_TEXT.format(os.path.relpath(source_root, proof_root)),
               file=fileobj)
-        print(LITANI_TEXT.format(os.path.relpath(litani, proof_root)),
-              file=fileobj)
+        print(LITANI_TEXT.format(litani), file=fileobj)
         print(PROJECT_TEXT.format(project_name), file=fileobj)
 
 def main():
@@ -57,7 +57,11 @@ def main():
     cbmc_root = Path.cwd()
     proof_root = cbmc_root / "proofs"
     source_root = repository.repository_root()
-    litani = repository.litani_root() / 'litani'
+    litani = "litani" if shutil.which("litani") else \
+        repository.litani_root() / "litani"
+    if litani != "litani":
+        relpath_from_litani_to_proof_root = os.path.relpath(litani, proof_root)
+        litani = f"$(abspath $(PROOF_ROOT)/{relpath_from_litani_to_proof_root})"
     project_name = util.ask_for_project_name()
 
     util.copy_repository_templates(cbmc_root)
