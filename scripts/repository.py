@@ -160,6 +160,7 @@ def starter_kit_root(submodules=None, repo=None, abspath=True):
 def run(cmd, cwd=None, stdin=None):
     """Run a command with string stdin on stdin, return stdout and stderr."""
 
+    cmd = [str(word) for word in cmd]
     try:
         with Popen(cmd, cwd=cwd, text=True, stdin=PIPE, stdout=PIPE, stderr=PIPE) as pipe:
             stdout, stderr = pipe.communicate(input=stdin)
