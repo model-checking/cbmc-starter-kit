@@ -309,6 +309,7 @@ NONDET_STATIC ?=
 # Flags to pass to goto-cc for compilation and linking
 COMPILE_FLAGS ?= -Wall
 LINK_FLAGS ?= -Wall
+EXPORT_FILE_LOCAL_SYMBOLS ?= --export-file-local-symbols
 
 # Preprocessor include paths -I...
 INCLUDES ?=
@@ -531,7 +532,7 @@ $(REMOVE_STATIC):
 $(PROJECT_GOTO)1.goto: $(PROJECT_SOURCES) $(REMOVE_STATIC)
 	$(LITANI) add-job \
 	  --command \
-	    '$(GOTO_CC) $(CBMC_VERBOSITY) --export-file-local-symbols $(COMPILE_FLAGS) $(INCLUDES) $(DEFINES) $^ -o $@' \
+	    '$(GOTO_CC) $(CBMC_VERBOSITY) $(COMPILE_FLAGS) $(EXPORT_FILE_LOCAL_SYMBOLS) $(INCLUDES) $(DEFINES) $^ -o $@' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/project_sources-log.txt \
@@ -543,7 +544,7 @@ $(PROJECT_GOTO)1.goto: $(PROJECT_SOURCES) $(REMOVE_STATIC)
 $(PROOF_GOTO)1.goto: $(PROOF_SOURCES)
 	$(LITANI) add-job \
 	  --command \
-	    '$(GOTO_CC) $(CBMC_VERBOSITY) --export-file-local-symbols $(COMPILE_FLAGS) $(INCLUDES) $(DEFINES) $^ -o $@' \
+	    '$(GOTO_CC) $(CBMC_VERBOSITY) $(COMPILE_FLAGS) $(EXPORT_FILE_LOCAL_SYMBOLS) $(INCLUDES) $(DEFINES) $^ -o $@' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/proof_sources-log.txt \
