@@ -16,6 +16,11 @@
 # Flags to pass to goto-cc for linking (typically those passed to gcc)
 # LINK_FLAGS =
 
+# Flag to pass to goto-cc to make all static symbols globally visible. Leave it
+# unset or set it to --export-file-local-symbols to enable this behavior. Else,
+# selectively enable access to such symbols via each proof's Makefile.
+EXPORT_FILE_LOCAL_SYMBOLS =
+
 # Preprocessor include paths -I...
 # Consider adding
 #     INCLUDES += -I$(CBMC_ROOT)/include
