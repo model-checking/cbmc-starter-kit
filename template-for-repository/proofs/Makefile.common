@@ -256,7 +256,7 @@ COVERFLAGS += $(CBMC_FLAG_MALLOC_FAIL_NULL)
 NONDET_STATIC ?= ""
 
 # Flags to pass to goto-cc for compilation and linking
-COMPILE_FLAGS ?= -Wall
+COMPILE_FLAGS ?= -Wall --export-file-local-symbols
 LINK_FLAGS ?= -Wall
 
 # Preprocessor include paths -I...
@@ -420,7 +420,7 @@ CBMC_RESTRICT_FUNCTION_POINTER := $(patsubst %,--restrict-function-pointer %, $(
 $(PROJECT_GOTO)1.goto: $(PROJECT_SOURCES)
 	$(LITANI) add-job \
 	  --command \
-	    '$(GOTO_CC) $(CBMC_VERBOSITY) --export-file-local-symbols $(COMPILE_FLAGS) $(INCLUDES) $(DEFINES) $^ -o $@' \
+	    '$(GOTO_CC) $(CBMC_VERBOSITY) $(COMPILE_FLAGS) $(INCLUDES) $(DEFINES) $^ -o $@' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/project_sources-log.txt \
@@ -433,7 +433,7 @@ $(PROJECT_GOTO)1.goto: $(PROJECT_SOURCES)
 $(PROOF_GOTO)1.goto: $(PROOF_SOURCES)
 	$(LITANI) add-job \
 	  --command \
-	    '$(GOTO_CC) $(CBMC_VERBOSITY) --export-file-local-symbols $(COMPILE_FLAGS) $(INCLUDES) $(DEFINES) $^ -o $@' \
+	    '$(GOTO_CC) $(CBMC_VERBOSITY) $(COMPILE_FLAGS) $(INCLUDES) $(DEFINES) $^ -o $@' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/proof_sources-log.txt \
