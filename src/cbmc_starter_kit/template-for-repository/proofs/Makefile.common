@@ -439,6 +439,7 @@ CBMC ?= cbmc
 GOTO_ANALYZER ?= goto-analyzer
 GOTO_CC ?= goto-cc
 GOTO_INSTRUMENT ?= goto-instrument
+CRANGLER ?= crangler
 VIEWER ?= cbmc-viewer
 MAKE_SOURCE ?= make-source
 VIEWER2 ?= cbmc-viewer
@@ -487,8 +488,47 @@ CBMC_RESTRICT_FUNCTION_POINTER := $(patsubst %,--restrict-function-pointer %, $(
 ################################################################
 # Build targets that make the relevant .goto files
 
+# Create preprocessed files with "static" selectively removed via crangler
+$(foreach rs,$(REMOVE_STATIC),$(eval $(rs).json: $($(rs)_SOURCE)))
+$(foreach rs,$(REMOVE_STATIC),$(rs).json):
+	echo '{'\
+	  '"sources": ['\
+	  '"$($(@:.json=)_SOURCE)"'\
+	  '],'\
+	  '"includes": ['\
+	    '$(subst $(SPACE),$(COMMA),$(patsubst -I%,"%",$(strip $(INCLUDES))))' \
+	  '],'\
+	  '"defines": ['\
+	    '$(subst $(SPACE),$(COMMA),$(patsubst -D%,"%",$(subst ",\",$(strip $(DEFINES)))))' \
+	  '],'\
+	  '"functions": ['\
+	    '{'\
+	      '$(subst ~, ,$(subst $(SPACE),$(COMMA),$(patsubst %,"%":["remove~static"],$($(@:.json=)_FUNCTIONS))))' \
+	    '}'\
+	  '],'\
+	  '"objects": ['\
+	    '{'\
+	      '$(subst ~, ,$(subst $(SPACE),$(COMMA),$(patsubst %,"%":["remove~static"],$($(@:.json=)_OBJECTS))))' \
+	    '}'\
+	  '],'\
+	  '"output": "$(@:.json=)"'\
+	'}' > $@
+
+$(foreach rs,$(REMOVE_STATIC),$(eval $(rs): $(rs).json))
+$(REMOVE_STATIC):
+	$(LITANI) add-job \
+	  --command \
+	  '$(CRANGLER) $@.json' \
+	  --inputs $($@_SOURCE) \
+	  --outputs $@ \
+	  --stdout-file $(LOGDIR)/project_sources-log.txt \
+	  --interleave-stdout-stderr \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): removing static"
+
 # Compile project sources
-$(PROJECT_GOTO)1.goto: $(PROJECT_SOURCES)
+$(PROJECT_GOTO)1.goto: $(PROJECT_SOURCES) $(REMOVE_STATIC)
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_CC) $(CBMC_VERBOSITY) --export-file-local-symbols $(COMPILE_FLAGS) $(INCLUDES) $(DEFINES) $^ -o $@' \
@@ -836,6 +876,7 @@ clean:
 	-$(RM) $(DEPENDENT_GOTOS)
 	-$(RM) TAGS*
 	-$(RM) *~ \#*
+	-$(RM) $(REMOVE_STATIC) $(foreach rs,$(REMOVE_STATIC),$(rs).json)
 
 veryclean: clean
 	-$(RM) -r html report
