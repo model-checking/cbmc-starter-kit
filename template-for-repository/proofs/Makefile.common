@@ -777,7 +777,8 @@ define VIEWER2_CMD
     --property $(LOGDIR)/property.xml \
     --srcdir $(SRCDIR) \
     --goto $(HARNESS_GOTO).goto \
-    --reportdir $(PROOFDIR)/report
+    --reportdir $(PROOFDIR)/report \
+    --config $(PROOFDIR)/cbmc-viewer.json
 endef
 export VIEWER2_CMD
 
