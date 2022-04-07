@@ -71,7 +71,7 @@ def get_project_name():
         "echo-project-name",
     ]
     logging.debug(" ".join(cmd))
-    proc = subprocess.run(cmd, universal_newlines=True, stdout=subprocess.PIPE)
+    proc = subprocess.run(cmd, universal_newlines=True, stdout=subprocess.PIPE, check=False)
     if proc.returncode:
         logging.critical("could not run make to determine project name")
         sys.exit(1)
@@ -157,10 +157,9 @@ def task_pool_size():
 
 
 def print_counter(counter):
-    print(
-        "\rConfiguring CBMC proofs: "
-        "{complete:{width}} / {total:{width}}".format(
-            **counter), end="", file=sys.stderr)
+    # pylint: disable=consider-using-f-string
+    print("\rConfiguring CBMC proofs: "
+          "{complete:{width}} / {total:{width}}".format(**counter), end="", file=sys.stderr)
 
 
 def get_proof_dirs(proof_root, proof_list, marker_file):
@@ -191,7 +190,7 @@ def run_build(litani, jobs):
         cmd.extend(["-j", str(jobs)])
 
     logging.debug(" ".join(cmd))
-    proc = subprocess.run(cmd)
+    proc = subprocess.run(cmd, check=False)
     if proc.returncode:
         logging.critical("Failed to run litani run-build")
         sys.exit(1)
@@ -201,12 +200,12 @@ def get_litani_path(proof_root):
     cmd = [
         "make",
         "--no-print-directory",
-        "PROOF_ROOT=%s" % proof_root,
+        f"PROOF_ROOT={proof_root}",
         "-f", "Makefile.common",
         "litani-path",
     ]
     logging.debug(" ".join(cmd))
-    proc = subprocess.run(cmd, universal_newlines=True, stdout=subprocess.PIPE)
+    proc = subprocess.run(cmd, universal_newlines=True, stdout=subprocess.PIPE, check=False)
     if proc.returncode:
         logging.critical("Could not determine path to litani")
         sys.exit(1)
@@ -216,7 +215,7 @@ def get_litani_path(proof_root):
 def get_litani_capabilities(litani_path):
     cmd = [litani_path, "print-capabilities"]
     proc = subprocess.run(
-        cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False)
     if proc.returncode:
         return []
     try:
@@ -229,17 +228,17 @@ def get_litani_capabilities(litani_path):
 def check_uid_uniqueness(proof_dir, proof_uids):
     with (pathlib.Path(proof_dir) / "Makefile").open() as handle:
         for line in handle:
-            m = re.match(r"^PROOF_UID\s*=\s*(?P<uid>\w+)", line)
-            if not m:
+            match = re.match(r"^PROOF_UID\s*=\s*(?P<uid>\w+)", line)
+            if not match:
                 continue
-            if m["uid"] not in proof_uids:
-                proof_uids[m["uid"]] = proof_dir
+            if match["uid"] not in proof_uids:
+                proof_uids[match["uid"]] = proof_dir
                 return
 
             logging.critical(
                 "The Makefile in directory '%s' should have a different "
                 "PROOF_UID than the Makefile in directory '%s'",
-                proof_dir, proof_uids[m["uid"]])
+                proof_dir, proof_uids[match["uid"]])
             sys.exit(1)
 
     logging.critical(
@@ -285,7 +284,7 @@ async def configure_proof_dirs(
         queue.task_done()
 
 
-async def main():
+async def main(): # pylint: disable=too-many-locals
     args = get_args()
     set_up_logging(args.verbose)
 
@@ -313,11 +312,11 @@ async def main():
                 "--output-symlink", str(out_symlink),
             ])
             print(
-                "\nFor your convenience, the output of this run will be "
-                "symbolically linked to %s\n" % str(out_index))
+                "\nFor your convenience, the output of this run will be symbolically linked to ",
+                out_index, "\n")
 
         logging.debug(" ".join(cmd))
-        proc = subprocess.run(cmd)
+        proc = subprocess.run(cmd, check=False)
         if proc.returncode:
             logging.critical("Failed to run litani init")
             sys.exit(1)

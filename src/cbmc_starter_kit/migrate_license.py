@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-import argparse
-import json
 import logging
 import os
 import re
@@ -72,7 +70,7 @@ def remove_apache_reference(path, extension='backup'):
     ]
     backup = path + '.' + extension
     shutil.move(path, backup)
-    with open(backup) as infile, open(path, "w") as outfile:
+    with open(backup, encoding='utf-8') as infile, open(path, "w", encoding='utf-8') as outfile:
         removed = False
         for line in infile:
             if strip_whitespace(line) in apache_references:
@@ -138,16 +136,16 @@ def main():
                 print(f"  {path}")
             script = os.path.basename(sys.argv[0])
             print(f"Remove Apache references from these files with '{script} --remove'")
-        exit(0)
+        sys.exit(0)
 
     remove_apache_references(paths)
 
     paths = find_apache_references(args.proofdir)
     if paths:
         logging.warning("Files left unchanged contain Apache references: %s", ', '.join(paths))
-        exit(1)
+        sys.exit(1)
 
-    exit(0)
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()
