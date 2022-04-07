@@ -7,7 +7,8 @@ from pathlib import Path
 import logging
 import os
 import shutil
-import repository
+
+from cbmc_starter_kit import repository
 
 REPOSITORY_TEMPLATES = "template-for-repository"
 PROOF_TEMPLATES = "template-for-proof"
