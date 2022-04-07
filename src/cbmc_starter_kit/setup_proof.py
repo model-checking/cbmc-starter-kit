@@ -5,7 +5,6 @@
 
 """Set up a CBMC proof."""
 
-import logging
 import os
 import shutil
 
