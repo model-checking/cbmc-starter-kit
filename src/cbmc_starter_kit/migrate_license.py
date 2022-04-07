@@ -9,65 +9,7 @@ import shutil
 import subprocess
 import sys
 
-################################################################
-# Command line arguments
-
-def create_parser(desc, args, epilog=None):
-    default_args = [
-        {
-            "flag": "--verbose",
-            "action": "store_true",
-            "help": "Verbose output"
-        },
-        {
-            "flag": "--debug",
-            "action": "store_true",
-            "help": "Debug output"
-        }
-    ]
-    args.extend(default_args)
-
-    parser = argparse.ArgumentParser(description=desc, epilog=epilog)
-    for arg in args:
-        flag = arg.pop('flag')
-        parser.add_argument(flag, **arg)
-    return parser
-
-def parser():
-    desc = "Remove Apache references from files copied from the CBMC starter kit"
-    args = [
-        {
-            "flag": "--proofdir",
-            "help": "Root of the proof subtree (default: %(default)s)",
-            "default": ".",
-        },
-        {
-            "flag": "--remove",
-            "action": "store_true",
-            "help": "Remove Apache references from files under PROOFDIR (otherwise just list them)"
-        },
-    ]
-    epilog = """
-    The CBMC starter kit was originally released under the Apache
-    license. All files in the starter kit contained references to the
-    Apache license. The starter kit installation scripts copied files
-    from the stater kit into the project repository.  This became an
-    issue when the project repository was released under a different
-    license.  This script removes all references to the Apache license
-    from the files copied into the project repository from the starter
-    kit.
-    """
-
-    return create_parser(desc, args, epilog)
-
-def configure_logging(args):
-    # Logging is configured by the first invocation of logging.basicConfig
-    fmt = '%(levelname)s: %(message)s'
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG, format=fmt)
-    if args.verbose:
-        logging.basicConfig(level=logging.INFO, format=fmt)
-    logging.basicConfig(format=fmt)
+from cbmc_starter_kit import arguments
 
 ################################################################
 # Shell out commands
@@ -157,8 +99,35 @@ def remove_apache_references(paths):
 ################################################################
 
 def main():
-    args = parser().parse_args()
-    configure_logging(args)
+
+    desc = "Remove references to Apache license from CBMC starter kit."
+
+    options = [
+        {
+            "flag": "--proofdir",
+            "help": "Root of the proof subtree (default: %(default)s)",
+            "default": ".",
+        },
+        {
+            "flag": "--remove",
+            "action": "store_true",
+            "help": "Remove Apache references from files under PROOFDIR (otherwise just list them)"
+        },
+    ]
+
+    epilog = """
+    The CBMC starter kit was originally released under the Apache
+    license. All files in the starter kit contained references to the
+    Apache license. The starter kit installation scripts copied files
+    from the stater kit into the project repository.  This became an
+    issue when the project repository was released under a different
+    license.  This script removes all references to the Apache license
+    from the files copied into the project repository from the starter
+    kit.
+    """
+
+    args = arguments.create_parser(options, desc, epilog).parse_args()
+    arguments.configure_logging(args)
 
     paths = find_apache_references(args.proofdir)
 
