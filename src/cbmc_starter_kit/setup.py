@@ -10,8 +10,8 @@ import logging
 import os
 import shutil
 
-import repository
-import util
+from cbmc_starter_kit import repository
+from cbmc_starter_kit import util
 
 SRCDIR_TEXT = """
 # Absolute path to the root of the source tree.
@@ -30,7 +30,7 @@ PROJECT_TEXT = """
 # "s2n" or "Amazon FreeRTOS". For projects with multiple proof roots,
 # this may be overridden on the command-line to Make, for example
 #
-# 	  make PROJECT_NAME="FreeRTOS MQTT" report
+#         make PROJECT_NAME="FreeRTOS MQTT" report
 #
 PROJECT_NAME = "{}"
 """

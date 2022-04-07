@@ -9,8 +9,8 @@ import logging
 import os
 import shutil
 
-import repository
-import util
+from cbmc_starter_kit import repository
+from cbmc_starter_kit import util
 
 def proof_template_filenames():
     directory = os.path.join(util.templates_root(), util.PROOF_TEMPLATES)
