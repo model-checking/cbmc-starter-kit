@@ -9,6 +9,7 @@ import logging
 import os
 import shutil
 
+from cbmc_starter_kit import arguments
 from cbmc_starter_kit import repository
 from cbmc_starter_kit import util
 
@@ -47,7 +48,10 @@ def patch_path_to_source_file(lines, source_file, source_root):
 def main():
     """Set up CBMC proof."""
 
-    logging.basicConfig(format='%(levelname)s: %(message)s')
+    desc = "Set up CBMC proof infrastructure for a proof."
+    options = []
+    args = arguments.create_parser(options, desc).parse_args()
+    arguments.configure_logging(args)
 
     function = util.ask_for_function_name()
     source_file = util.ask_for_source_file(function)

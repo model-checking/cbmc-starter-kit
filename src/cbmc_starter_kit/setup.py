@@ -10,6 +10,7 @@ import logging
 import os
 import shutil
 
+from cbmc_starter_kit import arguments
 from cbmc_starter_kit import repository
 from cbmc_starter_kit import util
 
@@ -52,7 +53,10 @@ def create_makefile_template_defines(
 def main():
     """Set up the CBMC proof infrastructure."""
 
-    logging.basicConfig(format='%(levelname)s: %(message)s')
+    desc = "Set up CBMC proof infrastructure for a repository."
+    options = []
+    args = arguments.create_parser(options, desc).parse_args()
+    arguments.configure_logging(args)
 
     cbmc_root = Path.cwd()
     proof_root = cbmc_root / "proofs"
