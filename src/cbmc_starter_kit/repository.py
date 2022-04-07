@@ -2,10 +2,10 @@
 
 from pathlib import Path
 from subprocess import Popen, PIPE
-import subprocess
-import logging
 import json
-import re
+import logging
+
+import git
 
 ################################################################
 # Construct an ascending relative path like "../../.." from a
@@ -41,11 +41,11 @@ def repository_root(cwd='.', abspath=True):
     the root of the submodule is returned, not the repository itself.
     """
 
-    cwd = Path(cwd).resolve()
-    for ancestor in [cwd, *cwd.parents]:
-        if (ancestor / '.git').is_dir():
-            return ancestor if abspath else path_to_ancestor(cwd, ancestor)
-    raise UserWarning(f"No git repository contains {cwd}")
+    try:
+        root = git.Repo(cwd, search_parent_directories=True).working_dir
+        return Path(root) if abspath else path_to_ancestor(cwd, root)
+    except git.InvalidGitRepositoryError:
+        raise UserWarning(f"No git repository contains {cwd}") from None
 
 def proofs_root(cwd='.', abspath=True):
     """Path to root of proofs subtree installed by starter kit.
@@ -71,79 +71,38 @@ def proofs_root(cwd='.', abspath=True):
 #   * the litani submodule
 #   * the starter kit submodule
 
-def load_submodules(repo=None):
-    """Load file .gitmodules describing the installed submodules"""
-
-    repo = repo or repository_root()
-    try:
-        cmd = ['git', 'config', '-f', '.gitmodules', '--list']
-        kwds = {'cwd': str(repo), 'capture_output': True, 'text': True}
-        lines = subprocess.run(cmd, **kwds, check=True).stdout.splitlines()
-    except subprocess.CalledProcessError as error:
-        logging.debug(error)
-        raise UserWarning(
-            f"Can't load submodules in repository root '{repo}'"
-        ) from error
-
-    submodules = {}
-    for line in lines:
-        line=re.sub(r'\s+', ' ', line.strip())
-
-        # Output of git config is lines of the form
-        #   submodule.ORGANIZATION/REPOSITORY.path=PATH
-        #   submodule.ORGANIZATION/REPOSITORY.url=URL
-        # Parsing config output with a simple regular expression will
-        # fail if PATH or URL contains path= or url= as a substring.
-        match = re.match(r"^submodule\.(.+)\.(path|url)=(.+)", line)
-        if not match:
-            logging.debug("Can't parse git config output: '%s'", line)
-            continue
-
-        name, key, value = [string.strip() for string in match.groups()[0:3]]
-        if key == 'path':
-            value = Path(value)
-            if not value.is_dir(): # Maybe PATH included path= as a substring...
-                logging.debug("Not a directory: path %s for submodule %s", value, name)
-        submodules[name] = submodules.get(name, {})
-        submodules[name][key] = value
-
-    return submodules
-
-def submodule_root(url, submodules=None, repo=None, abspath=True):
+def submodule_root(url, submodules=None, repo='.', abspath=True):
     """Look up path to root of submodule url in submodules."""
 
     url = url.lower()
-    repo = Path(repo) if repo else repository_root()
-    submodules = submodules or load_submodules(repo=repo)
+    repo = repository_root(repo)
+    submodules = submodules or git.Repo(repo).submodules
 
-    for _, config in submodules.items():
-        config_url = config.get("url")
-        config_path = config.get("path")
-
-        if not config_url or not config_url.lower() in [url, url+".git"]:
+    for submodule in submodules:
+        if not submodule.url.lower() in [url, url+".git"]:
             continue
-        if not config_path:
-            logging.debug("Can't find path to submodule '%s'", url)
-            logging.debug("Found submodule config = %s", config)
-            return None
-        return repo/config_path if abspath else config_path
+        return repo/submodule.path if abspath else Path(submodule.path)
 
     logging.debug("Can't find submodule '%s'", url)
     logging.debug("Found submodules = %s", submodules)
     return None
 
 
-def litani_root(submodules=None, repo=None, abspath=True):
+def litani_root(submodules=None, repo='.', abspath=True):
     """Root of litani submodule."""
 
+    repo = repository_root(repo)
+    submodules = submodules or git.Repo(repo).submodules
     litani1 = 'https://github.com/awslabs/aws-build-accumulator'
     litani2 = 'git@github.com:awslabs/aws-build-accumulator'
     return (submodule_root(litani1, submodules, repo, abspath) or
             submodule_root(litani2, submodules, repo, abspath))
 
-def starter_kit_root(submodules=None, repo=None, abspath=True):
+def starter_kit_root(submodules=None, repo='.', abspath=True):
     """Root of starter kit submodule."""
 
+    repo = repository_root(repo)
+    submodules = submodules or git.Repo(repo).submodules
     old_starter1 = 'https://github.com/awslabs/aws-templates-for-cbmc-proofs'
     old_starter2 = 'git@github.com:awslabs/aws-templates-for-cbmc-proofs'
     new_starter1 = 'https://github.com/model-checking/cbmc-starter-kit'
