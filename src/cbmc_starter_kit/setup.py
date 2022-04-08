@@ -6,7 +6,6 @@
 """Set up the CBMC proof instrastructure."""
 
 from pathlib import Path
-import logging
 import os
 import shutil
 
@@ -14,10 +13,21 @@ from cbmc_starter_kit import arguments
 from cbmc_starter_kit import repository
 from cbmc_starter_kit import util
 
+################################################################
+
+def parse_arguments():
+    desc = "Set up CBMC proof infrastructure for a repository."
+    options = []
+    args = arguments.create_parser(options, desc).parse_args()
+    arguments.configure_logging(args)
+    return args
+
+################################################################
+
 SRCDIR_TEXT = """
 # Absolute path to the root of the source tree.
 #
-SRCDIR ?= $(abspath $(PROOF_ROOT)/{})
+SRCDIR ?= {}
 """
 
 LITANI_TEXT = """
@@ -36,42 +46,48 @@ PROJECT_TEXT = """
 PROJECT_NAME = "{}"
 """
 
-def create_makefile_template_defines(
-        proof_root, source_root, litani, project_name):
-    """Create Makefile-template-defines in the proof root."""
+def srcdir_definition(source_root, proof_root):
+    # Let makefile construct absolute path to source root
+    srcdir_path = f"$(abspath $(PROOF_ROOT)/{os.path.relpath(source_root, proof_root)})"
+    return SRCDIR_TEXT.format(srcdir_path)
 
-    makefile = os.path.join(proof_root, "Makefile-template-defines")
-    if os.path.exists(makefile):
-        logging.warning("Overwriting %s", makefile)
+def litani_definition(litani, proof_root):
+    if litani.is_file():
+        # Let makefile construct absolute path to litani
+        litani_path = f"$(abspath $(PROOF_ROOT)/{os.path.relpath(litani, proof_root)})"
+        return LITANI_TEXT.format(litani_path)
+    return LITANI_TEXT.format(litani)
 
-    with open(makefile, "w", encoding='utf-8') as fileobj:
-        print(SRCDIR_TEXT.format(os.path.relpath(source_root, proof_root)),
-              file=fileobj)
-        print(LITANI_TEXT.format(litani), file=fileobj)
-        print(PROJECT_TEXT.format(project_name), file=fileobj)
+def project_name_definition(project_name):
+    return PROJECT_TEXT.format(project_name)
+
+################################################################
 
 def main():
     """Set up the CBMC proof infrastructure."""
 
-    desc = "Set up CBMC proof infrastructure for a repository."
-    options = []
-    args = arguments.create_parser(options, desc).parse_args()
-    arguments.configure_logging(args)
+    parse_arguments() # only arguments are --verbose and --debug
 
-    cbmc_root = Path.cwd()
-    proof_root = cbmc_root / "proofs"
+    # Gather project-specific definitions
     source_root = repository.repository_root()
-    litani = "litani" if shutil.which("litani") else \
-        repository.litani_root() / "litani"
-    if litani != "litani":
-        relpath_from_litani_to_proof_root = os.path.relpath(litani, proof_root)
-        litani = f"$(abspath $(PROOF_ROOT)/{relpath_from_litani_to_proof_root})"
+    if shutil.which("litani"):
+        litani = Path("litani")
+    else:
+        litani = repository.litani_root() / "litani"
     project_name = util.ask_for_project_name()
 
-    util.copy_repository_templates(cbmc_root)
-    create_makefile_template_defines(
-        proof_root, source_root, litani, project_name
-    )
+    # Copy cbmc infrastructure into cbmc directory
+    cbmc_root = Path.cwd()
+    shutil.copytree(util.repository_template_root(), cbmc_root, dirs_exist_ok=True)
+    shutil.rmtree(cbmc_root / "negative_tests")
+
+    # Write project-specific definitions to cbmc/proofs/Makefile-template-defines
+    proof_root = cbmc_root / util.PROOF_DIR
+    makefile = proof_root/"Makefile-template-defines"
+    with open(makefile, "w", encoding='utf-8') as mkfile:
+        print(srcdir_definition(source_root, proof_root), file=mkfile)
+        print(litani_definition(litani, proof_root), file=mkfile)
+        print(project_name_definition(project_name), file=mkfile)
 
 if __name__ == "__main__":
     main()

@@ -5,6 +5,7 @@
 
 """Set up a CBMC proof."""
 
+from pathlib import Path
 import os
 import shutil
 
@@ -12,22 +13,33 @@ from cbmc_starter_kit import arguments
 from cbmc_starter_kit import repository
 from cbmc_starter_kit import util
 
-def proof_template_filenames():
-    directory = os.path.join(util.templates_root(), util.PROOF_TEMPLATES)
-    return os.listdir(directory)
+################################################################
 
-def read_proof_template(filename):
-    directory = os.path.join(util.templates_root(), util.PROOF_TEMPLATES)
-    with open(os.path.join(directory, filename), encoding='utf-8') as data:
+def parse_arguments():
+    desc = "Set up CBMC proof infrastructure for a proof."
+    options = []
+    args = arguments.create_parser(options, desc).parse_args()
+    arguments.configure_logging(args)
+    return args
+
+################################################################
+
+def proof_template_filenames():
+    for path in util.proof_template_root().iterdir():
+        yield path
+
+def read_proof_template(path):
+    with open(path, encoding='utf-8') as data:
         return data.read().splitlines()
 
 def write_proof_template(lines, filename, directory):
-    with open(os.path.join(directory, filename), "w", encoding='utf-8') as data:
-        data.writelines(line + '\n' for line in lines)
+    with open(directory / filename, "w", encoding='utf-8') as data:
+        data.write('\n'.join(lines) + '\n')
 
 def rename_proof_harness(function, directory):
-    shutil.move(os.path.join(directory, "FUNCTION_harness.c"),
-                os.path.join(directory, f"{function}_harness.c"))
+    shutil.move(directory / "FUNCTION_harness.c", directory / f"{function}_harness.c")
+
+################################################################
 
 def patch_function_name(lines, function):
     return [line.replace("<__FUNCTION_NAME__>", function) for line in lines]
@@ -44,21 +56,21 @@ def patch_path_to_source_file(lines, source_file, source_root):
     path = os.path.relpath(source_file, source_root)
     return [line.replace("<__PATH_TO_SOURCE_FILE__>", path) for line in lines]
 
+################################################################
+
 def main():
     """Set up CBMC proof."""
 
-    desc = "Set up CBMC proof infrastructure for a proof."
-    options = []
-    args = arguments.create_parser(options, desc).parse_args()
-    arguments.configure_logging(args)
+    parse_arguments() # only arguments are --verbose and --debug
 
     function = util.ask_for_function_name()
     source_file = util.ask_for_source_file(function)
     source_root = repository.repository_root()
     proof_root = repository.proofs_root()
 
-    proof_dir = os.path.abspath(function)
-    os.mkdir(proof_dir)
+
+    proof_dir = Path(function)
+    proof_dir.mkdir()
 
     for filename in proof_template_filenames():
         lines = read_proof_template(filename)
@@ -66,7 +78,7 @@ def main():
         lines = patch_path_to_makefile(lines, proof_root, proof_dir)
         lines = patch_path_to_proof_root(lines, proof_root, source_root)
         lines = patch_path_to_source_file(lines, source_file, source_root)
-        write_proof_template(lines, filename, proof_dir)
+        write_proof_template(lines, filename.name, proof_dir)
 
     rename_proof_harness(function, proof_dir)
 
