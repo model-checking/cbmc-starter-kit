@@ -6,6 +6,8 @@
 import argparse
 import logging
 
+from cbmc_starter_kit import version as starter_kit_version
+
 def create_parser(options=None, description=None, epilog=None):
     """Create a parser for command line arguments."""
 
@@ -17,6 +19,10 @@ def create_parser(options=None, description=None, epilog=None):
         options.append({'flag': '--verbose', 'action': 'store_true', 'help': 'Verbose output'})
     if '--debug' not in flags:
         options.append({'flag': '--debug', 'action': 'store_true', 'help': 'Debug output'})
+    if '--version' not in flags:
+        options.append({'flag': '--version',
+                        'action': 'version', 'version': starter_kit_version.version(),
+                        'help': 'Display version and exit'})
 
     parser = argparse.ArgumentParser(description=description, epilog=epilog)
     for option in options:
