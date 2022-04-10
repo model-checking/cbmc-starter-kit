@@ -134,6 +134,11 @@ def get_args():
             "flags": ["--verbose"],
             "action": "store_true",
             "help": "verbose output",
+    }, {
+            "flags": ["--version"],
+            "action": "version",
+            "version": "_CBMC_STARTER_KIT_VERSION_",
+            "help": "Display version and exit"
     }]:
         flags = arg.pop("flags")
         pars.add_argument(*flags, **arg)

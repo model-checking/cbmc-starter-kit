@@ -4,6 +4,8 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
+CBMC_STARTER_KIT_VERSION = _CBMC_STARTER_KIT_VERSION_
+
 ################################################################
 # This file Makefile.common defines the basic work flow for cbmc proofs.
 #
