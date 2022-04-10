@@ -79,11 +79,11 @@ def main():
     # Copy cbmc infrastructure into cbmc directory
     cbmc_root = Path.cwd()
     shutil.copytree(util.repository_template_root(), cbmc_root, dirs_exist_ok=True)
-    shutil.rmtree(cbmc_root / "negative_tests")
+    shutil.rmtree(cbmc_root / util.NEGATIVE_TESTS)
 
     # Write project-specific definitions to cbmc/proofs/Makefile-template-defines
     proof_root = cbmc_root / util.PROOF_DIR
-    makefile = proof_root/"Makefile-template-defines"
+    makefile = proof_root/util.LOCAL_MAKEFILE
     with open(makefile, "w", encoding='utf-8') as mkfile:
         print(srcdir_definition(source_root, proof_root), file=mkfile)
         print(litani_definition(litani, proof_root), file=mkfile)

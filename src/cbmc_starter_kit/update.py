@@ -68,8 +68,8 @@ def validate_cbmc_root(args):
     args.cbmc_root = args.cbmc_root.resolve()
     if not args.cbmc_root.is_dir():
         raise UserWarning(f'CBMC root is not a directory: {args.cbmc_root}')
-    if not (args.cbmc_root/'proofs').is_dir():
-        raise UserWarning(f'CBMC root is missing a proofs subdirectory: {args.cbmc_root}')
+    if not (args.cbmc_root/util.PROOF_DIR).is_dir():
+        raise UserWarning(f'CBMC root is missing a {util.PROOF_DIR} subdirectory: {args.cbmc_root}')
     logging.debug('CBMC root: %s', args.cbmc_root)
     return args
 
@@ -80,9 +80,9 @@ def validate_starter_kit_root(args):
         args.starter_kit_root = args.starter_kit_root.resolve()
         if not args.starter_kit_root.is_dir():
             raise UserWarning(f'Starter kit root is not a directory: {args.starter_kit_root}')
-        if not (args.starter_kit_root/'template-for-repository').is_dir():
-            raise UserWarning('Starter kit root is missing a template-for-repository subdirectory:'
-                              f' {args.starter_kit_root}')
+        if not (args.starter_kit_root/util.REPOSITORY_TEMPLATES).is_dir():
+            raise UserWarning(f'Starter kit root is missing a {util.REPOSITORY_TEMPLATES} '
+                              f'subdirectory: {args.starter_kit_root}')
         if not args.starter_kit_root.is_relative_to(args.cbmc_root):
             raise UserWarning(f'Starter kit root is {args.starter_kit_root} is not a descendant of '
                               f'CBMC root {args.cbmc_root}')
@@ -109,7 +109,7 @@ def files_under_root(root=None, symlinks_only=False):
 
 def migrate(cbmc_root, starter_kit_root):
     logging.debug('Migrating CBMC starter kit')
-    templates = files_under_root(starter_kit_root/'template-for-repository')
+    templates = files_under_root(starter_kit_root/util.REPOSITORY_TEMPLATES)
     logging.debug('Migrating CBMC starter kit: found templates: %s', templates)
     symlinks = files_under_root(cbmc_root, symlinks_only=True)
     logging.debug('Migrating CBMC starter kit: found symlinks: %s', symlinks)
@@ -133,7 +133,7 @@ def remove_negative_tests(cbmc_root):
 
 def update(cbmc_root):
     logging.debug('Updating CBMC starter kit')
-    for path in ['proofs/Makefile.common', 'proofs/run-cbmc-proofs.py']:
+    for path in [f'{util.PROOF_DIR}/{util.COMMON_MAKEFILE}', f'{util.PROOF_DIR}/{util.RUN_SCRIPT}']:
         src = util.repository_template_root() / path
         dst = cbmc_root / path
         logging.warning('Copying: %s -> %s', src, dst)
