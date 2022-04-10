@@ -25,7 +25,7 @@ def parse_arguments():
 ################################################################
 
 def proof_template_filenames():
-    for path in util.proof_template_root().iterdir():
+    for path in util.package_proof_template_root().iterdir():
         yield path
 
 def read_proof_template(path):
