@@ -134,7 +134,7 @@ def remove_negative_tests(cbmc_root):
 def update(cbmc_root):
     logging.debug('Updating CBMC starter kit')
     for path in [f'{util.PROOF_DIR}/{util.COMMON_MAKEFILE}', f'{util.PROOF_DIR}/{util.RUN_SCRIPT}']:
-        src = util.repository_template_root() / path
+        src = util.package_repository_template_root() / path
         dst = cbmc_root / path
         logging.warning('Copying: %s -> %s', src, dst)
         shutil.copy(src, dst)

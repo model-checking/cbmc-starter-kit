@@ -60,10 +60,10 @@ def package_root():
     # this gives the path to the package directory
     return Path(init).parent
 
-def repository_template_root():
+def package_repository_template_root():
     return package_root() / REPOSITORY_TEMPLATES
 
-def proof_template_root():
+def package_proof_template_root():
     return package_root() / PROOF_TEMPLATES
 
 ################################################################

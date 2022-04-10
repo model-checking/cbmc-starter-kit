@@ -78,7 +78,7 @@ def main():
 
     # Copy cbmc infrastructure into cbmc directory
     cbmc_root = Path.cwd()
-    shutil.copytree(util.repository_template_root(), cbmc_root, dirs_exist_ok=True)
+    shutil.copytree(util.package_repository_template_root(), cbmc_root, dirs_exist_ok=True)
     shutil.rmtree(cbmc_root / util.NEGATIVE_TESTS)
 
     # Write project-specific definitions to cbmc/proofs/Makefile-template-defines
