@@ -15,6 +15,7 @@ import git
 from cbmc_starter_kit import arguments
 from cbmc_starter_kit import repository
 from cbmc_starter_kit import util
+from cbmc_starter_kit import version
 
 ################################################################
 
@@ -137,7 +138,7 @@ def update(cbmc_root):
         src = util.package_repository_template_root() / path
         dst = cbmc_root / path
         logging.warning('Copying: %s -> %s', src, dst)
-        shutil.copy(src, dst)
+        version.copy_with_version(src, dst)
 
 def remove_starter_kit_submodule(cbmc_root, force=False):
     logging.debug('Checking for starter kit submodule')
