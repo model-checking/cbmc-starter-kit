@@ -9,6 +9,7 @@ from pathlib import Path
 import logging
 import shutil
 import subprocess
+import sys
 
 import git
 
@@ -95,6 +96,10 @@ def validate_starter_kit_root(args):
 ################################################################
 
 def files_under_root(root=None, symlinks_only=False):
+    if root and not root.is_dir():
+        logging.critical('Not a directory: %s', root)
+        sys.exit(1)
+
     cmd = ['find', '.']
     if symlinks_only:
         cmd += ['-type', 'l']
@@ -103,8 +108,12 @@ def files_under_root(root=None, symlinks_only=False):
         'text': True,
         'capture_output': True,
     }
-    files = subprocess.run(cmd, **kwds, check=True).stdout.splitlines()
-    return sorted(files)
+    result = subprocess.run(cmd, **kwds, check=True)
+
+    if not result.returncode:
+        return sorted(result.stdout.splitlines())
+    logging.critical('This should be impossible: Failed to list files under directory: %s', root)
+    sys.exit(1)
 
 ################################################################
 
@@ -127,7 +136,7 @@ def migrate(cbmc_root, starter_kit_root):
 
 def remove_negative_tests(cbmc_root):
     logging.debug('Removing CBMC starter kit negative tests')
-    negative_tests = cbmc_root / 'negative_tests'
+    negative_tests = cbmc_root / util.NEGATIVE_TESTS
     if negative_tests.is_dir():
         logging.warning('Removing: %s', negative_tests)
         shutil.rmtree(negative_tests)
@@ -140,23 +149,41 @@ def update(cbmc_root):
         logging.warning('Copying: %s -> %s', src, dst)
         version.copy_with_version(src, dst)
 
-def remove_starter_kit_submodule(cbmc_root, force=False):
-    logging.debug('Checking for starter kit submodule')
-    starter_kit = repository.starter_kit_root(repo=cbmc_root, abspath=False)
-    if not starter_kit:
-        logging.debug('Starter kit submodule does not exist')
+def remove_submodule(cbmc_root, submodule_name, submodule_path, force=False):
+    logging.debug('Checking for %s submodule', submodule_name)
+    if not submodule_path:
+        logging.debug('%s submodule does not exist', submodule_name)
         return
     if not force:
-        logging.warning('Use --force if you want to remove the starter kit submodule: %s',
-                        starter_kit)
+        logging.warning('Use --force if you want to remove the %s submodule: %s',
+                        submodule_name, submodule_path)
         return
     for submodule in git.Repo(cbmc_root, search_parent_directories=True).submodules:
-        if submodule.path == str(starter_kit):
-            logging.warning('Removing: starter kit submodule: %s', starter_kit)
-            submodule.remove()
+        if submodule.path == str(submodule_path):
+            logging.warning('Removing: %s submodule: %s', submodule_name, submodule_path)
+            try:
+                submodule.remove()
+            except git.InvalidGitRepositoryError as error:
+                # remove uses git cherry to compare working branches with upstream branches
+                # and throws InvalidGitRepositoryError if it finds an inconsistency.
+                logging.debug(error)
+                logging.error('Unable to remove %s submodule: %s',  submodule_name, submodule_path)
+                logging.error('Try again after running "git fetch" in %s', submodule_path)
             return
-    logging.error('This should be impossible: Failed to remove starter kit submodule: %s',
-                  starter_kit)
+    logging.critical('This should be impossible: Failed to remove %s submodule: %s',
+                     submodule_name, submodule_path)
+    sys.exit(1)
+
+
+def remove_starter_kit_submodule(cbmc_root, force=False):
+    starter_kit = repository.starter_kit_root(repo=cbmc_root, abspath=False)
+    remove_submodule(cbmc_root, "starter kit", starter_kit, force)
+
+def remove_litani_submodule(cbmc_root, force=False):
+    # Warning: Removing the litani submodule may also require changing
+    # the definition of LITANI in Makefile-template-defines
+    litani = repository.litani_root(repo=cbmc_root, abspath=False)
+    remove_submodule(cbmc_root, "litani", litani, force)
 
 ################################################################
 
