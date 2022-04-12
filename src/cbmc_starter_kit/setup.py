@@ -80,10 +80,12 @@ def main():
     # Copy cbmc infrastructure into cbmc directory
     cbmc_root = Path.cwd()
     shutil.copytree(util.package_repository_template_root(), cbmc_root, dirs_exist_ok=True)
-    shutil.rmtree(cbmc_root / util.NEGATIVE_TESTS)
+    shutil.rmtree(cbmc_root / util.NEGATIVE_TESTS, ignore_errors=True)
+    shutil.rmtree(cbmc_root / util.PROOF_DIR / "__pycache__", ignore_errors=True)
 
     # Overwrite Makefile.common and run-cbmc-proofs.py with versioned copies
-    update.update(cbmc_root)
+    # Quiet warnings about overwriting files
+    update.update(cbmc_root, quiet=True)
 
     # Write project-specific definitions to cbmc/proofs/Makefile-template-defines
     proof_root = cbmc_root / util.PROOF_DIR
