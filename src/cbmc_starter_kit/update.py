@@ -141,12 +141,12 @@ def remove_negative_tests(cbmc_root):
         logging.warning('Removing: %s', negative_tests)
         shutil.rmtree(negative_tests)
 
-def update(cbmc_root):
+def update(cbmc_root, quiet=False):
     logging.debug('Updating CBMC starter kit')
     for path in [f'{util.PROOF_DIR}/{util.COMMON_MAKEFILE}', f'{util.PROOF_DIR}/{util.RUN_SCRIPT}']:
         src = util.package_repository_template_root() / path
         dst = cbmc_root / path
-        logging.warning('Copying: %s -> %s', src, dst)
+        (logging.debug if quiet else logging.warning)('Copying: %s -> %s', src, dst)
         version.copy_with_version(src, dst)
 
 def remove_submodule(cbmc_root, submodule_name, submodule_path, force=False):
