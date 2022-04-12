@@ -4,7 +4,7 @@
 """Methods of manipulating the templates repository."""
 
 from pathlib import Path
-import importlib
+import importlib.util
 
 from cbmc_starter_kit import repository
 
