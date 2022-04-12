@@ -1,0 +1,157 @@
+# See following documentations for more information -
+
+# Creation and maintenance of personal taps:
+# https://docs.brew.sh/How-to-Create-and-Maintain-a-Tap
+
+# More information about bottles:
+# https://docs.brew.sh/Bottles
+
+# Create a tap with automatic tests and bottle creation workflows:
+# https://brew.sh/2020/11/18/homebrew-tap-with-bottles-uploaded-to-github-releases/
+
+# This workflow can be used to perform certain tasks from main repository rather
+# than a Tap -
+#     - Formula Syntax Check
+#     - Run brew test-bot for testing and bottle creation
+#       (and upload bottles to release which triggered this workflow)
+#     - Add commit on top of PR created by brew bump-formla-pr to add generate
+#       bottle DSL to formula
+
+# USAGE:
+#   Copy this workflow to .github/workflows of your repository and update
+#   following variables in env below -
+#     - FORMULA
+#     - TAP
+#     - BOT_USER
+#     - BOT_EMAIL
+#     - BOT_TOKEN
+
+# NOTE:
+#   In case any other changes are required in the formula such as -
+#     - Updating python dependencies
+#     - Updating brew dependencies
+#     - Updating test
+#     - Updating Install block etc
+#   Make sure to merge those changes before this workflow gets triggered as this
+#   workflow will bump the formula and also create bottles right away
+#   automatically.
+
+
+name: Release to brew
+on:
+  release:
+    types: [created]
+
+env:
+  FORMULA: cbmc-starter-kit
+  TAP: aws/tap
+  BOT_USER: cbmc-starter-kit-release-ci
+  BOT_EMAIL: ${{ secrets.BOT_EMAIL }}
+  BOT_TOKEN: ${{ secrets.RELEASE_CI_ACCESS_TOKEN }}
+  RELEASE_TAG: ${GITHUB_REF/refs\/tags\/} # GITHUB_REF = refs/tags/STRING-MAJOR.MINOR
+  VERSION: $(echo $GITHUB_REF | cut -d "/" -f 3 | cut -d "-" -f 2)
+  FORK_REPO: https://$BOT_TOKEN@github.com/$BOT_USER/homebrew-$(echo $TAP |cut -d "/" -f 2).git
+
+jobs:
+  homebrew-pr:
+    name: Homebrew Bump Formula PR
+    runs-on: macos-latest
+    steps:
+      - name: Configure git user name and email
+        run: |
+          git config --global user.name ${{ env.BOT_USER }}
+          git config --global user.email ${{ env.BOT_EMAIL }}
+
+      - name: Create homebrew PR
+        run: |
+          brew tap ${{ env.TAP }}
+          brew update-reset
+          brew bump-formula-pr --tag "${{ env.RELEASE_TAG }}" --revision "$GITHUB_SHA" ${{ env.TAP }}/${{ env.FORMULA }} --force
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{ env.BOT_TOKEN }}
+
+  build-bottle:
+    needs: homebrew-pr
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-10.15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Checkout PR
+        run: |
+          brew tap ${{ env.TAP }}
+          brew update-reset
+          cd $(brew --repo ${{ env.TAP }})
+          git remote add fork-repo ${{ env.FORK_REPO }}
+          git fetch fork-repo
+          git checkout -B bump-${{ env.FORMULA }}-${{ env.VERSION }} fork-repo/bump-${{ env.FORMULA }}-${{ env.VERSION }}
+
+      - name: Tap Syntax
+        run: |
+          brew audit --online --git --skip-style ${{ env.TAP }}/${{ env.FORMULA }}
+          brew style ${{ env.TAP }}/${{ env.FORMULA }}
+
+      - name: Build bottle
+        run: |
+          brew test-bot --tap ${{ env.TAP }} --testing-formulae ${{ env.TAP }}/${{ env.FORMULA }} --only-formulae --root-url=https://github.com/$GITHUB_REPOSITORY/releases/download/${{ env.RELEASE_TAG }}
+
+      - name: Get Package Path
+        id: get_package_path
+        run: |
+          bottle_name="$(ls *.tar.gz)"
+          echo "::set-output name=bottle::$bottle_name"
+
+      - name: Get File Name
+        id: get_file_name
+        run: |
+          brew install jq
+          file_name="$(cat *.json | jq -r '."${{ env.TAP }}/${{ env.FORMULA }}".bottle.tags[].filename')"
+          echo "::set-output name=file_name::$file_name"
+
+      - name: Upload bottles as artifact
+        uses: actions/upload-artifact@main
+        with:
+          name: bottles
+          path: '*.bottle.*'
+
+      - name: Upload release binary
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ steps.get_package_path.outputs.bottle }}
+          asset_name: ${{ steps.get_file_name.outputs.file_name }}
+          asset_content_type: application/x-gzip
+
+  update-pr:
+    needs: build-bottle
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: bottles
+
+    - name: Configure git user name and email
+      run: |
+        git config --global user.name ${{ env.BOT_USER }}
+        git config --global user.email ${{ env.BOT_EMAIL }}
+
+    - name: Checkout PR
+      run: |
+        brew tap ${{ env.TAP }}
+        brew update-reset
+        cd $(brew --repo ${{ env.TAP }})
+        git remote add fork-repo ${{ env.FORK_REPO }}
+        git fetch fork-repo
+        git checkout -B bump-${{ env.FORMULA }}-${{ env.VERSION }} fork-repo/bump-${{ env.FORMULA }}-${{ env.VERSION }}
+
+    - name: Generate and merge bottle DSL
+      run: |
+        brew bottle --merge --write $(ls *.json)
+        cd $(brew --repo ${{ env.TAP }})
+        git push fork-repo bump-${{ env.FORMULA }}-${{ env.VERSION }}

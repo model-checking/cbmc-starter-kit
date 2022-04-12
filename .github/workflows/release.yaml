@@ -1,0 +1,49 @@
+name: CBMC starter kit release
+on:
+  push:
+    tags:
+      - starterkit-*
+
+jobs:
+  Release:
+    name: CBMC starter kit release
+    runs-on: ubuntu-20.04
+    env:
+      GITHUB_TOKEN: ${{ secrets.RELEASE_CI_ACCESS_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Get version
+        run: |
+          # The environment variable GITHUB_REF is refs/tags/starterkit-*
+          echo "SETUP_VERSION=$(python3 -c "import configparser; config = configparser.ConfigParser(); config.read('setup.cfg'); print(config['metadata']['version'])")" >> $GITHUB_ENV
+          echo "SOURCE_VERSION=$(python3 -c "import src.cbmc_starter_kit.version; print(src.cbmc_starter_kit.version.NUMBER)")" >> $GITHUB_ENV
+          echo "TAG_VERSION=$(echo ${{ github.ref }} | cut -d "/" -f 3 | cut -d "-" -f 2)" >> $GITHUB_ENV
+      - name: Version check
+        run: |
+          if [[ ${{ env.SETUP_VERSION }} != ${{ env.TAG_VERSION }} ]] || [[ ${{ env.SOURCE_VERSION }} != ${{ env.TAG_VERSION }} ]]; then
+            echo "Setup and source versions ${{env.SETUP_VERSION}} and ${{env.SOURCE_VERSION}} did not match tag version ${{env.TAG_VERSION}}"
+            exit 1
+          fi
+      - name: Create release
+        uses: actions/create-release@v1
+        with:
+          tag_name: starterkit-${{ env.TAG_VERSION }}
+          release_name: starterkit-${{ env.TAG_VERSION }}
+          body: |
+            This is CBMC Starter Kit version ${{ env.TAG_VERSION }}.
+            On MacOS, you can install with brew: Run
+            ```
+              brew tap aws/tap
+              brew install cbmc-starter-kit
+            ```
+            On all machines, you can install with pip: Run
+            ```
+              python3 -m pip install cbmc-starter-kit
+            ```
+            and upgrade to the latest version with
+            ```
+              python3 -m pip install --upgrade cbmc-starter-kit
+            ```
+          draft: false
+          prerelease: false
