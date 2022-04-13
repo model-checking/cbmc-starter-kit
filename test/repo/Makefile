@@ -55,7 +55,7 @@ install-starter:
 	cd $(PACKAGE_ROOT) && make develop
 
 update-starter:
-	cd $(REPO_ROOT)/$(REPO_CBMC_ROOT) && /tmp/cbmc-starter-kit/bin/cbmc-starter-kit-update
+	cd $(REPO_ROOT)/$(REPO_CBMC_ROOT) && /tmp/cbmc-starter-kit/bin/cbmc-starter-kit-update --remove-starter-kit --remove-litani
 
 run:
 	$(RM) -r $(REPORT_ROOT)
