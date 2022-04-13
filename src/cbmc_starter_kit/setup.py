@@ -89,7 +89,7 @@ def main():
 
     # Write project-specific definitions to cbmc/proofs/Makefile-template-defines
     proof_root = cbmc_root / util.PROOF_DIR
-    makefile = proof_root/util.LOCAL_MAKEFILE
+    makefile = proof_root/util.TEMPLATE_DEFINES
     with open(makefile, "w", encoding='utf-8') as mkfile:
         print(srcdir_definition(source_root, proof_root), file=mkfile)
         print(litani_definition(litani, proof_root), file=mkfile)

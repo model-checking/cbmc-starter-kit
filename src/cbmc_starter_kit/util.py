@@ -14,7 +14,8 @@ PROOF_DIR = "proofs"
 NEGATIVE_TESTS = "negative_tests"
 
 COMMON_MAKEFILE = "Makefile.common"
-LOCAL_MAKEFILE = "Makefile-template-defines"
+TEMPLATE_DEFINES = "Makefile-template-defines"
+PROJECT_DEFINES = "Makefile-project-defines"
 RUN_SCRIPT = "run-cbmc-proofs.py"
 
 ################################################################
