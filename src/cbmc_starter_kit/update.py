@@ -241,17 +241,29 @@ def main():
     args = parse_arguments()
     logging.debug('args: %s', args)
 
-    args = validate_cbmc_root(args)
-    args = validate_starter_kit_root(args)
+    try:
+        args = validate_cbmc_root(args)
+        args = validate_starter_kit_root(args)
 
-    if not args.no_migrate:
-        migrate(args.cbmc_root, args.starter_kit_root)
-    if not args.no_test_removal:
-        remove_negative_tests(args.cbmc_root)
-    if not args.no_update:
-        update(args.cbmc_root)
-    check_for_starter_kit_submodule(args.cbmc_root, args.remove_starter_kit_submodule)
-    check_for_litani_submodule(args.cbmc_root, args.remove_litani_submodule)
+        if not args.no_migrate:
+            migrate(args.cbmc_root, args.starter_kit_root)
+        if not args.no_test_removal:
+            remove_negative_tests(args.cbmc_root)
+        if not args.no_update:
+            update(args.cbmc_root)
+        check_for_starter_kit_submodule(args.cbmc_root, args.remove_starter_kit_submodule)
+        check_for_litani_submodule(args.cbmc_root, args.remove_litani_submodule)
+    except UserWarning as error:
+        starter_kit = repository.starter_kit_root(repo=args.cbmc_root)
+        if starter_kit and (starter_kit / "setup.cfg").exists():
+            logging.error("The starter kit submodule is at a version >1.0: %s", starter_kit)
+            logging.error("Consider backing up to version 1.0 with the following commands")
+            logging.error("  pushd %s", starter_kit)
+            logging.error("  git fetch --tags")
+            logging.error("  git checkout starterkit-1.0")
+            logging.error("  popd")
+            logging.error("and running cbmc-starter-kit-update again with --remove-starter-kit.")
+
 
 ################################################################
 
