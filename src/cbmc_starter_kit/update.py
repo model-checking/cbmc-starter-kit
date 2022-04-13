@@ -126,7 +126,7 @@ def remove_submodule(cbmc_root, submodule_name, submodule_path):
 
     for submodule in git.Repo(cbmc_root, search_parent_directories=True).submodules:
         if submodule.path == str(submodule_path):
-            logging.warning('Removing: %s submodule: %s', submodule_name, submodule_path)
+            logging.info('Removing: %s submodule: %s', submodule_name, submodule_path)
             try:
                 submodule.remove()
             except git.InvalidGitRepositoryError as error:
@@ -136,7 +136,7 @@ def remove_submodule(cbmc_root, submodule_name, submodule_path):
                 logging.error('Unable to remove %s submodule: %s',  submodule_name, submodule_path)
                 logging.error('Try again after running "git fetch" in %s', submodule_path)
             return
-    logging.debug("Failed to remove %s submodule: %s", submodule_name, submodule_path)
+    logging.error("Failed to remove %s submodule: %s", submodule_name, submodule_path)
 
 def update_litani_makefile_variable(cbmc_root, path):
     """Update LITANI to LITANI?=litani in the makefile at the named path"""
@@ -149,7 +149,7 @@ def update_litani_makefile_variable(cbmc_root, path):
         return
 
     litani_define = f'{litani_prefix} litani' # litani_define == 'LITANI ?= litani'
-    logging.warning("Updating '%s' in makefile: %s", litani_define, path)
+    logging.info("Updating '%s' in makefile: %s", litani_define, path)
     with open(cbmc_root/path, 'w', encoding='utf-8') as makefile:
         for line in lines:
             if line.strip().startswith(litani_prefix):
@@ -170,7 +170,7 @@ def migrate(cbmc_root, starter_kit_root):
     for symlink in cbmc_symlinks:
         cbmc_link = cbmc_root / symlink
         cbmc_file = cbmc_link.resolve()
-        logging.warning('Copying: %s -> %s', cbmc_file, cbmc_link)
+        logging.info('Copying: %s -> %s', cbmc_file, cbmc_link)
         assert cbmc_file.exists()
         assert cbmc_link.exists()
         cbmc_link.unlink()
@@ -180,7 +180,7 @@ def remove_negative_tests(cbmc_root):
     logging.debug('Removing CBMC starter kit negative tests')
     negative_tests = cbmc_root / util.NEGATIVE_TESTS
     if negative_tests.is_dir():
-        logging.warning('Removing: %s', negative_tests)
+        logging.info('Removing: %s', negative_tests)
         shutil.rmtree(negative_tests)
 
 def update(cbmc_root, quiet=False):
@@ -188,7 +188,7 @@ def update(cbmc_root, quiet=False):
     for path in [f'{util.PROOF_DIR}/{util.COMMON_MAKEFILE}', f'{util.PROOF_DIR}/{util.RUN_SCRIPT}']:
         src = util.package_repository_template_root() / path
         dst = cbmc_root / path
-        (logging.debug if quiet else logging.warning)('Copying: %s -> %s', src, dst)
+        (logging.debug if quiet else logging.info)('Copying: %s -> %s', src, dst)
         version.copy_with_version(src, dst)
 
 def check_for_starter_kit_submodule(cbmc_root, remove=False):
@@ -198,7 +198,8 @@ def check_for_starter_kit_submodule(cbmc_root, remove=False):
         return
 
     if not remove:
-        logging.warning("Use --remove-starter-kit-submodule to remove the starter kit submodule")
+        logging.warning("Consider using --remove-starter-kit-submodule to remove the starter kit "
+                        "submodule")
         return
 
     remove_submodule(cbmc_root, "starter kit", starter_path)
@@ -219,12 +220,12 @@ def check_for_litani_submodule(cbmc_root, remove=False):
         if system == "Linux":
             logging.warning("Consider replacing the litani submodule with the litani command "
                             "available via 'apt install litani*.deb'")
-            logging.warning("Get the litani package litani*.deb from the release page "
+            logging.warning("Download the litani package litani*.deb from the release page "
                             "https://github.com/awslabs/aws-build-accumulator/releases/latest")
         return
 
     if not remove:
-        logging.warning("Use --remove-litani-submodule to remove the litani submodule "
+        logging.warning("Consider using --remove-litani-submodule to remove the litani submodule "
                         "and update makefiles to use the litani command")
         return
 
