@@ -1,0 +1,25 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT
+
+name: Publish cbmc-starter-kit documentation
+on: [push, pull_request]
+
+jobs:
+  publish:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install mdbook
+        run: brew install mdbook
+
+      - name: Build documentation
+        run: cd docs && mdbook build && touch book/.nojekyll
+
+      - name: Publish documentation
+        if: ${{ github.event_name == 'push' && startsWith('refs/heads/master', github.ref) }}
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          branch: gh-pages
+          folder: docs/book/

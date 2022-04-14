@@ -1,0 +1,6 @@
+[book]
+authors = ["Mark R. Tuttle"]
+language = "en"
+multilingual = false
+src = "src"
+title = "CBMC starter kit"
