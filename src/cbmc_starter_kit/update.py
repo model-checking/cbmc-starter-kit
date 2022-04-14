@@ -253,7 +253,7 @@ def main():
             update(args.cbmc_root)
         check_for_starter_kit_submodule(args.cbmc_root, args.remove_starter_kit_submodule)
         check_for_litani_submodule(args.cbmc_root, args.remove_litani_submodule)
-    except UserWarning as error:
+    except UserWarning:
         starter_kit = repository.starter_kit_root(repo=args.cbmc_root)
         if starter_kit and (starter_kit / "setup.cfg").exists():
             logging.error("The starter kit submodule is at a version >1.0: %s", starter_kit)
