@@ -89,7 +89,7 @@ def validate_starter_kit_root(args):
         if not (args.starter_kit_root/util.REPOSITORY_TEMPLATES).is_dir():
             raise UserWarning(f'Starter kit root is missing a {util.REPOSITORY_TEMPLATES} '
                               f'subdirectory: {args.starter_kit_root}')
-        if not args.starter_kit_root.is_relative_to(args.cbmc_root):
+        if args.cbmc_root not in args.starter_kit_root.parents:
             raise UserWarning(f'Starter kit root is {args.starter_kit_root} is not a descendant of '
                               f'CBMC root {args.cbmc_root}')
     else:
@@ -263,7 +263,7 @@ def main():
             logging.error("  git checkout starterkit-1.0")
             logging.error("  popd")
             logging.error("and running cbmc-starter-kit-update again with --remove-starter-kit.")
-
+        raise
 
 ################################################################
 
