@@ -1,0 +1,39 @@
+name: Run Tests
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  push:
+    branches: [ master ]
+
+jobs:
+  run-tests:
+    if: "!contains(github.event.pull_request.labels.*.name, 'no-test')"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ '3.8', '3.9', '3.10' ]
+    name: Python ${{ matrix.python-version }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Dependencies
+        run: |
+          curl -o litani.deb -L https://github.com/awslabs/aws-build-accumulator/releases/download/1.24.0/litani-1.24.0.deb
+          curl -o cbmc.deb -L https://github.com/diffblue/cbmc/releases/download/cbmc-5.54.0/ubuntu-20.04-cbmc-5.54.0-Linux.deb
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+                                  ./litani.deb \
+                                  ./cbmc.deb \
+                                  universal-ctags
+          rm -rf litani.deb cbmc.deb
+          python3 -m pip install cbmc-viewer cbmc-starter-kit
+      - name: Test starter kit
+        run: |
+          git clone https://github.com/FreeRTOS/coreHTTP.git
+          cd coreHTTP && git submodule update --init --checkout --recursive
+          cd test/cbmc
+          cbmc-starter-kit-update --remove-starter-kit --remove-litani --starter-kit-root aws-templates-for-cbmc-proofs
+          cd proofs && ./run-cbmc-proofs.py --proofs HTTPClient_AddRangeHeader HTTPClient_ReadHeader
