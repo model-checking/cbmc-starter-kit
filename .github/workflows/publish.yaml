@@ -2,7 +2,10 @@
 # SPDX-License-Identifier: MIT
 
 name: Publish cbmc-starter-kit documentation
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - 'documentation'
 
 jobs:
   publish:
@@ -18,8 +21,10 @@ jobs:
         run: cd docs && mdbook build && touch book/.nojekyll
 
       - name: Publish documentation
-        if: ${{ github.event_name == 'push' && startsWith('refs/heads/master', github.ref) }}
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
           branch: gh-pages
           folder: docs/book/
+
+# This conditional might be useful on the publish step in the future
+#       if: ${{ github.event_name == 'push' && startsWith('refs/heads/master', github.ref) }}
