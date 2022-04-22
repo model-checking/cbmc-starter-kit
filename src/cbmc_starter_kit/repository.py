@@ -1,5 +1,8 @@
 """Discover repository properties like repository root, proof root, etc."""
 
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
 from pathlib import Path
 from subprocess import Popen, PIPE
 import json
