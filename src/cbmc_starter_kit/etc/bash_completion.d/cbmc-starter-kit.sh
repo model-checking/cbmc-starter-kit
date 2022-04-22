@@ -1,0 +1,63 @@
+#!/bin/bash
+
+################################################################
+# Documentation
+#
+# compgen, complete:
+#   https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html
+# _filedir:
+#   https://github.com/nanoant/bash-completion-lib/blob/master/include/_filedir
+
+################################################################
+# Options
+#
+
+common_options="--help -h --verbose --debug --version"
+
+setup_options=""
+setup_proof_options=""
+update_options="--cbmc-root --starter-kit-root --no-migrate --no-test-removal --no-update --remove-starter-kit-submodule --remove-litani-submodule"
+migrate_options="--proofdir --remove"
+
+_core_autocomplete()
+{
+  local options=$1
+  local cur=${COMP_WORDS[COMP_CWORD]}
+  local prev=${COMP_WORDS[COMP_CWORD-1]}
+
+  case "$prev" in
+   --cbmc-root|--starter-kit-root|--proofdir)
+     _filedir -d
+     return 0
+     ;;
+  esac
+
+  # all remaining completions satisfy: "$cur" == -*
+  COMPREPLY=( $( compgen -W "$options $common_options" -- $cur ) )
+  return 0
+}
+
+_setup_autocomplete()
+{
+  _core_autocomplete "$setup_options"
+}
+
+_setup_proof_autocomplete()
+{
+  _core_autocomplete "$setup_proof_options"
+}
+
+_update_autocomplete()
+{
+  _core_autocomplete "$update_options"
+}
+
+_migrate_autocomplete()
+{
+  _core_autocomplete "$migrate_options"
+}
+
+complete -F _setup_autocomplete cbmc-starter-kit-setup
+complete -F _setup_proof_autocomplete cbmc-starter-kit-setup-proof
+complete -F _update_autocomplete cbmc-starter-kit-update
+complete -F _migrate_autocomplete cbmc-starter-kit-migrate-license
