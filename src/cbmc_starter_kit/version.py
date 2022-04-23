@@ -4,7 +4,7 @@
 """Version number."""
 
 NAME = "CBMC starter kit"
-NUMBER = "2.1"
+NUMBER = "2.1.1"
 VERSION = f"{NAME} {NUMBER}"
 
 REPLACE_TARGET = '_CBMC_STARTER_KIT_VERSION_'
