@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Getting started</a></li><li class="chapter-item expanded "><a href="../installation/index.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../tutorial/index.html"><strong aria-hidden="true">3.</strong> Tutorial</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> User manual</div></li><li class="chapter-item expanded "><a href="../reference-manual/index.html"><strong aria-hidden="true">5.</strong> Reference manual</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-setup.html"><strong aria-hidden="true">5.1.</strong> cbmc-starter-kit-setup</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-setup-proof.html"><strong aria-hidden="true">5.2.</strong> cbmc-starter-kit-setup-proof</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-update.html"><strong aria-hidden="true">5.3.</strong> cbmc-starter-kit-update</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-migrate-license.html" class="active"><strong aria-hidden="true">5.4.</strong> cbmc-starter-kit-migrate-license</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">6.</strong> Frequently asked questions</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Resources</div></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">8.</strong> Contributing</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Getting started</a></li><li class="chapter-item expanded "><a href="../installation/index.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../tutorial/index.html"><strong aria-hidden="true">3.</strong> Tutorial</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> User manual</div></li><li class="chapter-item expanded "><a href="../reference-manual/index.html"><strong aria-hidden="true">5.</strong> Reference manual</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-setup.html"><strong aria-hidden="true">5.1.</strong> cbmc-starter-kit-setup</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-setup-proof.html"><strong aria-hidden="true">5.2.</strong> cbmc-starter-kit-setup-proof</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-update.html"><strong aria-hidden="true">5.3.</strong> cbmc-starter-kit-update</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-migrate-license.html" class="active"><strong aria-hidden="true">5.4.</strong> cbmc-starter-kit-migrate-license</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">6.</strong> Frequently asked questions</div></li><li class="chapter-item expanded "><a href="../resources/index.html"><strong aria-hidden="true">7.</strong> Resources</a></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">8.</strong> Contributing</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -142,14 +142,16 @@
                                  [--verbose] [--debug] [--version]
 </code></pre>
 <h2 id="description"><a class="header" href="#description">Description</a></h2>
-<p>Remove references to Apache license from CBMC starter kit.</p>
-<p>The CBMC starter kit was originally released under the Apache license. All
-files in the starter kit contained references to the Apache license. The
-starter kit installation scripts copied files from the stater kit into the
-project repository. This became an issue when the project repository was
-released under a different license. This script removes all references to the
-Apache license from the files copied into the project repository from the
-starter kit.</p>
+<p>This script is used to remove references to the Apache license installed
+by early versions of the starter kit.</p>
+<p>The CBMC starter kit was originally released under the Apache
+license. All files in the starter kit contained references to the
+Apache license. The starter kit installation scripts copied files from
+the stater kit into the project repository. This became an issue when
+the project repository was released under a more permissive
+license. This script removes all references to the Apache license from
+the files copied into the project repository from the starter kit, and
+uses the MIT-0 license instead.</p>
 <h2 id="options"><a class="header" href="#options">Options</a></h2>
 <p><code>--proofdir PROOFDIR</code></p>
 <ul>
@@ -180,7 +182,7 @@ starter kit.</p>
                             <a rel="prev" href="../reference-manual/cbmc-starter-kit-update.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
-                            <a rel="next" href="../contributing/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../resources/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         <div style="clear: both"></div>
@@ -192,7 +194,7 @@ starter kit.</p>
                     <a rel="prev" href="../reference-manual/cbmc-starter-kit-update.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
-                    <a rel="next" href="../contributing/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="../resources/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

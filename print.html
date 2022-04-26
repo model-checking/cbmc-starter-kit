@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Getting started</a></li><li class="chapter-item expanded "><a href="installation/index.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="tutorial/index.html"><strong aria-hidden="true">3.</strong> Tutorial</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> User manual</div></li><li class="chapter-item expanded "><a href="reference-manual/index.html"><strong aria-hidden="true">5.</strong> Reference manual</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="reference-manual/cbmc-starter-kit-setup.html"><strong aria-hidden="true">5.1.</strong> cbmc-starter-kit-setup</a></li><li class="chapter-item expanded "><a href="reference-manual/cbmc-starter-kit-setup-proof.html"><strong aria-hidden="true">5.2.</strong> cbmc-starter-kit-setup-proof</a></li><li class="chapter-item expanded "><a href="reference-manual/cbmc-starter-kit-update.html"><strong aria-hidden="true">5.3.</strong> cbmc-starter-kit-update</a></li><li class="chapter-item expanded "><a href="reference-manual/cbmc-starter-kit-migrate-license.html"><strong aria-hidden="true">5.4.</strong> cbmc-starter-kit-migrate-license</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">6.</strong> Frequently asked questions</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Resources</div></li><li class="chapter-item expanded "><a href="contributing/index.html"><strong aria-hidden="true">8.</strong> Contributing</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Getting started</a></li><li class="chapter-item expanded "><a href="installation/index.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="tutorial/index.html"><strong aria-hidden="true">3.</strong> Tutorial</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> User manual</div></li><li class="chapter-item expanded "><a href="reference-manual/index.html"><strong aria-hidden="true">5.</strong> Reference manual</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="reference-manual/cbmc-starter-kit-setup.html"><strong aria-hidden="true">5.1.</strong> cbmc-starter-kit-setup</a></li><li class="chapter-item expanded "><a href="reference-manual/cbmc-starter-kit-setup-proof.html"><strong aria-hidden="true">5.2.</strong> cbmc-starter-kit-setup-proof</a></li><li class="chapter-item expanded "><a href="reference-manual/cbmc-starter-kit-update.html"><strong aria-hidden="true">5.3.</strong> cbmc-starter-kit-update</a></li><li class="chapter-item expanded "><a href="reference-manual/cbmc-starter-kit-migrate-license.html"><strong aria-hidden="true">5.4.</strong> cbmc-starter-kit-migrate-license</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">6.</strong> Frequently asked questions</div></li><li class="chapter-item expanded "><a href="resources/index.html"><strong aria-hidden="true">7.</strong> Resources</a></li><li class="chapter-item expanded "><a href="contributing/index.html"><strong aria-hidden="true">8.</strong> Contributing</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -537,9 +537,18 @@ software project.</p>
 <pre><code>cbmc-starter-kit-setup [-h] [--verbose] [--debug] [--version]
 </code></pre>
 <h2 id="description"><a class="header" href="#description">Description</a></h2>
-<p>Set up CBMC proof infrastructure for a repository.</p>
+<p>This script sets up the CBMC proof infrastructure for a repository.
+It locates the root of the repository, it asks for a name to use
+for the CBMC verification activity (any name will do, and the name can be
+changed at any time), and it copies into the current directory a collection
+of files that simplify getting started with CBMC.</p>
+<p>We recommend that you create a directory with a name like <code>cbmc</code> somewhere
+within the repository to hold the CBMC verification work.  This script
+assumes that it is running in this verification directory, and assumes
+that this directory is under the root of a git repository.</p>
+<p>This script needs to be run only one time to prepare the repository for
+CBMC verification.</p>
 <h2 id="options"><a class="header" href="#options">Options</a></h2>
-<p><code>--help, -h</code></p>
 <p><code>--verbose</code></p>
 <ul>
 <li>Verbose output.</li>
@@ -551,6 +560,10 @@ software project.</p>
 <p><code>--version</code></p>
 <ul>
 <li>Display version number and exit.</li>
+</ul>
+<p><code>--help, -h</code></p>
+<ul>
+<li>Print the help message and exit.</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="reference-manual-2"><a class="header" href="#reference-manual-2">Reference manual</a></h1>
 <h2 id="name-1"><a class="header" href="#name-1">Name</a></h2>
@@ -559,8 +572,27 @@ software project.</p>
 <pre><code>cbmc-starter-kit-setup-proof [-h] [--verbose] [--debug] [--version]
 </code></pre>
 <h2 id="description-1"><a class="header" href="#description-1">Description</a></h2>
+<p>This script sets up the CBMC proof infrastructure for an individual proof.
+It asks for the name of the function under test.
+It then searches the repository for source files that define a
+function with that name, and asks you to select the file giving the
+implementation you want to test.
+If none of the files listed is the correct file, you can give the path
+to the correct source file yourself.
+Finally, the script creates a directory with the name of the function
+and copies into that directory some files to simplify getting started
+with the verification of that function.  Most important, it copies
+a skeleton of a Makefile and skeleton of a proof harness that you can
+edit to get started.</p>
+<p>This script is usually run in the CBMC verification root
+(the directory you created to hold the CBMC verification work,
+and in which you ran the <code>cbmc-stater-kit-setup</code> script).
+This script can, however, be run in any subdirectory of the
+CBMC verification root.  In this way, you can group verification of
+similar functions together in a hierarchy of subdirectories.</p>
+<p>This script will need to be run once for each function you want
+to verify.</p>
 <h2 id="options-1"><a class="header" href="#options-1">Options</a></h2>
-<p><code>--help, -h</code></p>
 <p><code>--verbose</code></p>
 <ul>
 <li>Verbose output.</li>
@@ -572,6 +604,10 @@ software project.</p>
 <p><code>--version</code></p>
 <ul>
 <li>Display version number and exit.</li>
+</ul>
+<p><code>--help, -h</code></p>
+<ul>
+<li>Print the help message and exit.</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="reference-manual-3"><a class="header" href="#reference-manual-3">Reference manual</a></h1>
 <h2 id="name-2"><a class="header" href="#name-2">Name</a></h2>
@@ -585,7 +621,24 @@ software project.</p>
                         [--debug] [--version]
 </code></pre>
 <h2 id="description-2"><a class="header" href="#description-2">Description</a></h2>
-<p>Update CBMC starter kit in a CBMC proof repository.</p>
+<p>This script is used to update the CBMC starter kit installed in your
+repository to the lastest version.  It copies (overwrites) two files
+into your repository (<code>Makefile.common</code> and <code>run-cbmc-proofs.py</code>).
+These are the two files in the starter kit that encode our best
+practices for how to use CBMC in a software verification project.</p>
+<p>This script will also migrate your repository from early versions of
+the starter kit and litani (the build system used by the starter kit)
+to modern versions.  Early versions of the starter kit and litani were
+distributed as as git repositories that you submoduled into your
+repository.  The starter kit also installed symbolic links from your
+repository into the starter kit submodule. This script will remove the
+symbolic links (replace them with the files they are linking to) and will
+also remove the starter kit and litani submodules from your repository
+if you give the <code>--remove-stater-kit-submodule</code> and
+<code>--remove-litani-submodule</code> flags (flags you almost certainly want to
+use during the migration).  Finally, it will remove some regression tests
+that were distributed with early versions of the starter kit that most people
+don't use.</p>
 <h2 id="options-2"><a class="header" href="#options-2">Options</a></h2>
 <p><code>--cbmc-root CBMC</code></p>
 <ul>
@@ -626,7 +679,6 @@ of LITANI in Makefile-template-defines if the litani
 submodule is present and the litani command is in
 PATH. Normally just recommend removal.</li>
 </ul>
-<p><code>--help, -h</code></p>
 <p><code>--verbose</code></p>
 <ul>
 <li>Verbose output</li>
@@ -639,6 +691,10 @@ PATH. Normally just recommend removal.</li>
 <ul>
 <li>Display version and exit</li>
 </ul>
+<p><code>--help, -h</code></p>
+<ul>
+<li>Print the help message and exit.</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="reference-manual-4"><a class="header" href="#reference-manual-4">Reference manual</a></h1>
 <h2 id="name-3"><a class="header" href="#name-3">Name</a></h2>
 <p><code>cbmc-starter-kit-migrate-license</code> - Remove references to Apache license from CBMC starter kit.</p>
@@ -647,14 +703,16 @@ PATH. Normally just recommend removal.</li>
                                  [--verbose] [--debug] [--version]
 </code></pre>
 <h2 id="description-3"><a class="header" href="#description-3">Description</a></h2>
-<p>Remove references to Apache license from CBMC starter kit.</p>
-<p>The CBMC starter kit was originally released under the Apache license. All
-files in the starter kit contained references to the Apache license. The
-starter kit installation scripts copied files from the stater kit into the
-project repository. This became an issue when the project repository was
-released under a different license. This script removes all references to the
-Apache license from the files copied into the project repository from the
-starter kit.</p>
+<p>This script is used to remove references to the Apache license installed
+by early versions of the starter kit.</p>
+<p>The CBMC starter kit was originally released under the Apache
+license. All files in the starter kit contained references to the
+Apache license. The starter kit installation scripts copied files from
+the stater kit into the project repository. This became an issue when
+the project repository was released under a more permissive
+license. This script removes all references to the Apache license from
+the files copied into the project repository from the starter kit, and
+uses the MIT-0 license instead.</p>
 <h2 id="options-3"><a class="header" href="#options-3">Options</a></h2>
 <p><code>--proofdir PROOFDIR</code></p>
 <ul>
@@ -676,6 +734,29 @@ starter kit.</p>
 <p><code>--version</code></p>
 <ul>
 <li>Display version number and exit.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="cbmc-starter-kit-resources"><a class="header" href="#cbmc-starter-kit-resources">CBMC starter kit resources</a></h1>
+<ul>
+<li>
+<p>CBMC (the model checker used by the starter kit)</p>
+<ul>
+<li><a href="http://www.cprover.org/cprover-manual">Documentation</a> and <a href="https://github.com/diffblue/cbmc/blob/develop/doc/cprover-manual/cbmc-tutorial.md">tutorial</a></li>
+<li><a href="https://github.com/diffblue/cbmc">Source code</a></li>
+</ul>
+</li>
+<li>
+<p>Litani (the build system used by the starter kit)</p>
+<ul>
+<li><a href="https://awslabs.github.io/aws-build-accumulator/">Documentation</a></li>
+<li><a href="https://github.com/awslabs/aws-build-accumulator">Source code</a></li>
+</ul>
+</li>
+<li>
+<p>CBMC starter kit</p>
+<ul>
+<li><a href="https://github.com/model-checking/cbmc-starter-kit">Source code</a></li>
+</ul>
+</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="contributing"><a class="header" href="#contributing">Contributing</a></h1>
 <p>This material is a work in progress.  If you have suggestions,

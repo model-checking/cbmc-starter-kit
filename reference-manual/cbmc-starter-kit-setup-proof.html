@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Getting started</a></li><li class="chapter-item expanded "><a href="../installation/index.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../tutorial/index.html"><strong aria-hidden="true">3.</strong> Tutorial</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> User manual</div></li><li class="chapter-item expanded "><a href="../reference-manual/index.html"><strong aria-hidden="true">5.</strong> Reference manual</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-setup.html"><strong aria-hidden="true">5.1.</strong> cbmc-starter-kit-setup</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-setup-proof.html" class="active"><strong aria-hidden="true">5.2.</strong> cbmc-starter-kit-setup-proof</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-update.html"><strong aria-hidden="true">5.3.</strong> cbmc-starter-kit-update</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-migrate-license.html"><strong aria-hidden="true">5.4.</strong> cbmc-starter-kit-migrate-license</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">6.</strong> Frequently asked questions</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Resources</div></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">8.</strong> Contributing</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Getting started</a></li><li class="chapter-item expanded "><a href="../installation/index.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../tutorial/index.html"><strong aria-hidden="true">3.</strong> Tutorial</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> User manual</div></li><li class="chapter-item expanded "><a href="../reference-manual/index.html"><strong aria-hidden="true">5.</strong> Reference manual</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-setup.html"><strong aria-hidden="true">5.1.</strong> cbmc-starter-kit-setup</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-setup-proof.html" class="active"><strong aria-hidden="true">5.2.</strong> cbmc-starter-kit-setup-proof</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-update.html"><strong aria-hidden="true">5.3.</strong> cbmc-starter-kit-update</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-migrate-license.html"><strong aria-hidden="true">5.4.</strong> cbmc-starter-kit-migrate-license</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">6.</strong> Frequently asked questions</div></li><li class="chapter-item expanded "><a href="../resources/index.html"><strong aria-hidden="true">7.</strong> Resources</a></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">8.</strong> Contributing</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -141,8 +141,27 @@
 <pre><code>cbmc-starter-kit-setup-proof [-h] [--verbose] [--debug] [--version]
 </code></pre>
 <h2 id="description"><a class="header" href="#description">Description</a></h2>
+<p>This script sets up the CBMC proof infrastructure for an individual proof.
+It asks for the name of the function under test.
+It then searches the repository for source files that define a
+function with that name, and asks you to select the file giving the
+implementation you want to test.
+If none of the files listed is the correct file, you can give the path
+to the correct source file yourself.
+Finally, the script creates a directory with the name of the function
+and copies into that directory some files to simplify getting started
+with the verification of that function.  Most important, it copies
+a skeleton of a Makefile and skeleton of a proof harness that you can
+edit to get started.</p>
+<p>This script is usually run in the CBMC verification root
+(the directory you created to hold the CBMC verification work,
+and in which you ran the <code>cbmc-stater-kit-setup</code> script).
+This script can, however, be run in any subdirectory of the
+CBMC verification root.  In this way, you can group verification of
+similar functions together in a hierarchy of subdirectories.</p>
+<p>This script will need to be run once for each function you want
+to verify.</p>
 <h2 id="options"><a class="header" href="#options">Options</a></h2>
-<p><code>--help, -h</code></p>
 <p><code>--verbose</code></p>
 <ul>
 <li>Verbose output.</li>
@@ -154,6 +173,10 @@
 <p><code>--version</code></p>
 <ul>
 <li>Display version number and exit.</li>
+</ul>
+<p><code>--help, -h</code></p>
+<ul>
+<li>Print the help message and exit.</li>
 </ul>
 
                     </main>

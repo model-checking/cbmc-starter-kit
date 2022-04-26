@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Getting started</a></li><li class="chapter-item expanded "><a href="../installation/index.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../tutorial/index.html"><strong aria-hidden="true">3.</strong> Tutorial</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> User manual</div></li><li class="chapter-item expanded "><a href="../reference-manual/index.html"><strong aria-hidden="true">5.</strong> Reference manual</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-setup.html"><strong aria-hidden="true">5.1.</strong> cbmc-starter-kit-setup</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-setup-proof.html"><strong aria-hidden="true">5.2.</strong> cbmc-starter-kit-setup-proof</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-update.html" class="active"><strong aria-hidden="true">5.3.</strong> cbmc-starter-kit-update</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-migrate-license.html"><strong aria-hidden="true">5.4.</strong> cbmc-starter-kit-migrate-license</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">6.</strong> Frequently asked questions</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Resources</div></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">8.</strong> Contributing</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Getting started</a></li><li class="chapter-item expanded "><a href="../installation/index.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../tutorial/index.html"><strong aria-hidden="true">3.</strong> Tutorial</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> User manual</div></li><li class="chapter-item expanded "><a href="../reference-manual/index.html"><strong aria-hidden="true">5.</strong> Reference manual</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-setup.html"><strong aria-hidden="true">5.1.</strong> cbmc-starter-kit-setup</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-setup-proof.html"><strong aria-hidden="true">5.2.</strong> cbmc-starter-kit-setup-proof</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-update.html" class="active"><strong aria-hidden="true">5.3.</strong> cbmc-starter-kit-update</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-migrate-license.html"><strong aria-hidden="true">5.4.</strong> cbmc-starter-kit-migrate-license</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">6.</strong> Frequently asked questions</div></li><li class="chapter-item expanded "><a href="../resources/index.html"><strong aria-hidden="true">7.</strong> Resources</a></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">8.</strong> Contributing</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -146,7 +146,24 @@
                         [--debug] [--version]
 </code></pre>
 <h2 id="description"><a class="header" href="#description">Description</a></h2>
-<p>Update CBMC starter kit in a CBMC proof repository.</p>
+<p>This script is used to update the CBMC starter kit installed in your
+repository to the lastest version.  It copies (overwrites) two files
+into your repository (<code>Makefile.common</code> and <code>run-cbmc-proofs.py</code>).
+These are the two files in the starter kit that encode our best
+practices for how to use CBMC in a software verification project.</p>
+<p>This script will also migrate your repository from early versions of
+the starter kit and litani (the build system used by the starter kit)
+to modern versions.  Early versions of the starter kit and litani were
+distributed as as git repositories that you submoduled into your
+repository.  The starter kit also installed symbolic links from your
+repository into the starter kit submodule. This script will remove the
+symbolic links (replace them with the files they are linking to) and will
+also remove the starter kit and litani submodules from your repository
+if you give the <code>--remove-stater-kit-submodule</code> and
+<code>--remove-litani-submodule</code> flags (flags you almost certainly want to
+use during the migration).  Finally, it will remove some regression tests
+that were distributed with early versions of the starter kit that most people
+don't use.</p>
 <h2 id="options"><a class="header" href="#options">Options</a></h2>
 <p><code>--cbmc-root CBMC</code></p>
 <ul>
@@ -187,7 +204,6 @@ of LITANI in Makefile-template-defines if the litani
 submodule is present and the litani command is in
 PATH. Normally just recommend removal.</li>
 </ul>
-<p><code>--help, -h</code></p>
 <p><code>--verbose</code></p>
 <ul>
 <li>Verbose output</li>
@@ -199,6 +215,10 @@ PATH. Normally just recommend removal.</li>
 <p><code>--version</code></p>
 <ul>
 <li>Display version and exit</li>
+</ul>
+<p><code>--help, -h</code></p>
+<ul>
+<li>Print the help message and exit.</li>
 </ul>
 
                     </main>
