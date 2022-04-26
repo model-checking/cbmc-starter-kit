@@ -17,7 +17,25 @@ cbmc-starter-kit-update [-h] [--cbmc-root CBMC]
 
 ## Description
 
-Update CBMC starter kit in a CBMC proof repository.
+This script is used to update the CBMC starter kit installed in your
+repository to the lastest version.  It copies (overwrites) two files
+into your repository (`Makefile.common` and `run-cbmc-proofs.py`).
+These are the two files in the starter kit that encode our best
+practices for how to use CBMC in a software verification project.
+
+This script will also migrate your repository from early versions of
+the starter kit and litani (the build system used by the starter kit)
+to modern versions.  Early versions of the starter kit and litani were
+distributed as as git repositories that you submoduled into your
+repository.  The starter kit also installed symbolic links from your
+repository into the starter kit submodule. This script will remove the
+symbolic links (replace them with the files they are linking to) and will
+also remove the starter kit and litani submodules from your repository
+if you give the `--remove-stater-kit-submodule` and
+`--remove-litani-submodule` flags (flags you almost certainly want to
+use during the migration).  Finally, it will remove some regression tests
+that were distributed with early versions of the starter kit that most people
+don't use.
 
 ## Options
 
@@ -60,8 +78,6 @@ Update CBMC starter kit in a CBMC proof repository.
   submodule is present and the litani command is in
   PATH. Normally just recommend removal.
 
-`--help, -h`
-
 `--verbose`
 
 * Verbose output
@@ -73,3 +89,7 @@ Update CBMC starter kit in a CBMC proof repository.
 `--version`
 
 * Display version and exit
+
+`--help, -h`
+
+* Print the help message and exit.
