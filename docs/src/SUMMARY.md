@@ -10,5 +10,5 @@
     * [cbmc-starter-kit-update](reference-manual/cbmc-starter-kit-update.md)
     * [cbmc-starter-kit-migrate-license](reference-manual/cbmc-starter-kit-migrate-license.md)
 * [Frequently asked questions]()
-* [Resources]()
+* [Resources](resources/README.md)
 * [Contributing](contributing/README.md)
