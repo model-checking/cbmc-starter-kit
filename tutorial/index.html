@@ -3,34 +3,33 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>CBMC starter kit</title>
-        <meta name="robots" content="noindex" />
+        <title>Tutorial - CBMC starter kit</title>
         <!-- Custom HTML head -->
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff" />
 
-        <link rel="icon" href="favicon.svg">
-        <link rel="shortcut icon" href="favicon.png">
-        <link rel="stylesheet" href="css/variables.css">
-        <link rel="stylesheet" href="css/general.css">
-        <link rel="stylesheet" href="css/chrome.css">
-        <link rel="stylesheet" href="css/print.css" media="print">
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
         <!-- Fonts -->
-        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="fonts/fonts.css">
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="highlight.css">
-        <link rel="stylesheet" href="tomorrow-night.css">
-        <link rel="stylesheet" href="ayu-highlight.css">
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
     </head>
     <body>
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
-            var path_to_root = "";
+            var path_to_root = "../";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
 
@@ -76,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Getting started</a></li><li class="chapter-item expanded "><a href="installation/index.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="tutorial/index.html"><strong aria-hidden="true">3.</strong> Tutorial</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> User manual</div></li><li class="chapter-item expanded "><a href="reference-manual/index.html"><strong aria-hidden="true">5.</strong> Reference manual</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="reference-manual/cbmc-starter-kit-setup.html"><strong aria-hidden="true">5.1.</strong> cbmc-starter-kit-setup</a></li><li class="chapter-item expanded "><a href="reference-manual/cbmc-starter-kit-setup-proof.html"><strong aria-hidden="true">5.2.</strong> cbmc-starter-kit-setup-proof</a></li><li class="chapter-item expanded "><a href="reference-manual/cbmc-starter-kit-update.html"><strong aria-hidden="true">5.3.</strong> cbmc-starter-kit-update</a></li><li class="chapter-item expanded "><a href="reference-manual/cbmc-starter-kit-migrate-license.html"><strong aria-hidden="true">5.4.</strong> cbmc-starter-kit-migrate-license</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">6.</strong> Frequently asked questions</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Resources</div></li><li class="chapter-item expanded "><a href="contributing/index.html"><strong aria-hidden="true">8.</strong> Contributing</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Getting started</a></li><li class="chapter-item expanded "><a href="../installation/index.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../tutorial/index.html" class="active"><strong aria-hidden="true">3.</strong> Tutorial</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> User manual</div></li><li class="chapter-item expanded "><a href="../reference-manual/index.html"><strong aria-hidden="true">5.</strong> Reference manual</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-setup.html"><strong aria-hidden="true">5.1.</strong> cbmc-starter-kit-setup</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-setup-proof.html"><strong aria-hidden="true">5.2.</strong> cbmc-starter-kit-setup-proof</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-update.html"><strong aria-hidden="true">5.3.</strong> cbmc-starter-kit-update</a></li><li class="chapter-item expanded "><a href="../reference-manual/cbmc-starter-kit-migrate-license.html"><strong aria-hidden="true">5.4.</strong> cbmc-starter-kit-migrate-license</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">6.</strong> Frequently asked questions</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Resources</div></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">8.</strong> Contributing</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -108,7 +107,7 @@
                     <h1 class="menu-title">CBMC starter kit</h1>
 
                     <div class="right-buttons">
-                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
                     </div>
@@ -135,82 +134,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="getting-started-with-the-cbmc-starter-kit"><a class="header" href="#getting-started-with-the-cbmc-starter-kit">Getting started with the CBMC starter kit</a></h1>
-<p>The <a href="https://github.com/model-checking/cbmc-starter-kit">CBMC starter kit</a> makes
-it easy to add CBMC verification to an existing software project.</p>
-<p><a href="https://github.com/diffblue/cbmc">CBMC</a> is a model checker for
-C. This means that CBMC will explore all possible paths through your code
-on all possible inputs, and will check that all assertions in your code are
-true.
-CBMC can also check for the possibility of
-memory safety errors (like buffer overflow) and for instances of
-undefined behavior (like signed integer overflow).
-CBMC is a bounded model checker, however, which means that the set of all
-possible inputs may have to be restricted to all inputs of some bounded size.</p>
-<p>For a quick start on using the starter kit, see</p>
-<ul>
-<li><a href="installation">Installation</a></li>
-<li><a href="tutorial">Tutorial</a></li>
-</ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
-<p>The starter kit is distributed as both a brew package and a pip package, and the
-<a href="https://github.com/model-checking/cbmc-starter-kit/releases/latest">release page</a>
-gives installation instructions that we repeat here.</p>
-<h2 id="brew-installation"><a class="header" href="#brew-installation">Brew installation</a></h2>
-<p>On MacOS, we recommend using brew to install the starter kit with</p>
-<pre><code>brew tap aws/tap
-brew install cbmc-starter kit
-</code></pre>
-<p>and upgrade to the latest version with</p>
-<pre><code>brew upgrade cbmc-starter kit
-</code></pre>
-<p>The <a href="https://brew.sh/">brew home page</a> gives instructions for installing brew.
-The command <code>brew tap aws/tap</code> taps the AWS repository that contains the
-brew package.</p>
-<h2 id="pip-installation"><a class="header" href="#pip-installation">Pip installation</a></h2>
-<p>On any operating system with python installed, use pip to install the
-starter kit with</p>
-<pre><code>python3 -m pip install cbmc-starter-kit
-</code></pre>
-<p>and upgrade to the latest version with</p>
-<pre><code>python3 -m pip install --upgrade cbmc-starter-kit
-</code></pre>
-<p>The <a href="https://www.python.org/downloads/">python download page</a>
-gives instructions for installing python and pip.</p>
-<h2 id="developers"><a class="header" href="#developers">Developers</a></h2>
-<p>Developers can install the package in &quot;editable mode&quot; which makes
-it possible to modify the code in the source tree and then run the command
-from the command line as usual to test the changes.
-First, optionally install ctags as described above.  Then</p>
-<ul>
-<li>
-<p>Clone the repository with</p>
-<pre><code>git clone https://github.com/model-checking/cbmc-starter-kit cbmc-starter-kit
-</code></pre>
-</li>
-<li>
-<p>Install into a virtual environment with</p>
-<pre><code>cd cbmc-starter-kit
-make develop
-</code></pre>
-<p>At this point you can either activate the virtual environment with</p>
-<pre><code>source /tmp/cbmc-starter-kit/bin/activate
-</code></pre>
-<p>or simply add the virtual environment to your path with</p>
-<pre><code>export PATH=$PATH:/tmp/cbmc-starter-kit/bin
-</code></pre>
-</li>
-<li>
-<p>Uninstall with</p>
-<pre><code>cd cbmc-starter-kit
-make undevelop
-</code></pre>
-</li>
-</ul>
-<h2 id="installation-notes"><a class="header" href="#installation-notes">Installation notes</a></h2>
-<p>If you have difficulty installing these tools, please let us know by
-submitting a <a href="https://github.com/model-checking/cbmc-starter-kit/issues">GitHub issue</a>.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="cbmc-starter-kit-tutorial"><a class="header" href="#cbmc-starter-kit-tutorial">CBMC starter kit tutorial</a></h1>
+                        <h1 id="cbmc-starter-kit-tutorial"><a class="header" href="#cbmc-starter-kit-tutorial">CBMC starter kit tutorial</a></h1>
 <p>The <a href="https://github.com/model-checking/cbmc-starter-kit">CBMC starter kit</a>
 makes it easy to add CBMC verification to an existing software project.</p>
 <p>In this tutorial, we show how to begin proving the memory safety of
@@ -234,11 +158,11 @@ to begin verification in about ten or fifteen minutes, and were able to
 breathe some real life into the proof within a few more hours.</p>
 <p>Using the starter kit consists of five steps</p>
 <ul>
-<li><a href="tutorial/index.html#clone-the-source-repository">Clone the source repository</a></li>
-<li><a href="tutorial/index.html#configure-the-repository">Configure the repository</a></li>
-<li><a href="tutorial/index.html#configure-the-proof">Configure the proof</a></li>
-<li><a href="tutorial/index.html#write-the-proof">Write the proof</a></li>
-<li><a href="tutorial/index.html#run-cbmc">Run CBMC</a></li>
+<li><a href="#clone-the-source-repository">Clone the source repository</a></li>
+<li><a href="#configure-the-repository">Configure the repository</a></li>
+<li><a href="#configure-the-proof">Configure the proof</a></li>
+<li><a href="#write-the-proof">Write the proof</a></li>
+<li><a href="#run-cbmc">Run CBMC</a></li>
 </ul>
 <h2 id="clone-the-source-repository"><a class="header" href="#clone-the-source-repository">Clone the source repository</a></h2>
 <p>The first step is to clone the FreeRTOS Kernel repository.</p>
@@ -379,7 +303,7 @@ so let us update the Makefile with</p>
 INCLUDES += -I$(SRCDIR)/include
 INCLUDES += -I$(SRCDIR)/portable/ThirdParty/GCC/Posix
 </code></pre>
-<p>The final <a href="tutorial/Makefile"><code>Makefile</code></a> is:</p>
+<p>The final <a href="Makefile"><code>Makefile</code></a> is:</p>
 <pre><code>HARNESS_ENTRY = harness
 HARNESS_FILE = pvPortMalloc_harness
 
@@ -434,7 +358,7 @@ pass it to <code>pvPortMalloc.</code></p>
 <pre><code>size_t size;
 pvPortMalloc(size);
 </code></pre>
-<p>The final <a href="tutorial/pvPortMalloc_harness.c"><code>pvPortMalloc_harness.c</code></a> is:</p>
+<p>The final <a href="pvPortMalloc_harness.c"><code>pvPortMalloc_harness.c</code></a> is:</p>
 <pre><code>/**
  * @file pvPortMalloc_harness.c
  * @brief Implements the proof harness for pvPortMalloc function.
@@ -455,7 +379,7 @@ requires a configuration file that sets all the parameters used to define
 a system configuration.  This kernel repository does not contain a
 configuration file, so let us use a simplified
 configuration file from a demonstration in another repository.  Let us add
-<a href="tutorial/FreeRTOSConfig.h"><code>FreeRTOSConfig.h</code></a> to the <code>pvPortMalloc</code> directory.</p>
+<a href="FreeRTOSConfig.h"><code>FreeRTOSConfig.h</code></a> to the <code>pvPortMalloc</code> directory.</p>
 <h2 id="run-the-proof"><a class="header" href="#run-the-proof">Run the proof</a></h2>
 <p>Finally, we can run the proof:</p>
 <pre><code>make
@@ -463,7 +387,7 @@ configuration file from a demonstration in another repository.  Let us add
 <p>This builds a report of the results that we can open in a browser</p>
 <pre><code>open report/html/index.html
 </code></pre>
-<p>Examining <a href="tutorial/report/index.html">the report</a>, we see a list of coverage results, a list of
+<p>Examining <a href="report/index.html">the report</a>, we see a list of coverage results, a list of
 warnings, and a list of errors or issues found by CBMC.  In this report,
 there are no errors, but the coverage is <em>terrible</em>: only 40% of the lines
 in the function are exercised by CBMC!</p>
@@ -474,7 +398,7 @@ or initialized the heap itself yet!</p>
 <p>At this point it is interesting to see what the developers
 did to breathe some life into this verification effort.
 Their proof harness looked something like this
-<a href="tutorial/pvPortMalloc_harness1.c"><code>pvPortMalloc_harness.c</code></a>:</p>
+<a href="pvPortMalloc_harness1.c"><code>pvPortMalloc_harness.c</code></a>:</p>
 <pre><code>/**
  * @file pvPortMalloc_harness.c
  * @brief Implements the proof harness for pvPortMalloc function.
@@ -521,180 +445,29 @@ size and free the middle one, then <code>pvPortMalloc</code> will exhibit no mem
 safety errors or other undefined behaviors.  But it is an elegant example
 of how quickly developers were able to get started doing real work.
 Good for them!  And, soon, good for you.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="reference-manual"><a class="header" href="#reference-manual">Reference manual</a></h1>
-<p>The CBMC Starter Kit makes it easy to add CBMC verification to a
-software project.</p>
-<ul>
-<li><a href="reference-manual/cbmc-starter-kit-setup.html">cbmc-starter-kit-setup</a></li>
-<li><a href="reference-manual/cbmc-starter-kit-setup-proof.html">cbmc-starter-kit-setup-proof</a></li>
-<li><a href="reference-manual/cbmc-starter-kit-update.html">cbmc-starter-kit-update</a></li>
-<li><a href="reference-manual/cbmc-starter-kit-migrate-license.html">cbmc-starter-kit-migrate-license</a></li>
-</ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="reference-manual-1"><a class="header" href="#reference-manual-1">Reference manual</a></h1>
-<h2 id="name"><a class="header" href="#name">Name</a></h2>
-<p><code>cbmc-starter-kit-setup</code> - Set up CBMC proof infrastructure for a repository</p>
-<h2 id="synopsis"><a class="header" href="#synopsis">Synopsis</a></h2>
-<pre><code>cbmc-starter-kit-setup [-h] [--verbose] [--debug] [--version]
-</code></pre>
-<h2 id="description"><a class="header" href="#description">Description</a></h2>
-<p>Set up CBMC proof infrastructure for a repository.</p>
-<h2 id="options"><a class="header" href="#options">Options</a></h2>
-<p><code>--help, -h</code></p>
-<p><code>--verbose</code></p>
-<ul>
-<li>Verbose output.</li>
-</ul>
-<p><code>--debug</code></p>
-<ul>
-<li>Debugging output.</li>
-</ul>
-<p><code>--version</code></p>
-<ul>
-<li>Display version number and exit.</li>
-</ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="reference-manual-2"><a class="header" href="#reference-manual-2">Reference manual</a></h1>
-<h2 id="name-1"><a class="header" href="#name-1">Name</a></h2>
-<p><code>cbmc-starter-kit-setup-proof</code> - Set up CBMC proof infrastructure for a proof</p>
-<h2 id="synopsis-1"><a class="header" href="#synopsis-1">Synopsis</a></h2>
-<pre><code>cbmc-starter-kit-setup-proof [-h] [--verbose] [--debug] [--version]
-</code></pre>
-<h2 id="description-1"><a class="header" href="#description-1">Description</a></h2>
-<h2 id="options-1"><a class="header" href="#options-1">Options</a></h2>
-<p><code>--help, -h</code></p>
-<p><code>--verbose</code></p>
-<ul>
-<li>Verbose output.</li>
-</ul>
-<p><code>--debug</code></p>
-<ul>
-<li>Debugging output.</li>
-</ul>
-<p><code>--version</code></p>
-<ul>
-<li>Display version number and exit.</li>
-</ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="reference-manual-3"><a class="header" href="#reference-manual-3">Reference manual</a></h1>
-<h2 id="name-2"><a class="header" href="#name-2">Name</a></h2>
-<p><code>cbmc-starter-kit-update</code> - Update CBMC starter kit in a CBMC proof repository</p>
-<h2 id="synopsis-2"><a class="header" href="#synopsis-2">Synopsis</a></h2>
-<pre><code>cbmc-starter-kit-update [-h] [--cbmc-root CBMC]
-                        [--starter-kit-root STARTER_KIT] [--no-migrate]
-                        [--no-test-removal] [--no-update]
-                        [--remove-starter-kit-submodule]
-                        [--remove-litani-submodule] [--verbose]
-                        [--debug] [--version]
-</code></pre>
-<h2 id="description-2"><a class="header" href="#description-2">Description</a></h2>
-<p>Update CBMC starter kit in a CBMC proof repository.</p>
-<h2 id="options-2"><a class="header" href="#options-2">Options</a></h2>
-<p><code>--cbmc-root CBMC</code></p>
-<ul>
-<li>Root of CBMC proof infrastructure (default: &quot;.&quot;)</li>
-</ul>
-<p><code>--starter-kit-root STARTER_KIT</code></p>
-<ul>
-<li>Root of CBMC starter kit submodule (default: None or
-root of starter kit submodule installed in repository
-containing CBMC)</li>
-</ul>
-<p><code>--no-migrate</code></p>
-<ul>
-<li>Do not remove symlinks under CBMC. Normally remove
-symlinks under CBMC to files under STARTER_KIT.</li>
-</ul>
-<p><code>--no-test-removal</code></p>
-<ul>
-<li>Do not remove negative tests in CBMC/negative_tests.
-Normally remove the directory CBMC/negative_tests
-since most projects don't use these tests.</li>
-</ul>
-<p><code>--no-update</code></p>
-<ul>
-<li>Do not update Makefile.common and run-cbmc-proofs.py
-under CBMC/proofs. Normally update these files with
-the versions in the starter kit package.</li>
-</ul>
-<p><code>--remove-starter-kit-submodule</code></p>
-<ul>
-<li>Remove the starter kit submodule if it is present.
-Normally just recommend removal.</li>
-</ul>
-<p><code>--remove-litani-submodule</code></p>
-<ul>
-<li>Remove the litani submodule and update the definition
-of LITANI in Makefile-template-defines if the litani
-submodule is present and the litani command is in
-PATH. Normally just recommend removal.</li>
-</ul>
-<p><code>--help, -h</code></p>
-<p><code>--verbose</code></p>
-<ul>
-<li>Verbose output</li>
-</ul>
-<p><code>--debug</code></p>
-<ul>
-<li>Debug output</li>
-</ul>
-<p><code>--version</code></p>
-<ul>
-<li>Display version and exit</li>
-</ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="reference-manual-4"><a class="header" href="#reference-manual-4">Reference manual</a></h1>
-<h2 id="name-3"><a class="header" href="#name-3">Name</a></h2>
-<p><code>cbmc-starter-kit-migrate-license</code> - Remove references to Apache license from CBMC starter kit.</p>
-<h2 id="synopsis-3"><a class="header" href="#synopsis-3">Synopsis</a></h2>
-<pre><code>cbmc-starter-kit-migrate-license [-h] [--proofdir PROOFDIR] [--remove]
-                                 [--verbose] [--debug] [--version]
-</code></pre>
-<h2 id="description-3"><a class="header" href="#description-3">Description</a></h2>
-<p>Remove references to Apache license from CBMC starter kit.</p>
-<p>The CBMC starter kit was originally released under the Apache license. All
-files in the starter kit contained references to the Apache license. The
-starter kit installation scripts copied files from the stater kit into the
-project repository. This became an issue when the project repository was
-released under a different license. This script removes all references to the
-Apache license from the files copied into the project repository from the
-starter kit.</p>
-<h2 id="options-3"><a class="header" href="#options-3">Options</a></h2>
-<p><code>--proofdir PROOFDIR</code></p>
-<ul>
-<li>Root of the proof subtree (default: .)</li>
-</ul>
-<p><code>--remove</code></p>
-<ul>
-<li>Remove Apache references from files under PROOFDIR (otherwise just list them)</li>
-</ul>
-<p><code>--help, -h</code></p>
-<p><code>--verbose</code></p>
-<ul>
-<li>Verbose output.</li>
-</ul>
-<p><code>--debug</code></p>
-<ul>
-<li>Debugging output.</li>
-</ul>
-<p><code>--version</code></p>
-<ul>
-<li>Display version number and exit.</li>
-</ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contributing"><a class="header" href="#contributing">Contributing</a></h1>
-<p>This material is a work in progress.  If you have suggestions,
-corrections, or questions, contact us by submitting a
-<a href="https://github.com/model-checking/cbmc-starter-kit/issues">GitHub issue</a>.
-If you have some examples of your own that you would like to contribute,
-submit your contributions as a
-<a href="https://github.com/model-checking/cbmc-starter-kit/pulls">GitHub pull request</a>.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../installation/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                            <a rel="next" href="../reference-manual/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
                         <div style="clear: both"></div>
                     </nav>
                 </div>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../installation/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                    <a rel="next" href="../reference-manual/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
             </nav>
 
         </div>
@@ -702,18 +475,13 @@ submit your contributions as a
         <script type="text/javascript">
             window.playground_copyable = true;
         </script>
-        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
-        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
-        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
 
         <!-- Custom JS scripts -->
-        <script type="text/javascript">
-        window.addEventListener('load', function() {
-            window.setTimeout(window.print, 100);
-        });
-        </script>
     </body>
 </html>
