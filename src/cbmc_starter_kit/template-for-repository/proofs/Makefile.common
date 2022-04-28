@@ -96,16 +96,40 @@ default: report
 ################################################################
 ## Section I: This section gives common variable definitions.
 ##
-## Feel free to edit these definitions for your project.
+## Override these definitions in Makefile-project-defines or
+## your proof Makefile.
 ##
-## Definitions specific to a proof (generally definitions defined
-## below with ?= like PROJECT_SOURCES listing the project source files
-## required by the proof) should be defined in the proof Makefile.
-##
-## Remember that this Makefile is intended to be included from the
-## Makefile in your proof directory, so all relative pathnames should
-## be relative to your proof directory.
-##
+## Remember that Makefile.common and Makefile-project-defines are
+## included into the proof Makefile in your proof directory, so all
+## relative pathnames defined there should be relative to your proof
+## directory.
+
+################################################################
+# Define the layout of the source tree and the proof subtree
+#
+# Generally speaking,
+#
+#   SRCDIR = the root of the repository
+#   CBMC_ROOT = /srcdir/cbmc
+#   PROOF_ROOT = /srcdir/cbmc/proofs
+#   PROOF_SOURCE = /srcdir/cbmc/sources
+#   PROOF_INCLUDE = /srcdir/cbmc/include
+#   PROOF_STUB = /srcdir/cbmc/stubs
+#   PROOFDIR = the directory containing the Makefile for your proof
+#
+# The path /srcdir/cbmc used in the example above is determined by the
+# setup script cbmc-starter-kit-setup.  Projects usually create a cbmc
+# directory somewhere in the source tree, and run the setup script in
+# that directory.  The value of CBMC_ROOT becomes the absolute path to
+# that directory.
+#
+# The location of that cbmc directory in the source tree affects the
+# definition of SRCDIR, which is defined in terms of the relative path
+# from a proof directory to the repository root.  The definition is
+# usually determined by the setup script cbmc-starter-kit-setup and
+# written to Makefile-template-defines, but you can override it for a
+# project in Makefile-project-defines and for a specific proof in the
+# Makefile for the proof.
 
 # Absolute path to the directory containing this Makefile.common
 # See https://ftp.gnu.org/old-gnu/Manuals/make-3.80/html_node/make_17.html
@@ -120,17 +144,20 @@ MAKEFILE_PATHS = $(foreach makefile,$(MAKEFILE_LIST),$(abspath $(makefile)))
 PROOF_ROOT = $(dir $(filter %/Makefile.common,$(MAKEFILE_PATHS)))
 
 CBMC_ROOT = $(shell dirname $(PROOF_ROOT))
-PROOF_STUB = $(CBMC_ROOT)/stubs
 PROOF_SOURCE = $(CBMC_ROOT)/sources
+PROOF_INCLUDE = $(CBMC_ROOT)/include
+PROOF_STUB = $(CBMC_ROOT)/stubs
 
 # Project-specific definitions to override default definitions below
 #   * Makefile-project-defines will never be overwritten
-#   * Makefile-template-defines will be overwritten each time the
-#     proof templates are updated
+#   * Makefile-template-defines may be overwritten with the starter
+#     kit is updated
 sinclude $(PROOF_ROOT)/Makefile-project-defines
 sinclude $(PROOF_ROOT)/Makefile-template-defines
 
 # SRCDIR is the path to the root of the source tree
+# This is a default definition that is frequently overridden in
+# another Makefile, see the discussion of SRCDIR above.
 SRCDIR ?= $(abspath ../..)
 
 # PROOFDIR is the path to the directory containing the proof harness
@@ -146,6 +173,9 @@ CBMCDIR ?= $(PROOF_ROOT)/cbmc
 
 # Default CBMC flags used for property checking and coverage checking.
 CBMCFLAGS += --unwind 1 $(CBMC_UNWINDSET) --flush
+
+################################################################
+# Define how to run CBMC
 
 # Do property checking with the external SAT solver given by
 # EXTERNAL_SAT_SOLVER.  Do coverage checking with the default solver,
@@ -381,11 +411,6 @@ APPLY_LOOP_CONTRACTS ?= 0
 ifndef VERBOSE
     MAKEFLAGS := $(MAKEFLAGS) -s
 endif
-
-################################################################
-################################################################
-## Section II: This section is for project-specific definitions
-
 
 ################################################################
 ################################################################
