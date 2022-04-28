@@ -163,14 +163,6 @@ SRCDIR ?= $(abspath ../..)
 # PROOFDIR is the path to the directory containing the proof harness
 PROOFDIR ?= $(abspath .)
 
-# Path to the root of the cbmc project.
-#
-# Projects generally have a directory $(CBMCDIR) with subdirectories
-# $(CBMCDIR)/proofs containing the proofs and maybe $(CBMCDIR)/stubs
-# containing the stubs used in the proof.  This Makefile is generally
-# at $(CBMCDIR)/proofs/Makefile.common.
-CBMCDIR ?= $(PROOF_ROOT)/cbmc
-
 # Default CBMC flags used for property checking and coverage checking.
 CBMCFLAGS += --unwind 1 $(CBMC_UNWINDSET) --flush
 
