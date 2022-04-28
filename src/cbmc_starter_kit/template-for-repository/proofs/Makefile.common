@@ -401,6 +401,9 @@ CBMC_USE_FUNCTION_CONTRACTS := $(patsubst %,--replace-call-with-contract %, $(US
 # These contracts are also ignored by default, but may be enabled by setting
 # the APPLY_LOOP_CONTRACTS variable to 1.
 APPLY_LOOP_CONTRACTS ?= 0
+ifeq ($(APPLY_LOOP_CONTRACTS),1)
+  CBMC_APPLY_LOOP_CONTRACTS ?= --apply-loop-contracts
+endif
 
 # Silence makefile output (eg, long litani commands) unless VERBOSE is set.
 ifndef VERBOSE
@@ -624,18 +627,9 @@ endif
 
 # Optionally apply loop contracts
 $(HARNESS_GOTO)8.goto: $(HARNESS_GOTO)7.goto
-ifneq ($(APPLY_LOOP_CONTRACTS),1)
-	$(LITANI) add-job \
-	  --command 'cp $^ $@' \
-	  --inputs $^ \
-	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
-	  --ci-stage build \
-	  --description "$(PROOF_UID): not applying loop contracts"
-else
 	$(LITANI) add-job \
 	  --command \
-	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) --apply-loop-contracts $^ $@' \
+	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_APPLY_LOOP_CONTRACTS) $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/apply_loop_contracts-log.txt \
@@ -643,7 +637,6 @@ else
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): applying loop contracts"
-endif
 
 # Optionally check function contracts
 $(HARNESS_GOTO)9.goto: $(HARNESS_GOTO)8.goto
