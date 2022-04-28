@@ -389,7 +389,7 @@ CBMC_TIMEOUT ?= 21600
 #    contracts, USE_FUNCTION_CONTRACTS should be a list of function names.
 #    One must check separately whether a function contract is sound before
 #    replacing it in calling contexts.
-CHECK_FUNCTION_CONTRACTS ?= ""
+CHECK_FUNCTION_CONTRACTS ?=
 CBMC_CHECK_FUNCTION_CONTRACTS := $(patsubst %,--enforce-contract %, $(CHECK_FUNCTION_CONTRACTS))
 
 USE_FUNCTION_CONTRACTS ?=
@@ -647,15 +647,6 @@ endif
 
 # Optionally check function contracts
 $(HARNESS_GOTO)9.goto: $(HARNESS_GOTO)8.goto
-ifeq ($(CHECK_FUNCTION_CONTRACTS),"")
-	$(LITANI) add-job \
-	  --command 'cp $^ $@' \
-	  --inputs $^ \
-	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
-	  --ci-stage build \
-	  --description "$(PROOF_UID): not checking function contracts"
-else
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_CHECK_FUNCTION_CONTRACTS) $^ $@' \
@@ -666,7 +657,6 @@ else
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): checking function contracts"
-endif
 
 # Final name for proof harness
 $(HARNESS_GOTO).goto: $(HARNESS_GOTO)9.goto
