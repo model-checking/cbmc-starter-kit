@@ -7,47 +7,86 @@
 CBMC_STARTER_KIT_VERSION = _CBMC_STARTER_KIT_VERSION_
 
 ################################################################
-# This file Makefile.common defines the basic work flow for cbmc proofs.
+# The CBMC Starter Kit depends on the files Makefile.common and
+# run-cbmc-proofs.py.  They are installed by the setup script
+# cbmc-starter-kit-setup and updated to the latest version by the
+# update script cbmc-starter-kit-update.  For more information about
+# the starter kit and these files and these scripts, see
+# https://model-checking.github.io/cbmc-starter-kit
 #
-# The intention is that the goal of your project is to write proofs
-# for a collection of functions in a source tree.
+# Makefile.common implements what we consider to be some best
+# practices for using cbmc for software verification.
 #
-# To use this file
-#   1. Edit the variable definitions in Section I below as appropriate for
-#      your project, your proofs, and your source tree.
-#   2. For each function for which you are writing a proof,
-#      a. Create a subdirectory <DIR>.
-#      b. Write a proof harness (a function) with the name <HARNESS_ENTRY>
-#         in a file with the name <DIR>/<HARNESS_FILE>.c
-#      c. Write a makefile with the name <DIR>/Makefile that looks
-#         something like
+# Section I gives default values for a large number of Makefile
+# variables that control
+#   * how your code is built (include paths, etc),
+#   * what program transformations are applied to your code (loop
+#     unwinding, etc), and
+#   * what properties cbmc checks for in your code (memory safety, etc).
 #
-#         HARNESS_FILE=<HARNESS_FILE>
-#         HARNESS_ENTRY=<HARNESS_ENTRY>
-#         PROOF_UID=<PROOF_UID>
+# These variables are defined below with definitions of the form
+#   VARIABLE ?= DEFAULT_VALUE
+# meaning VARIABLE is set to DEFAULT_VALUE if VARIABLE has not already
+# been given a value.
 #
-#         PROJECT_SOURCES += $(SRCDIR)/libraries/api_1.c
-#         PROJECT_SOURCES += $(SRCDIR)/libraries/api_2.c
+# For your project, you can override these default values with
+# project-specific definitions in Makefile-project-defines.
 #
-#         PROOF_SOURCES += $(PROOFDIR)/harness.c
-#         PROOF_SOURCES += $(SRCDIR)/cbmc/proofs/stub_a.c
-#         PROOF_SOURCES += $(SRCDIR)/cbmc/proofs/stub_b.c
+# For any individual proof, you can override these default values and
+# project-specific values with proof-specific definitions in the
+# Makefile for your proof.
 #
-#         UNWINDSET += foo.0:3
-#         UNWINDSET += bar.1:6
+# The definitions in the proof Makefile override definitions in the
+# project Makefile-project-defines which override definitions in this
+# Makefile.common.
 #
-#         REMOVE_FUNCTION_BODY += api_stub_a
-#         REMOVE_FUNCTION_BODY += api_stub_b
+# Section II uses the values defined in Section I to build your code, run
+# your proof, and build a report of your results.  You should not need
+# to modify or override anything in Section II, but you may want to
+# read it to understand how the values defined in Section I control
+# things.
 #
-#         DEFINES = -DDEBUG=0
+# To use Makefile.common, set variables as describe above as needed,
+# and then for each proof,
 #
-#         include ../Makefile.common
+#   * Create a subdirectory <DIR>.
+#   * Write a proof harness (a function) with the name <HARNESS_ENTRY>
+#     in a file with the name <DIR>/<HARNESS_FILE>.c
+#   * Write a makefile with the name <DIR>/Makefile that looks
+#     something like
 #
-#      d. Change directory to <DIR> and run make
+#     HARNESS_FILE=<HARNESS_FILE>
+#     HARNESS_ENTRY=<HARNESS_ENTRY>
+#     PROOF_UID=<PROOF_UID>
 #
-# Dependency handling in this file may not be perfect. Consider
-# running "make clean" or "make veryclean" before "make report" if you
-# get results that are hard to explain.
+#     PROJECT_SOURCES += $(SRCDIR)/libraries/api_1.c
+#     PROJECT_SOURCES += $(SRCDIR)/libraries/api_2.c
+#
+#     PROOF_SOURCES += $(PROOFDIR)/harness.c
+#     PROOF_SOURCES += $(SRCDIR)/cbmc/proofs/stub_a.c
+#     PROOF_SOURCES += $(SRCDIR)/cbmc/proofs/stub_b.c
+#
+#     UNWINDSET += foo.0:3
+#     UNWINDSET += bar.1:6
+#
+#     REMOVE_FUNCTION_BODY += api_stub_a
+#     REMOVE_FUNCTION_BODY += api_stub_b
+#
+#     DEFINES = -DDEBUG=0
+#
+#     include ../Makefile.common
+#
+#   * Change directory to <DIR> and run make
+#
+# The proof setup script cbmc-starter-kit-setup-proof from the CBMC
+# Starter Kit will do most of this for, creating a directory and
+# writing a basic Makefile and proof harness into it that you can edit
+# as described above.
+#
+# Warning: If you get results that are hard to explain, consider
+# running "make clean" or "make veryclean" before "make" if you get
+# results that are hard to explain.  Dependency handling in this
+# Makefile.common may not be perfect.
 
 SHELL=/bin/bash
 
