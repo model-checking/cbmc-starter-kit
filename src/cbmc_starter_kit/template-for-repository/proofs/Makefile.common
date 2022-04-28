@@ -163,9 +163,6 @@ SRCDIR ?= $(abspath ../..)
 # PROOFDIR is the path to the directory containing the proof harness
 PROOFDIR ?= $(abspath .)
 
-# Default CBMC flags used for property checking and coverage checking.
-CBMCFLAGS += --unwind 1 $(CBMC_UNWINDSET) --flush
-
 ################################################################
 # Define how to run CBMC
 
@@ -255,6 +252,12 @@ CBMC_FLAG_SIGNED_OVERFLOW_CHECK ?= --signed-overflow-check
 CBMC_FLAG_UNDEFINED_SHIFT_CHECK ?= --undefined-shift-check
 CBMC_FLAG_UNSIGNED_OVERFLOW_CHECK ?= --unsigned-overflow-check
 CBMC_FLAG_UNWINDING_ASSERTIONS ?= --unwinding-assertions
+CBMC_FLAG_UNWIND ?= --unwind 1
+CBMC_FLAG_FLUSH ?= --flush
+
+# CBMC flags used for property checking and coverage checking
+
+CBMCFLAGS += $(CBMC_FLAG_UNWIND) $(CBMC_UNWINDSET) $(CBMC_FLAG_FLUSH)
 
 # CBMC flags used for property checking
 
