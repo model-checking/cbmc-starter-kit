@@ -304,7 +304,7 @@ COVERFLAGS += $(CBMC_FLAG_MALLOC_FAIL_NULL)
 # (ignoring initializers and default zero-initialization).  The
 # --nondet-static-exclude VAR excludes VAR for the variables
 # initialized with unconstrained values.
-NONDET_STATIC ?= ""
+NONDET_STATIC ?=
 
 # Flags to pass to goto-cc for compilation and linking
 COMPILE_FLAGS ?= -Wall
@@ -528,15 +528,6 @@ $(HARNESS_GOTO)2.goto: $(HARNESS_GOTO)1.goto
 
 # Optionally fill static variable with unconstrained values
 $(HARNESS_GOTO)3.goto: $(HARNESS_GOTO)2.goto
-ifeq ($(NONDET_STATIC),"")
-	$(LITANI) add-job \
-	  --command 'cp $^ $@' \
-	  --inputs $^ \
-	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
-	  --ci-stage build \
-	  --description "$(PROOF_UID): not setting static variables to nondet"
-else
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(NONDET_STATIC) $^ $@' \
@@ -547,7 +538,6 @@ else
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): setting static variables to nondet"
-endif
 
 # Omit unused functions (sharpens coverage calculations)
 $(HARNESS_GOTO)4.goto: $(HARNESS_GOTO)3.goto
