@@ -392,7 +392,7 @@ CBMC_TIMEOUT ?= 21600
 CHECK_FUNCTION_CONTRACTS ?= ""
 CBMC_CHECK_FUNCTION_CONTRACTS := $(patsubst %,--enforce-contract %, $(CHECK_FUNCTION_CONTRACTS))
 
-USE_FUNCTION_CONTRACTS ?= ""
+USE_FUNCTION_CONTRACTS ?=
 CBMC_USE_FUNCTION_CONTRACTS := $(patsubst %,--replace-call-with-contract %, $(USE_FUNCTION_CONTRACTS))
 
 # Similarly, proof writers could also add loop contracts in their source code
@@ -569,15 +569,6 @@ $(HARNESS_GOTO)5.goto: $(HARNESS_GOTO)4.goto
 # This must be done before enforcing function contracts,
 # since contract enforcement inlines all function calls.
 $(HARNESS_GOTO)6.goto: $(HARNESS_GOTO)5.goto
-ifeq ($(USE_FUNCTION_CONTRACTS),"")
-	$(LITANI) add-job \
-	  --command 'cp $^ $@' \
-	  --inputs $^ \
-	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
-	  --ci-stage build \
-	  --description "$(PROOF_UID): not replacing function calls with function contracts"
-else
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_USE_FUNCTION_CONTRACTS) $^ $@' \
@@ -588,7 +579,6 @@ else
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): replacing function calls with function contracts"
-endif
 
 # Optionally unwind loops
 #
