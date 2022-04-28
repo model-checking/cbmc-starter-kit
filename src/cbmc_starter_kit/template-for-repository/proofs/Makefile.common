@@ -490,15 +490,6 @@ $(PROOF_GOTO)1.goto: $(PROOF_SOURCES)
 
 # Optionally remove function bodies from project sources
 $(PROJECT_GOTO)2.goto: $(PROJECT_GOTO)1.goto
-ifeq ($(REMOVE_FUNCTION_BODY),"")
-	$(LITANI) add-job \
-	  --command 'cp $^ $@' \
-	  --inputs $^ \
-	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
-	  --ci-stage build \
-	  --description "$(PROOF_UID): not removing function bodies from project sources"
-else
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_REMOVE_FUNCTION_BODY) $^ $@' \
@@ -509,7 +500,6 @@ else
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): removing function bodies from project sources"
-endif
 
 # Link project and proof sources into the proof harness
 $(HARNESS_GOTO)1.goto: $(PROOF_GOTO)1.goto $(PROJECT_GOTO)2.goto
