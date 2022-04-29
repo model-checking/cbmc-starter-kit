@@ -8,6 +8,7 @@
 from pathlib import Path
 import logging
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -141,20 +142,20 @@ def remove_submodule(cbmc_root, submodule_name, submodule_path):
 def update_litani_makefile_variable(cbmc_root, path):
     """Update LITANI to LITANI?=litani in the makefile at the named path"""
 
+    is_litani_line = lambda line: bool(re.match(r'^\s*LITANI\s*\??=', line))
+
     with open(cbmc_root/path, encoding='utf-8') as makefile:
         lines = makefile.read().splitlines()
-    litani_prefix = 'LITANI ?='
-    if not any(line.strip().startswith(litani_prefix) for line in lines):
+    if not any(is_litani_line(line) for line in lines):
         logging.debug("Not updating LITANI in makefile: %s", path)
         return
 
-    litani_define = f'{litani_prefix} litani' # litani_define == 'LITANI ?= litani'
-    logging.info("Updating '%s' in makefile: %s", litani_define, path)
+    logging.info("Updating LITANI in makefile: %s", path)
     with open(cbmc_root/path, 'w', encoding='utf-8') as makefile:
         for line in lines:
-            if line.strip().startswith(litani_prefix):
-                line = litani_define
-            makefile.write(f"{line}\n")
+            if is_litani_line(line):
+                line = 'LITANI ?= litani'
+            print(line, file=makefile)
     return
 
 ################################################################
