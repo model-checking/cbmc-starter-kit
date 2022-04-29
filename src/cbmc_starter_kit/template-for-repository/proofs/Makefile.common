@@ -336,6 +336,22 @@ CBMC_OBJECT_BITS ?= 8
 # of times CBMC actually unwinds the loop.
 UNWINDSET ?=
 
+# CBMC early loop unwinding (Normally set in the proof Makefile)
+#
+# Most users can ignore this variable.
+#
+# This variable exists to support the use of loop and function
+# contracts, two features under development for CBMC.  Checking the
+# assigns clause for function contracts and loop invariants currently
+# assumes loop-free bodies for loops and functions with contracts
+# (possibly after replacing nested loops with their own loop
+# contracts).  To satisfy this requirement, it may be necessary to
+# unwind some loops before the function contract and loop invariant
+# transformations are applied to the goto program.  This variable
+# EARLY_UNWINDSET is identical to UNWINDSET, and we assume that the
+# loops mentioned in EARLY_UNWINDSET and UNWINDSET are disjoint.
+EARLY_UNWINDSET ?=
+
 # CBMC function removal (Normally set set in the proof Makefile)
 #
 # REMOVE_FUNCTION_BODY is a list of function names.  CBMC will "undefine"
@@ -459,6 +475,12 @@ ifdef UNWINDSET
     CBMC_UNWINDSET := --unwindset $(subst $(SPACE),$(COMMA),$(strip $(UNWINDSET)))
   endif
 endif
+ifdef EARLY_UNWINDSET
+  ifneq ($(strip $(EARLY_UNWINDSET)),"")
+    CBMC_EARLY_UNWINDSET := --unwindset $(subst $(SPACE),$(COMMA),$(strip $(EARLY_UNWINDSET)))
+  endif
+endif
+
 CBMC_REMOVE_FUNCTION_BODY := $(patsubst %,--remove-function-body %, $(REMOVE_FUNCTION_BODY))
 CBMC_RESTRICT_FUNCTION_POINTER := $(patsubst %,--restrict-function-pointer %, $(RESTRICT_FUNCTION_POINTER))
 
@@ -583,8 +605,21 @@ $(HARNESS_GOTO)6.goto: $(HARNESS_GOTO)5.goto
 	  --ci-stage build \
 	  --description "$(PROOF_UID): replacing function calls with function contracts"
 
+# Optionally unwind loops for loop and function contracts
+$(HARNESS_GOTO)7.goto: $(HARNESS_GOTO)6.goto
+	$(LITANI) add-job \
+	  --command \
+	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_EARLY_UNWINDSET) $(CBMC_FLAG_UNWINDING_ASSERTIONS) $^ $@' \
+	  --inputs $^ \
+	  --outputs $@ \
+	  --stdout-file $(LOGDIR)/unwind_loops-log.txt \
+	  --interleave-stdout-stderr \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --ci-stage build \
+	  --description "$(PROOF_UID): unwinding loops"
+
 # Optionally apply loop contracts
-$(HARNESS_GOTO)8.goto: $(HARNESS_GOTO)6.goto
+$(HARNESS_GOTO)8.goto: $(HARNESS_GOTO)7.goto
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_APPLY_LOOP_CONTRACTS) $^ $@' \
