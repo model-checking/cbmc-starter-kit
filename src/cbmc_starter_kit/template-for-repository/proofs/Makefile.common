@@ -583,50 +583,8 @@ $(HARNESS_GOTO)6.goto: $(HARNESS_GOTO)5.goto
 	  --ci-stage build \
 	  --description "$(PROOF_UID): replacing function calls with function contracts"
 
-# Optionally unwind loops
-#
-# Loop unwinding must be done before enforcing function contracts, because
-# loop unwinding does not replicate writeset snapshots that might be
-# introduced during contract enforcement.
-#
-# CBMC has its own model of standard library functions like strcmp.  These
-# functions do not appear in the goto program, they are added to the goto
-# program by CBMC itself.  For this reason, we will need to pass these loop
-# unwinding instructions again to the invocation of CBMC to unwind any loops
-# remaining in functions like strcmp.  We could pull these functions into the
-# goto program with `goto-instrument --add-library`, but enforcing function
-# contracts currently assumes they are missing.
-#
-# The meaning of `--unwindset LOOP:N` depends on the program invoked.  The
-# program goto-instrument will unwind the loop N times.  The program cbmc will
-# unwind the loop N-1 times.  Unwinding with goto-instrument instead of cbmc
-# is obviously sound, but may lead to performance issues if the loops is big
-# and the difference between unwinding N-1 and N is big.
-#
-$(HARNESS_GOTO)7.goto: $(HARNESS_GOTO)6.goto
-ifeq ($(UNWINDSET),"")
-	$(LITANI) add-job \
-	  --command 'cp $^ $@' \
-	  --inputs $^ \
-	  --outputs $@ \
-	  --pipeline-name "$(PROOF_UID)" \
-	  --ci-stage build \
-	  --description "$(PROOF_UID): not unwinding loops"
-else
-	$(LITANI) add-job \
-	  --command \
-	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_UNWINDSET) $(CBMC_FLAG_UNWINDING_ASSERTIONS) $^ $@' \
-	  --inputs $^ \
-	  --outputs $@ \
-	  --stdout-file $(LOGDIR)/unwind_loops-log.txt \
-	  --interleave-stdout-stderr \
-	  --pipeline-name "$(PROOF_UID)" \
-	  --ci-stage build \
-	  --description "$(PROOF_UID): unwinding loops"
-endif
-
 # Optionally apply loop contracts
-$(HARNESS_GOTO)8.goto: $(HARNESS_GOTO)7.goto
+$(HARNESS_GOTO)8.goto: $(HARNESS_GOTO)6.goto
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_APPLY_LOOP_CONTRACTS) $^ $@' \
@@ -668,7 +626,7 @@ $(LOGDIR)/result.txt: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
 	  $(POOL) \
 	  --command \
-	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --trace $<' \
+	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CBMC_FLAG_UNWINDING_ASSERTIONS) $(CHECKFLAGS) --trace $<' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --ci-stage test \
@@ -685,7 +643,7 @@ $(LOGDIR)/result.xml: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
 	  $(POOL) \
 	  --command \
-	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --trace --xml-ui $<' \
+	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CBMC_FLAG_UNWINDING_ASSERTIONS) $(CHECKFLAGS) --trace --xml-ui $<' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --ci-stage test \
@@ -701,7 +659,7 @@ $(LOGDIR)/result.xml: $(HARNESS_GOTO).goto
 $(LOGDIR)/property.xml: $(HARNESS_GOTO).goto
 	$(LITANI) add-job \
 	  --command \
-	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CHECKFLAGS) --show-properties --xml-ui $<' \
+	    '$(CBMC) $(CBMC_VERBOSITY) $(CBMCFLAGS) $(CBMC_FLAG_UNWINDING_ASSERTIONS) $(CHECKFLAGS) --show-properties --xml-ui $<' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --ci-stage test \
