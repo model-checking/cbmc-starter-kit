@@ -46,7 +46,7 @@ CBMC_STARTER_KIT_VERSION = _CBMC_STARTER_KIT_VERSION_
 # read it to understand how the values defined in Section I control
 # things.
 #
-# To use Makefile.common, set variables as describe above as needed,
+# To use Makefile.common, set variables as described above as needed,
 # and then for each proof,
 #
 #   * Create a subdirectory <DIR>.
@@ -150,7 +150,7 @@ PROOF_STUB = $(CBMC_ROOT)/stubs
 
 # Project-specific definitions to override default definitions below
 #   * Makefile-project-defines will never be overwritten
-#   * Makefile-template-defines may be overwritten with the starter
+#   * Makefile-template-defines may be overwritten when the starter
 #     kit is updated
 sinclude $(PROOF_ROOT)/Makefile-project-defines
 sinclude $(PROOF_ROOT)/Makefile-template-defines
@@ -513,7 +513,7 @@ $(PROOF_GOTO)1.goto: $(PROOF_SOURCES)
 	  --ci-stage build \
 	  --description "$(PROOF_UID): building proof binary"
 
-# Optionally remove function bodies from project sources
+# Remove function bodies from project sources
 $(PROJECT_GOTO)2.goto: $(PROJECT_GOTO)1.goto
 	$(LITANI) add-job \
 	  --command \
@@ -538,7 +538,7 @@ $(HARNESS_GOTO)1.goto: $(PROOF_GOTO)1.goto $(PROJECT_GOTO)2.goto
 	  --ci-stage build \
 	  --description "$(PROOF_UID): linking project to proof"
 
-# Optionally restrict function pointers
+# Restrict function pointers
 $(HARNESS_GOTO)2.goto: $(HARNESS_GOTO)1.goto
 	$(LITANI) add-job \
 	  --command \
@@ -551,7 +551,7 @@ $(HARNESS_GOTO)2.goto: $(HARNESS_GOTO)1.goto
 	  --ci-stage build \
 	  --description "$(PROOF_UID): restricting function pointers in project sources"
 
-# Optionally fill static variable with unconstrained values
+# Fill static variable with unconstrained values
 $(HARNESS_GOTO)3.goto: $(HARNESS_GOTO)2.goto
 	$(LITANI) add-job \
 	  --command \
@@ -590,7 +590,7 @@ $(HARNESS_GOTO)5.goto: $(HARNESS_GOTO)4.goto
 	  --ci-stage build \
 	  --description "$(PROOF_UID): slicing global initializations"
 
-# Optionally replace function calls with function contracts
+# Replace function calls with function contracts
 # This must be done before enforcing function contracts,
 # since contract enforcement inlines all function calls.
 $(HARNESS_GOTO)6.goto: $(HARNESS_GOTO)5.goto
@@ -605,7 +605,7 @@ $(HARNESS_GOTO)6.goto: $(HARNESS_GOTO)5.goto
 	  --ci-stage build \
 	  --description "$(PROOF_UID): replacing function calls with function contracts"
 
-# Optionally unwind loops for loop and function contracts
+# Unwind loops for loop and function contracts
 $(HARNESS_GOTO)7.goto: $(HARNESS_GOTO)6.goto
 	$(LITANI) add-job \
 	  --command \
@@ -618,7 +618,7 @@ $(HARNESS_GOTO)7.goto: $(HARNESS_GOTO)6.goto
 	  --ci-stage build \
 	  --description "$(PROOF_UID): unwinding loops"
 
-# Optionally apply loop contracts
+# Apply loop contracts
 $(HARNESS_GOTO)8.goto: $(HARNESS_GOTO)7.goto
 	$(LITANI) add-job \
 	  --command \
@@ -631,7 +631,7 @@ $(HARNESS_GOTO)8.goto: $(HARNESS_GOTO)7.goto
 	  --ci-stage build \
 	  --description "$(PROOF_UID): applying loop contracts"
 
-# Optionally check function contracts
+# Check function contracts
 $(HARNESS_GOTO)9.goto: $(HARNESS_GOTO)8.goto
 	$(LITANI) add-job \
 	  --command \
