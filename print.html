@@ -153,39 +153,49 @@ possible inputs may have to be restricted to all inputs of some bounded size.</p
 <li><a href="tutorial">Tutorial</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
-<p>The starter kit is distributed as both a brew package and a pip package, and the
-<a href="https://github.com/model-checking/cbmc-starter-kit/releases/latest">release page</a>
+<p>The starter kit is a command line tool distributed as both a brew package and a pip package.
+The <a href="https://github.com/model-checking/cbmc-starter-kit/releases/latest">starter kit release page</a>
 gives installation instructions that we repeat here.</p>
-<h2 id="brew-installation"><a class="header" href="#brew-installation">Brew installation</a></h2>
-<p>On MacOS, we recommend using brew to install the starter kit with</p>
+<p>Note: The starter kit used to be distributed as a git repository that you submoduled into
+your own repository.  The starter kit is now distributed as a command line tool.  Follow
+the <a href="installation/index.html#updating-to-the-command-line-tool">update instructions</a> below to upgrade your project
+from using the submodule to using the command line tool.</p>
+<h2 id="installing-with-brew"><a class="header" href="#installing-with-brew">Installing with brew</a></h2>
+<p>On MacOS, we recommend using brew to install the starter kit:</p>
 <pre><code>brew tap aws/tap
-brew install cbmc-starter kit
-</code></pre>
-<p>and upgrade to the latest version with</p>
-<pre><code>brew upgrade cbmc-starter kit
+brew install cbmc-starter-kit cbmc-viewer litani
 </code></pre>
 <p>The <a href="https://brew.sh/">brew home page</a> gives instructions for installing brew.
-The command <code>brew tap aws/tap</code> taps the AWS repository that contains the
-brew package.</p>
-<h2 id="pip-installation"><a class="header" href="#pip-installation">Pip installation</a></h2>
-<p>On any operating system with python installed, use pip to install the
-starter kit with</p>
-<pre><code>python3 -m pip install cbmc-starter-kit
-</code></pre>
-<p>and upgrade to the latest version with</p>
-<pre><code>python3 -m pip install --upgrade cbmc-starter-kit
+The command <code>brew tap aws/tap</code> taps the AWS repository that contains the brew packages.
+The <a href="https://github.com/model-checking/cbmc-viewer">cbmc-viewer</a>
+and <a href="https://github.com/awslabs/aws-build-accumulator">litani</a> packages are tools
+used by the starter kit.
+See the <a href="https://github.com/model-checking/cbmc-viewer/releases/latest">cbmc-viewer release page</a>
+and the <a href="https://github.com/awslabs/aws-build-accumulator/releases/latest">litani release page</a>
+for other ways to install them if you don't want to use brew.</p>
+<h2 id="installing-with-pip"><a class="header" href="#installing-with-pip">Installing with pip</a></h2>
+<p>On any machine, you can use pip to install the starter kit:</p>
+<pre><code>python3 -m pip install cbmc-starter-kit cbmc-viewer
 </code></pre>
 <p>The <a href="https://www.python.org/downloads/">python download page</a>
-gives instructions for installing python and pip.</p>
-<h2 id="developers"><a class="header" href="#developers">Developers</a></h2>
+gives instructions for installing python and pip.
+The <a href="https://github.com/model-checking/cbmc-viewer">cbmc-viewer</a>
+and <a href="https://github.com/awslabs/aws-build-accumulator">litani</a> packages are tools
+used by the starter kit.
+See the <a href="https://github.com/model-checking/cbmc-viewer/releases/latest">cbmc-viewer release page</a>
+and the <a href="https://github.com/awslabs/aws-build-accumulator/releases/latest">litani release page</a>
+for installation instructions (we used pip to install <code>cbmc-viewer</code> in the command above).</p>
+<h2 id="installing-for-developers"><a class="header" href="#installing-for-developers">Installing for developers</a></h2>
 <p>Developers can install the package in &quot;editable mode&quot; which makes
 it possible to modify the code in the source tree and then run the command
 from the command line as usual to test the changes.
-First, optionally install ctags as described above.  Then</p>
+First, install <code>cbmc-viewer</code> and <code>litani</code> as described above if you haven't already.
+Then</p>
 <ul>
 <li>
-<p>Clone the repository with</p>
+<p>Clone the repository and install dependencies with</p>
 <pre><code>git clone https://github.com/model-checking/cbmc-starter-kit cbmc-starter-kit
+python3 -m pip install virtualenv gitpython
 </code></pre>
 </li>
 <li>
@@ -197,7 +207,7 @@ make develop
 <pre><code>source /tmp/cbmc-starter-kit/bin/activate
 </code></pre>
 <p>or simply add the virtual environment to your path with</p>
-<pre><code>export PATH=$PATH:/tmp/cbmc-starter-kit/bin
+<pre><code>export PATH=/tmp/cbmc-starter-kit/bin:$PATH
 </code></pre>
 </li>
 <li>
@@ -207,6 +217,68 @@ make undevelop
 </code></pre>
 </li>
 </ul>
+<h2 id="updating"><a class="header" href="#updating">Updating</a></h2>
+<p>To update to the the latest version of the starter kit:</p>
+<ul>
+<li>Update the starter kit itself with
+<pre><code>brew upgrade cbmc-starter-kit
+</code></pre>
+or
+<pre><code>python3 -m pip install cbmc-starter-kit --upgrade
+</code></pre>
+</li>
+<li>Update your repository by changing to the <code>cbmc</code> directory that contains the <code>proofs</code>
+directory installed by the starter kit and running the update script:
+<pre><code>cd cbmc
+cbmc-starter-kit-update
+</code></pre>
+This will overwrite <code>Makefile.common</code> and <code>run-cbmc-proofs.py</code> in the <code>proofs</code> directory
+with the latest versions.</li>
+</ul>
+<h2 id="updating-to-the-command-line-tool"><a class="header" href="#updating-to-the-command-line-tool">Updating to the command line tool</a></h2>
+<p>The starter kit used to be distributed as a git repository that you submoduled into your
+own repository.  The same used to be true for litani, the build tool used by the starter kit.
+Now both are distributed a command line tools.
+We recommend that you migrate to using these command line tools.</p>
+<ul>
+<li>
+<p>Install the starter kit and litani as command line tools</p>
+<ul>
+<li>On MacOS
+<pre><code>brew install cbmc-starter-kit litani
+</code></pre>
+</li>
+<li>On Ubuntu, first download the litani debian package from the
+<a href="https://github.com/awslabs/aws-build-accumulator/releases/latest">litani release page</a> then
+<pre><code>python3 -m pip install cbmc-starter-kit
+apt install ./litani-*.deb
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p>Change to the <code>cbmc</code> directory that contains the <code>proofs</code> directory installed by the
+starter kit, and run the update script</p>
+<pre><code>cd cbmc
+cbmc-starter-kit-update --remove-starter-kit-submodule --remove-litani-submodule
+</code></pre>
+<p>This will overwrite <code>Makefile.common</code> and <code>run-cbmc-proofs.py</code> in the <code>proofs</code> directory
+with the latest versions, and remove the submodules for the starter kit and litani
+if they are present.  It will also perform some cleanup actions, such as replacing symbolic
+links into the starter kit submodule with copies of the files being linked to, and removing
+a set of negative tests that are rarely used.</p>
+<p>See <a href="installation/../reference-manual/cbmc-starter-kit-update.html">cbmc-starter-kit-update</a>
+for more information.</p>
+</li>
+</ul>
+<p>While you are at it, we have changed the starter kit license from Apache 2.0 to MIT-0, and
+you might want to run a script to change copyright headers from Apache to MIT in files
+under the <code>cbmc</code> directory:</p>
+<pre><code>cd cbmc
+cbmc-starter-kit-migrate-license --remove
+</code></pre>
+<p>See <a href="installation/../reference-manual/cbmc-starter-kit-migrate-license.html">cbmc-starter-kit-migrate-license</a>
+for more information.</p>
 <h2 id="installation-notes"><a class="header" href="#installation-notes">Installation notes</a></h2>
 <p>If you have difficulty installing these tools, please let us know by
 submitting a <a href="https://github.com/model-checking/cbmc-starter-kit/issues">GitHub issue</a>.</p>
