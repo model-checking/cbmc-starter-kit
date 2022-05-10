@@ -310,7 +310,7 @@ breathe some real life into the proof within a few more hours.</p>
 <li><a href="tutorial/index.html#configure-the-repository">Configure the repository</a></li>
 <li><a href="tutorial/index.html#configure-the-proof">Configure the proof</a></li>
 <li><a href="tutorial/index.html#write-the-proof">Write the proof</a></li>
-<li><a href="tutorial/index.html#run-cbmc">Run CBMC</a></li>
+<li><a href="tutorial/index.html#run-the-proof">Run the proof</a></li>
 </ul>
 <h2 id="clone-the-source-repository"><a class="header" href="#clone-the-source-repository">Clone the source repository</a></h2>
 <p>The first step is to clone the FreeRTOS Kernel repository.</p>
@@ -535,7 +535,7 @@ configuration file from a demonstration in another repository.  Let us add
 <p>This builds a report of the results that we can open in a browser</p>
 <pre><code>open report/html/index.html
 </code></pre>
-<p>Examining <a href="tutorial/report/index.html">the report</a>, we see a list of coverage results, a list of
+<p>Examining <a href="tutorial/report/html/index.html">the report</a>, we see a list of coverage results, a list of
 warnings, and a list of errors or issues found by CBMC.  In this report,
 there are no errors, but the coverage is <em>terrible</em>: only 40% of the lines
 in the function are exercised by CBMC!</p>
