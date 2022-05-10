@@ -292,7 +292,7 @@ This builds a report of the results that we can open in a browser
 ```
 open report/html/index.html
 ```
-Examining [the report](report/index.html), we see a list of coverage results, a list of
+Examining [the report](report/html/index.html), we see a list of coverage results, a list of
 warnings, and a list of errors or issues found by CBMC.  In this report,
 there are no errors, but the coverage is *terrible*: only 40% of the lines
 in the function are exercised by CBMC!
