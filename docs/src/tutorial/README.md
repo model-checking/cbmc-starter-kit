@@ -29,7 +29,7 @@ Using the starter kit consists of five steps
 * [Configure the repository](#configure-the-repository)
 * [Configure the proof](#configure-the-proof)
 * [Write the proof](#write-the-proof)
-* [Run CBMC](#run-cbmc)
+* [Run the proof](#run-the-proof)
 
 ## Clone the source repository
 
