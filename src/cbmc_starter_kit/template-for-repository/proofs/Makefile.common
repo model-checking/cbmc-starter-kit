@@ -495,7 +495,6 @@ $(PROJECT_GOTO)1.goto: $(PROJECT_SOURCES)
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/project_sources-log.txt \
-	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): building project binary"
@@ -508,7 +507,6 @@ $(PROOF_GOTO)1.goto: $(PROOF_SOURCES)
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/proof_sources-log.txt \
-	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): building proof binary"
@@ -521,7 +519,6 @@ $(PROJECT_GOTO)2.goto: $(PROJECT_GOTO)1.goto
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/remove_function_body-log.txt \
-	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): removing function bodies from project sources"
@@ -533,7 +530,6 @@ $(HARNESS_GOTO)1.goto: $(PROOF_GOTO)1.goto $(PROJECT_GOTO)2.goto
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/link_proof_project-log.txt \
-	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): linking project to proof"
@@ -546,7 +542,6 @@ $(HARNESS_GOTO)2.goto: $(HARNESS_GOTO)1.goto
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/restrict_function_pointer-log.txt \
-	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): restricting function pointers in project sources"
@@ -559,7 +554,6 @@ $(HARNESS_GOTO)3.goto: $(HARNESS_GOTO)2.goto
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/nondet_static-log.txt \
-	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): setting static variables to nondet"
@@ -572,7 +566,6 @@ $(HARNESS_GOTO)4.goto: $(HARNESS_GOTO)3.goto
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/drop_unused_functions-log.txt \
-	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): dropping unused functions"
@@ -585,7 +578,6 @@ $(HARNESS_GOTO)5.goto: $(HARNESS_GOTO)4.goto
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/slice_global_inits-log.txt \
-	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): slicing global initializations"
@@ -600,7 +592,6 @@ $(HARNESS_GOTO)6.goto: $(HARNESS_GOTO)5.goto
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/use_function_contracts-log.txt \
-	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): replacing function calls with function contracts"
@@ -613,7 +604,6 @@ $(HARNESS_GOTO)7.goto: $(HARNESS_GOTO)6.goto
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/unwind_loops-log.txt \
-	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): unwinding loops"
@@ -626,7 +616,6 @@ $(HARNESS_GOTO)8.goto: $(HARNESS_GOTO)7.goto
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/apply_loop_contracts-log.txt \
-	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): applying loop contracts"
@@ -639,7 +628,6 @@ $(HARNESS_GOTO)9.goto: $(HARNESS_GOTO)8.goto
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/check_function_contracts-log.txt \
-	  --interleave-stdout-stderr \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): checking function contracts"
@@ -740,7 +728,6 @@ $(PROOFDIR)/html: $(LOGDIR)/result.txt $(LOGDIR)/property.xml $(LOGDIR)/coverage
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage report \
 	  --stdout-file $(LOGDIR)/viewer-log.txt \
-	  --interleave-stdout-stderr \
 	  --description "$(PROOF_UID): generating report"
 
 
@@ -774,7 +761,6 @@ $(PROOFDIR)/report: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/covera
 	  --outputs $(PROOFDIR)/report \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --stdout-file $(LOGDIR)/viewer-log.txt \
-	  --interleave-stdout-stderr \
 	  --ci-stage report \
 	  --description "$(PROOF_UID): generating report"
 
