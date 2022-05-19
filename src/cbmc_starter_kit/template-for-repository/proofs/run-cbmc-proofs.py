@@ -140,6 +140,10 @@ def get_args():
             "action": "store_true",
             "help": "verbose output",
     }, {
+            "flags": ["--debug"],
+            "action": "store_true",
+            "help": "debug output",
+    }, {
             "flags": ["--version"],
             "action": "version",
             "version": "_CBMC_STARTER_KIT_VERSION_",
@@ -276,7 +280,7 @@ def should_enable_pools(litani_caps, args):
 
 
 async def configure_proof_dirs(
-    queue, counter, proof_uids, enable_pools, enable_memory_profiling):
+    queue, counter, proof_uids, enable_pools, enable_memory_profiling, debug):
     while True:
         print_counter(counter)
         path = str(await queue.get())
@@ -287,11 +291,20 @@ async def configure_proof_dirs(
         profiling = [
             "ENABLE_MEMORY_PROFILING=true"] if enable_memory_profiling else []
 
+        # Allow interactive tasks to preempt proof configuration
         proc = await asyncio.create_subprocess_exec(
-            # Allow interactive tasks to preempt proof configuration
-            "nice", "-n", "15", "make", *pools, *profiling, "-B", "--quiet",
-            "_report", cwd=path)
-        await proc.wait()
+            "nice", "-n", "15", "make", "VERBOSE=1" if debug else "", *pools,
+            *profiling, "-B", "_report", "" if debug else "--quiet", cwd=path,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        stdout, stderr = await proc.communicate()
+        logging.debug("returncode: %s", str(proc.returncode))
+        logging.debug("stdout:")
+        for line in stdout.decode().splitlines():
+            logging.debug(line)
+        logging.debug("stderr:")
+        for line in stderr.decode().splitlines():
+            logging.debug(line)
+
         counter["fail" if proc.returncode else "pass"].append(path)
         counter["complete"] += 1
 
@@ -362,7 +375,7 @@ async def main(): # pylint: disable=too-many-locals
     for _ in range(task_pool_size()):
         task = asyncio.create_task(configure_proof_dirs(
             proof_queue, counter, proof_uids, enable_pools,
-            enable_memory_profiling))
+            enable_memory_profiling, args.debug))
         tasks.append(task)
 
     await proof_queue.join()
