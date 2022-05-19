@@ -185,6 +185,8 @@ def get_proof_dirs(proof_root, proof_list, marker_file):
         if proof_list and proof_name in proofs_remaining:
             proofs_remaining.remove(proof_name)
         if marker_file in fyles:
+            if ".litani_cache_dir" in fyles:
+                pathlib.Path(f"{proof_name}/.litani_cache_dir").unlink()
             yield root
 
     if proofs_remaining:
