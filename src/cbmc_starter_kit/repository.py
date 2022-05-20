@@ -5,10 +5,11 @@
 
 from pathlib import Path
 from subprocess import Popen, PIPE
-import json
 import logging
 
 import git
+
+from cbmc_starter_kit import ctagst
 
 ################################################################
 # Construct an ascending relative path like "../../.." from a
@@ -144,36 +145,21 @@ def function_tags(repo='.'):
     repo = Path(repo).resolve()
 
     find_cmd = ['find', '.', '-name', '*.c']
-    find_stdout, _ = run(find_cmd, cwd=repo)
-    if find_stdout is None: # run() logs errors on debug
+    files, _ = run(find_cmd, cwd=repo)
+    if files is None: # run() logs errors on debug
         return []
 
-    ctags_cmd = [
-        'ctags',
-        '-L', '-', # read from standard input
-        '--c-types=f', # include only function definition tags
-        '--output-format=json', # each line is one json blob for one tag
-        '--fields=NF' # each json blob is {name="function", path="source"}
-    ]
-    ctags_stdout, _ = run(ctags_cmd, cwd=repo, stdin=find_stdout)
-    if ctags_stdout is None: # run() logs errors on debug
-        return []
-
-    blobs = ctags_stdout.splitlines()  # a list of json blobs
-    blob = '[' + ','.join(blobs) + ']' # a json blob
-    try:
-        return json.loads(blob)
-    except json.decoder.JSONDecodeError as error:
-        logging.debug("Can't load json output of ctags in %s", repo)
-        logging.debug(error)
-        return []
+    # legacy ctags does not give the kind of a symbol
+    # assume a symbol is a function if the kind is None
+    tags = ctagst.ctags(repo, files.split())
+    return [tag for tag in tags if tag['kind'] in ['function', None]]
 
 def function_paths(func, tags):
     """Paths to all source files in tags defining a function func."""
 
-    return sorted([tag['path'] for tag in tags if tag['name'] == func])
+    return sorted([tag['file'] for tag in tags if tag['symbol'] == func])
 
-def function_sources(func, cwd='.', repo='.', abspath=True):
+def function_sources(func, cwd='.', repo='.'):
     """Paths to all source files in the repository defining a function func.
 
     Paths are absolute if abspath is True, and relative to cwd otherwise.
@@ -184,10 +170,7 @@ def function_sources(func, cwd='.', repo='.', abspath=True):
     repo = Path(repo).resolve()
 
     tags = function_tags(repo)
-    paths = function_paths(func, tags)
-
-    path_to_repo = repo if abspath else path_to_ancestor(cwd, repo)
-    sources = [Path(path_to_repo, path) for path in paths]
+    sources = function_paths(func, tags)
 
     assert all(src.is_file() for src in sources)
     return sources

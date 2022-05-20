@@ -85,7 +85,7 @@ def ask_for_source_file(func, cwd=None, repo=None):
 
     cwd = Path(cwd or Path.cwd()).resolve()
     repo = Path(repo or repository.repository_root(cwd=cwd)).resolve()
-    sources = repository.function_sources(func, cwd=cwd, repo=repo, abspath=False)
+    sources = repository.function_sources(func, cwd=cwd, repo=repo)
     options = sources + ["The source file is not listed here"]
     choices = [str(idx) for idx in range(len(options))]
     index = choices[-1]
@@ -104,7 +104,7 @@ def ask_for_source_file(func, cwd=None, repo=None):
         src = input(f"Enter path to source file defining {func}: ").strip()
     else:
         src = sources[int(index)]
-    src = Path(src)
+    src = Path(src).expanduser().resolve()
     if not src.is_file():
         raise UserWarning(f"Source file '{src}' does not exist")
 
