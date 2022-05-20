@@ -180,13 +180,13 @@ def get_proof_dirs(proof_root, proof_list, marker_file):
 
     for root, _, fyles in os.walk(proof_root):
         proof_name = str(pathlib.Path(root).name)
+        if root != str(proof_root) and ".litani_cache_dir" in fyles:
+            pathlib.Path(f"{root}/.litani_cache_dir").unlink()
         if proof_list and proof_name not in proof_list:
             continue
         if proof_list and proof_name in proofs_remaining:
             proofs_remaining.remove(proof_name)
         if marker_file in fyles:
-            if ".litani_cache_dir" in fyles:
-                pathlib.Path(f"{proof_name}/.litani_cache_dir").unlink()
             yield root
 
     if proofs_remaining:
