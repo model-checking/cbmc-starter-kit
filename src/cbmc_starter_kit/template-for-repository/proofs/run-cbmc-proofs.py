@@ -94,6 +94,10 @@ def get_args():
             "metavar": "N",
             "help": "run at most N proof jobs in parallel",
     }, {
+            "flags": ["--summarize-results"],
+            "action": "store_true",
+            "help": "prints a JSON object summarizing the results of the build"
+    }, {
             "flags": ["--fail-on-proof-failure"],
             "action": "store_true",
             "help": "exit with return code `10' if any proof failed"
@@ -200,10 +204,12 @@ def get_proof_dirs(proof_root, proof_list, marker_file):
         sys.exit(1)
 
 
-def run_build(litani, jobs, fail_on_proof_failure):
+def run_build(litani, jobs, summarize_results, fail_on_proof_failure):
     cmd = [str(litani), "run-build"]
     if jobs:
         cmd.extend(["-j", str(jobs)])
+    if summarize_results:
+        cmd.append("--summarize-results")
     if fail_on_proof_failure:
         cmd.append("--fail-on-pipeline-failure")
 
@@ -392,7 +398,11 @@ async def main(): # pylint: disable=too-many-locals
         sys.exit(1)
 
     if not args.no_standalone:
-        run_build(litani, args.parallel_jobs, args.fail_on_proof_failure)
+        run_build(
+            litani,
+            args.parallel_jobs,
+            args.summarize_results,
+            args.fail_on_proof_failure)
 
 
 if __name__ == "__main__":
