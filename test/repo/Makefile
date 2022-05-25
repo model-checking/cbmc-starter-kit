@@ -59,11 +59,10 @@ update-starter:
 
 run:
 	$(RM) -r $(REPORT_ROOT)
-	cd $(REPO_ROOT)/$(REPO_PROOF_ROOT) && \
-	  $(LITANI) init --project-name "Report" && \
-	  ./run-cbmc-proofs.py --no-standalone $(REPO_PROOFS) && \
-	  $(CONFIG) --litani-bindir $(LITANI_ROOT) --report-root $(REPORT_ROOT) && \
-	  $(LITANI) run-build
+	cd $(REPO_ROOT)/$(REPO_PROOF_ROOT) && $(LITANI) init --project-name "Report"
+	cd $(REPO_ROOT)/$(REPO_PROOF_ROOT) && ./run-cbmc-proofs.py --no-standalone $(REPO_PROOFS)
+	cd $(REPO_ROOT)/$(REPO_PROOF_ROOT) && $(CONFIG) --litani-bindir $(LITANI_ROOT) --report-root $(REPORT_ROOT)
+	cd $(REPO_ROOT)/$(REPO_PROOF_ROOT) && $(LITANI) run-build
 
 run1:
 	$(MAKE) REPORT_ROOT=$(REPORT_ROOT1) run

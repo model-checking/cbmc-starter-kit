@@ -14,6 +14,9 @@ import pathlib
 import re
 import subprocess
 import sys
+import tempfile
+
+from lib.summarize import print_proof_results
 
 
 DESCRIPTION = "Configure and run all CBMC proofs in parallel"
@@ -144,10 +147,14 @@ def get_args():
             "action": "store_true",
             "help": "debug output",
     }, {
+            "flags": ["--summarize"],
+            "action": "store_true",
+            "help": "summarize proof results with two tables on stdout",
+    }, {
             "flags": ["--version"],
             "action": "version",
             "version": "_CBMC_STARTER_KIT_VERSION_",
-            "help": "Display version and exit"
+            "help": "display version and exit"
     }]:
         flags = arg.pop("flags")
         pars.add_argument(*flags, **arg)
@@ -200,12 +207,15 @@ def get_proof_dirs(proof_root, proof_list, marker_file):
         sys.exit(1)
 
 
-def run_build(litani, jobs, fail_on_proof_failure):
+def run_build(litani, jobs, fail_on_proof_failure, summarize):
     cmd = [str(litani), "run-build"]
     if jobs:
         cmd.extend(["-j", str(jobs)])
     if fail_on_proof_failure:
         cmd.append("--fail-on-pipeline-failure")
+    if summarize:
+        out_file = pathlib.Path(tempfile.gettempdir(), "run.json").resolve()
+        cmd.extend(["--out-file", str(out_file)])
 
     logging.debug(" ".join(cmd))
     proc = subprocess.run(cmd, check=False)
@@ -215,6 +225,10 @@ def run_build(litani, jobs, fail_on_proof_failure):
             sys.exit(10)
         logging.critical("Failed to run litani run-build")
         sys.exit(1)
+
+    if summarize:
+        print_proof_results(out_file)
+        out_file.unlink()
 
 
 def get_litani_path(proof_root):
@@ -281,7 +295,7 @@ def should_enable_pools(litani_caps, args):
     return "pools" in litani_caps
 
 
-async def configure_proof_dirs(
+async def configure_proof_dirs( # pylint: disable=too-many-arguments
     queue, counter, proof_uids, enable_pools, enable_memory_profiling, debug):
     while True:
         print_counter(counter)
@@ -392,7 +406,7 @@ async def main(): # pylint: disable=too-many-locals
         sys.exit(1)
 
     if not args.no_standalone:
-        run_build(litani, args.parallel_jobs, args.fail_on_proof_failure)
+        run_build(litani, args.parallel_jobs, args.fail_on_proof_failure, args.summarize)
 
 
 if __name__ == "__main__":

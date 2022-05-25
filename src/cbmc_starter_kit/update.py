@@ -186,11 +186,15 @@ def remove_negative_tests(cbmc_root):
 
 def update(cbmc_root, quiet=False):
     logging.debug('Updating CBMC starter kit')
-    for path in [f'{util.PROOF_DIR}/{util.COMMON_MAKEFILE}', f'{util.PROOF_DIR}/{util.RUN_SCRIPT}']:
-        src = util.package_repository_template_root() / path
-        dst = cbmc_root / path
+    for path in [util.COMMON_MAKEFILE, util.RUN_SCRIPT, util.LIB_MODULE]:
+        src = util.package_repository_template_root() / util.PROOF_DIR / path
+        dst = cbmc_root / util.PROOF_DIR / path
         (logging.debug if quiet else logging.info)('Copying: %s -> %s', src, dst)
-        version.copy_with_version(src, dst)
+        assert src.exists()
+        if src.is_dir():
+            shutil.copytree(src, dst, dirs_exist_ok=True)
+        else:
+            version.copy_with_version(src, dst)
 
 def check_for_starter_kit_submodule(cbmc_root, remove=False):
     starter_path = repository.starter_kit_root(repo=cbmc_root, abspath=False)
