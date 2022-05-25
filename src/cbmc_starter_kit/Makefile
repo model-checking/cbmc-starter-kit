@@ -7,4 +7,6 @@ pylint:
 		--disable=missing-function-docstring \
 		--disable=duplicate-code \
 		--module-rgx '[\w-]+' \
-	*.py template-for-repository/proofs/*.py
+	*.py \
+	template-for-repository/proofs/*.py \
+	template-for-repository/proofs/lib/*.py

@@ -1,0 +1,188 @@
+{
+    "aux": {},
+    "project": "example-build",
+    "version": "1.26.0-rc",
+    "version_major": 1,
+    "version_minor": 26,
+    "version_patch": 0,
+    "release_candidate": true,
+    "run_id": "b018ce5a-e34c-45ee-80bc-209c60622e1f",
+    "stages": [
+      "build",
+      "test",
+      "report"
+    ],
+    "start_time": "2022-05-24T02:48:34Z",
+    "status": "fail",
+    "pools": {},
+    "parallelism": {
+      "trace": [
+        {
+          "running": 1,
+          "finished": 1,
+          "total": 1,
+          "time": "2022-05-24T02:51:28.057125Z"
+        }
+      ],
+      "max_parallelism": 1,
+      "n_proc": 12
+    },
+    "latest_symlink": "/var/folders/bd/w7pff05n5k35735rjvph7dkh0000gs/T/litani/runs/latest",
+    "end_time": "2022-05-24T02:51:28Z",
+    "pipelines": [
+      {
+        "name": "pipe-will-fail",
+        "ci_stages": [
+          {
+            "jobs": [],
+            "progress": 0,
+            "complete": true,
+            "status": "success",
+            "url": "artifacts/pipe-will-fail/build",
+            "name": "build"
+          },
+          {
+            "jobs": [],
+            "progress": 0,
+            "complete": true,
+            "status": "success",
+            "url": "artifacts/pipe-will-fail/test",
+            "name": "test"
+          },
+          {
+            "jobs": [
+              {
+                "wrapper_arguments": {
+                  "subcommand": "exec",
+                  "verbose": false,
+                  "very_verbose": false,
+                  "inputs": null,
+                  "command": "/usr/bin/false",
+                  "outputs": null,
+                  "pipeline_name": "pipe-will-fail",
+                  "ci_stage": "report",
+                  "cwd": null,
+                  "timeout": null,
+                  "timeout_ok": false,
+                  "timeout_ignore": false,
+                  "ignore_returns": null,
+                  "ok_returns": null,
+                  "outcome_table": null,
+                  "interleave_stdout_stderr": false,
+                  "stdout_file": null,
+                  "stderr_file": null,
+                  "pool": null,
+                  "description": null,
+                  "profile_memory": false,
+                  "profile_memory_interval": 10,
+                  "phony_outputs": null,
+                  "tags": null,
+                  "status_file": "/var/folders/bd/w7pff05n5k35735rjvph7dkh0000gs/T/litani/runs/b018ce5a-e34c-45ee-80bc-209c60622e1f/status/0f65a89f-d82a-4a37-8ac6-30172cb8de8b.json",
+                  "job_id": "0f65a89f-d82a-4a37-8ac6-30172cb8de8b"
+                },
+                "complete": true,
+                "start_time": "2022-05-24T02:51:28Z",
+                "timeout_reached": false,
+                "command_return_code": 1,
+                "memory_trace": {},
+                "loaded_outcome_dict": null,
+                "outcome": "fail",
+                "wrapper_return_code": 1,
+                "stdout": [],
+                "stderr": [],
+                "end_time": "2022-05-24T02:51:28Z",
+                "duration_str": "00s",
+                "duration": 0
+              }
+            ],
+            "progress": 100,
+            "complete": true,
+            "status": "fail",
+            "url": "artifacts/pipe-will-fail/report",
+            "name": "report"
+          }
+        ],
+        "url": "pipelines/pipe-will-fail",
+        "status": "fail",
+        "dependencies_url": "dependencies.svg"
+      },
+      {
+        "name": "pipe-will-succeed",
+        "ci_stages": [
+          {
+            "jobs": [],
+            "progress": 0,
+            "complete": true,
+            "status": "success",
+            "url": "artifacts/pipe-will-succeed/build",
+            "name": "build"
+          },
+          {
+            "jobs": [
+              {
+                "wrapper_arguments": {
+                  "subcommand": "exec",
+                  "verbose": false,
+                  "very_verbose": false,
+                  "inputs": null,
+                  "command": "/usr/bin/true",
+                  "outputs": null,
+                  "pipeline_name": "pipe-will-succeed",
+                  "ci_stage": "test",
+                  "cwd": null,
+                  "timeout": null,
+                  "timeout_ok": false,
+                  "timeout_ignore": false,
+                  "ignore_returns": null,
+                  "ok_returns": null,
+                  "outcome_table": null,
+                  "interleave_stdout_stderr": false,
+                  "stdout_file": null,
+                  "stderr_file": null,
+                  "pool": null,
+                  "description": null,
+                  "profile_memory": false,
+                  "profile_memory_interval": 10,
+                  "phony_outputs": null,
+                  "tags": null,
+                  "status_file": "/var/folders/bd/w7pff05n5k35735rjvph7dkh0000gs/T/litani/runs/b018ce5a-e34c-45ee-80bc-209c60622e1f/status/f29d81df-0692-4002-ae1f-5068d684b025.json",
+                  "job_id": "f29d81df-0692-4002-ae1f-5068d684b025"
+                },
+                "complete": true,
+                "start_time": "2022-05-24T02:49:30Z",
+                "timeout_reached": false,
+                "command_return_code": 0,
+                "memory_trace": {},
+                "loaded_outcome_dict": null,
+                "outcome": "success",
+                "wrapper_return_code": 0,
+                "stdout": [],
+                "stderr": [],
+                "end_time": "2022-05-24T02:49:30Z",
+                "duration_str": "00s",
+                "duration": 0
+              }
+            ],
+            "progress": 100,
+            "complete": true,
+            "status": "success",
+            "url": "artifacts/pipe-will-succeed/test",
+            "name": "test"
+          },
+          {
+            "jobs": [],
+            "progress": 0,
+            "complete": true,
+            "status": "success",
+            "url": "artifacts/pipe-will-succeed/report",
+            "name": "report"
+          }
+        ],
+        "url": "pipelines/pipe-will-succeed",
+        "status": "success",
+        "dependencies_url": "dependencies.svg"
+      }
+    ],
+    "__duration_str": "02m 54s"
+  }
+

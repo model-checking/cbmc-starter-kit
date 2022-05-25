@@ -11,6 +11,7 @@ from cbmc_starter_kit import repository
 REPOSITORY_TEMPLATES = "template-for-repository"
 PROOF_TEMPLATES = "template-for-proof"
 PROOF_DIR = "proofs"
+LIB_MODULE = "lib"
 NEGATIVE_TESTS = "negative_tests"
 
 COMMON_MAKEFILE = "Makefile.common"
