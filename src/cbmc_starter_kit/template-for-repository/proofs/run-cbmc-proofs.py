@@ -295,7 +295,7 @@ async def configure_proof_dirs(
 
         # Allow interactive tasks to preempt proof configuration
         proc = await asyncio.create_subprocess_exec(
-            "nice", "-n", "15", "make", "VERBOSE=1" if debug else "", *pools,
+            "nice", "-n", "15", "make", *pools,
             *profiling, "-B", "_report", "" if debug else "--quiet", cwd=path,
             stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
         stdout, stderr = await proc.communicate()
