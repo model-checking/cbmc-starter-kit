@@ -73,8 +73,12 @@ def main():
     source_root = repository.repository_root()
     if shutil.which("litani"):
         litani = Path("litani")
-    else:
+    elif repository.litani_root() is not None:
         litani = repository.litani_root() / "litani"
+    else:
+        print("Error: could not find litani root. Is litani installed?")
+        raise FileNotFoundError("litani")
+
     project_name = util.ask_for_project_name()
 
     # Copy cbmc infrastructure into cbmc directory
