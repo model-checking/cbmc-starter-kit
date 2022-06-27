@@ -16,7 +16,11 @@
  *   - include the types needed to declare function arguments
  */
 
-void harness()
+/**
+ * @brief Starting point for formal analysis
+ * 
+ */
+void harness(void)
 {
 
   /* Insert argument declarations */
