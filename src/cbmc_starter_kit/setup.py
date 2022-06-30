@@ -8,6 +8,7 @@
 from pathlib import Path
 import os
 import shutil
+import logging
 
 from cbmc_starter_kit import arguments
 from cbmc_starter_kit import repository
@@ -76,7 +77,7 @@ def main():
     elif repository.litani_root() is not None:
         litani = repository.litani_root() / "litani"
     else:
-        logging.error("could not find litani root. Is litani installed?")
+        logging.error("Could not find litani root. See installation instructions at https://github.com/awslabs/aws-build-accumulator/releases/latest.")
         raise FileNotFoundError("litani")
 
     project_name = util.ask_for_project_name()
