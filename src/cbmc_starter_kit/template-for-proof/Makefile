@@ -23,13 +23,13 @@ PROJECT_SOURCES += $(SRCDIR)/<__PATH_TO_SOURCE_FILE__>
 # If you require access to a file-local ("static") function or object to conduct
 # your proof, set the following (and do not include the original source file
 # ("<__PATH_TO_SOURCE_FILE__>") in PROJECT_SOURCES).
-# REMOVE_STATIC = $(PROOFDIR)/<__SOURCE_FILE_BASENAME__>.i
+# REWRITTEN_SOURCES = $(PROOFDIR)/<__SOURCE_FILE_BASENAME__>.i
 # include <__PATH_TO_MAKEFILE__>/Makefile.common
 # $(PROOFDIR)/<__SOURCE_FILE_BASENAME__>.i_SOURCE = $(SRCDIR)/<__PATH_TO_SOURCE_FILE__>
 # $(PROOFDIR)/<__SOURCE_FILE_BASENAME__>.i_FUNCTIONS = foo bar
 # $(PROOFDIR)/<__SOURCE_FILE_BASENAME__>.i_OBJECTS = baz
-# Care is required with variables on the left-hand side: REMOVE_STATIC must be
-# set before including Makefile.common, but any use of variables on the
+# Care is required with variables on the left-hand side: REWRITTEN_SOURCES must
+# be set before including Makefile.common, but any use of variables on the
 # left-hand side requires those variables to be defined. Hence, _SOURCE,
 # _FUNCTIONS, _OBJECTS is set after including Makefile.common.
 
