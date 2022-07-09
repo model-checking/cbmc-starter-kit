@@ -491,7 +491,7 @@ CBMC_RESTRICT_FUNCTION_POINTER := $(patsubst %,--restrict-function-pointer %, $(
 
 # Construct crangler configuration files
 #
-# REMOVE_STATIC is a list of crangler output files source.i.
+# REWRITTEN_SOURCES is a list of crangler output files source.i.
 # This target assumes that for each source.i
 #   * source.i_SOURCE is the path to a source file,
 #   * source.i_FUNCTIONS is a list of functions (may be empty)
@@ -524,8 +524,8 @@ CBMC_RESTRICT_FUNCTION_POINTER := $(patsubst %,--restrict-function-pointer %, $(
 # Makefile.common, these definitions must appear after the inclusion
 # of Makefile.common in the proof Makefile.
 #
-$(foreach rs,$(REMOVE_STATIC),$(eval $(rs).json: $($(rs)_SOURCE)))
-$(foreach rs,$(REMOVE_STATIC),$(rs).json):
+$(foreach rs,$(REWRITTEN_SOURCES),$(eval $(rs).json: $($(rs)_SOURCE)))
+$(foreach rs,$(REWRITTEN_SOURCES),$(rs).json):
 	echo '{'\
 	  '"sources": ['\
 	  '"$($(@:.json=)_SOURCE)"'\
@@ -551,8 +551,8 @@ $(foreach rs,$(REMOVE_STATIC),$(rs).json):
 
 # Rewrite source files with crangler
 #
-$(foreach rs,$(REMOVE_STATIC),$(eval $(rs): $(rs).json))
-$(REMOVE_STATIC):
+$(foreach rs,$(REWRITTEN_SOURCES),$(eval $(rs): $(rs).json))
+$(REWRITTEN_SOURCES):
 	$(LITANI) add-job \
 	  --command \
 	  '$(CRANGLER) $@.json' \
@@ -568,7 +568,7 @@ $(REMOVE_STATIC):
 # Build targets that make the relevant .goto files
 
 # Compile project sources
-$(PROJECT_GOTO)1.goto: $(PROJECT_SOURCES) $(REMOVE_STATIC)
+$(PROJECT_GOTO)1.goto: $(PROJECT_SOURCES) $(REWRITTEN_SOURCES)
 	$(LITANI) add-job \
 	  --command \
 	    '$(GOTO_CC) $(CBMC_VERBOSITY) $(COMPILE_FLAGS) $(EXPORT_FILE_LOCAL_SYMBOLS) $(INCLUDES) $(DEFINES) $^ -o $@' \
@@ -916,7 +916,7 @@ clean:
 	-$(RM) $(DEPENDENT_GOTOS)
 	-$(RM) TAGS*
 	-$(RM) *~ \#*
-	-$(RM) $(REMOVE_STATIC) $(foreach rs,$(REMOVE_STATIC),$(rs).json)
+	-$(RM) $(REWRITTEN_SOURCES) $(foreach rs,$(REWRITTEN_SOURCES),$(rs).json)
 
 veryclean: clean
 	-$(RM) -r html report
