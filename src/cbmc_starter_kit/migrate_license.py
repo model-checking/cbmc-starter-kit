@@ -120,7 +120,7 @@ def main():
     The CBMC starter kit was originally released under the Apache
     license. All files in the starter kit contained references to the
     Apache license. The starter kit installation scripts copied files
-    from the stater kit into the project repository.  This became an
+    from the starter kit into the project repository.  This became an
     issue when the project repository was released under a different
     license.  This script removes all references to the Apache license
     from the files copied into the project repository from the starter
