@@ -21,7 +21,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          brew install scdoc mandoc coreutils ninja cbmc aws/tap/cbmc-viewer
+          brew install scdoc mandoc coreutils ninja cbmc aws/tap/cbmc-viewer litani
           python3 -m pip install pyyaml jinja2
       - name: Run test target in Makefile
         run: |
