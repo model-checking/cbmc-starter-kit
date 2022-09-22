@@ -787,6 +787,22 @@ $(PROOFDIR)/report: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/covera
 	  --ci-stage report \
 	  --description "$(PROOF_UID): generating report"
 
+$(PROOFDIR)/report-no-coverage: $(LOGDIR)/result.xml $(LOGDIR)/property.xml
+	$(LITANI) add-job \
+	  --command " $(VIEWER) \
+	    --result $(LOGDIR)/result.xml \
+	    --property $(LOGDIR)/property.xml \
+	    --srcdir $(SRCDIR) \
+	    --goto $(HARNESS_GOTO).goto \
+	    --reportdir $(PROOFDIR)/report-no-coverage \
+	    --config $(PROOFDIR)/cbmc-viewer.json" \
+	  --inputs $^ \
+	  --outputs $(PROOFDIR)/report-no-coverage \
+	  --pipeline-name "$(PROOF_UID)" \
+	  --stdout-file $(LOGDIR)/viewer-log.txt \
+	  --ci-stage report \
+	  --description "$(PROOF_UID): generating report (no coverage)"
+
 litani-path:
 	@echo $(LITANI)
 
@@ -844,6 +860,15 @@ report:
 	@ echo Running 'litani build'
 	$(LITANI) run-build
 
+_report_no_coverage: $(PROOFDIR)/report-no-coverage
+report-no-coverage:
+	@ echo Running 'litani init'
+	$(LITANI) init --project $(PROJECT_NAME)
+	@ echo Running 'litani add-job'
+	$(MAKE) -B _report_no_coverage
+	@ echo Running 'litani build'
+	$(LITANI) run-build
+
 ################################################################
 # Targets to clean up after ourselves
 clean:
@@ -853,7 +878,7 @@ clean:
 	-$(RM) $(REWRITTEN_SOURCES) $(foreach rs,$(REWRITTEN_SOURCES),$(rs).json)
 
 veryclean: clean
-	-$(RM) -r report
+	-$(RM) -r report report-no-coverage
 	-$(RM) -r $(LOGDIR) $(GOTODIR)
 
 .PHONY: \
