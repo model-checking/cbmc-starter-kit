@@ -943,38 +943,6 @@ veryclean: clean
 
 ################################################################
 
-# Rule for generating cbmc-batch.yaml, used by the CI at
-# https://github.com/awslabs/aws-batch-cbmc/
-
-JOB_OS ?= ubuntu16
-JOB_MEMORY ?= 32000
-
-# Proofs that are expected to fail should set EXPECTED to
-# "FAILED" in their Makefile. Values other than SUCCESSFUL
-# or FAILED will cause a CI error.
-EXPECTED ?= SUCCESSFUL
-
-define yaml_encode_options
-	"$(shell echo $(1) | sed 's/ ,/ /g' | sed 's/ /;/g')"
-endef
-
-CI_FLAGS = $(CBMCFLAGS) $(CBMC_FLAG_UNWINDING_ASSERTIONS) $(CHECKFLAGS) $(COVERFLAGS)
-
-cbmc-batch.yaml:
-	@$(RM) $@
-	@echo 'build_memory: $(JOB_MEMORY)' > $@
-	@echo 'cbmcflags: $(strip $(call yaml_encode_options,$(CI_FLAGS)))' >> $@
-	@echo 'coverage_memory: $(JOB_MEMORY)' >> $@
-	@echo 'expected: $(EXPECTED)' >> $@
-	@echo 'goto: $(HARNESS_GOTO).goto' >> $@
-	@echo 'jobos: $(JOB_OS)' >> $@
-	@echo 'property_memory: $(JOB_MEMORY)' >> $@
-	@echo 'report_memory: $(JOB_MEMORY)' >> $@
-
-.PHONY: cbmc-batch.yaml
-
-################################################################
-
 # Run "make echo-proof-uid" to print the proof ID of a proof. This can be
 # used by scripts to ensure that every proof has an ID, that there are
 # no duplicates, etc.
