@@ -441,7 +441,6 @@ GOTO_CC ?= goto-cc
 GOTO_INSTRUMENT ?= goto-instrument
 CRANGLER ?= crangler
 VIEWER ?= cbmc-viewer
-MAKE_SOURCE ?= make-source
 VIEWER2 ?= cbmc-viewer
 CMAKE ?= cmake
 
@@ -810,14 +809,6 @@ $(PROOFDIR)/html: $(LOGDIR)/result.txt $(LOGDIR)/property.xml $(LOGDIR)/coverage
 	  --description "$(PROOF_UID): generating report"
 
 
-# Caution: run make-source before running property and coverage checking
-# The current make-source script removes the goto binary
-$(LOGDIR)/source.json:
-	mkdir -p $(dir $@)
-	$(RM) -r $(GOTODIR)
-	$(MAKE_SOURCE) --srcdir $(SRCDIR) --wkdir $(PROOFDIR) > $@
-	$(RM) -r $(GOTODIR)
-
 define VIEWER2_CMD
   $(VIEWER2) \
     --result $(LOGDIR)/result.xml \
@@ -830,9 +821,6 @@ define VIEWER2_CMD
 endef
 export VIEWER2_CMD
 
-# Omit logs/source.json from report generation until make-sources
-# works correctly with Makefiles that invoke the compiler with
-# mutliple source files at once.
 $(PROOFDIR)/report: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
 	$(LITANI) add-job \
 	  --command "$$VIEWER2_CMD" \
