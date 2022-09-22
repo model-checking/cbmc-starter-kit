@@ -9,12 +9,16 @@ This directory includes four Makefiles.
 One Makefile describes the basic workflow for building and running proofs:
 
 * Makefile.common:
-    * make: builds the goto binary, does the cbmc property checking
-	  and coverage checking, and builds the final report.
-	* make goto: builds the goto binary
-	* make result: does cbmc property checking
-	* make coverage: does cbmc coverage checking
-	* make report: builds the final report
+  * make goto: builds the goto binary
+  * make result: does cbmc property checking
+  * make coverage: does cbmc coverage checking
+  * make report: builds the final report
+
+Running `make` or `make report` builds the final report.  Running
+`make report-no-coverage` builds the final report but without checking
+coverage.  Coverage checking can be slow, and it is usually not
+interesting until after the issues raised by property checking have
+been resolved.
 
 Three included Makefiles describe project-specific settings and can override
 definitions in Makefile.common:
