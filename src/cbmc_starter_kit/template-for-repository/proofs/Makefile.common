@@ -770,9 +770,10 @@ $(LOGDIR)/coverage.xml: $(HARNESS_GOTO).goto
 	  --stderr-file $(LOGDIR)/coverage-err-log.txt \
 	  --description "$(PROOF_UID): calculating coverage"
 
-VIEWER_COVERAGE_FLAG ?= --coverage $(LOGDIR)/coverage.xml
+COVERAGE ?= $(LOGDIR)/coverage.xml
+VIEWER_COVERAGE_FLAG ?= --coverage $(COVERAGE)
 
-$(PROOFDIR)/report: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(LOGDIR)/coverage.xml
+$(PROOFDIR)/report: $(LOGDIR)/result.xml $(LOGDIR)/property.xml $(COVERAGE)
 	$(LITANI) add-job \
 	  --command " $(VIEWER) \
 	    --result $(LOGDIR)/result.xml \
@@ -847,9 +848,9 @@ report:
 	$(LITANI) run-build
 
 _report_no_coverage:
-	$(MAKE) VIEWER_COVERAGE_FLAG = "" _report
+	$(MAKE) COVERAGE="" VIEWER_COVERAGE_FLAG="" _report
 report-no-coverage:
-	$(MAKE) VIEWER_COVERAGE_FLAG = "" report
+	$(MAKE) COVERAGE="" VIEWER_COVERAGE_FLAG=" " report
 
 ################################################################
 # Targets to clean up after ourselves
