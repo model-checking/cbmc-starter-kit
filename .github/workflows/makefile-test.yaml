@@ -21,8 +21,25 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          brew install scdoc mandoc coreutils ninja cbmc aws/tap/cbmc-viewer litani
-          python3 -m pip install pyyaml jinja2
+          get_latest_release() {
+            curl --silent "https://api.github.com/repos/$1/releases/latest" |
+            jq '.tag_name' | tr -d '"'
+          }
+          cbmc_latest_release=$(get_latest_release diffblue/cbmc)
+          litani_latest_release=$(get_latest_release awslabs/aws-build-accumulator)
+
+          curl -o cbmc.deb -L \
+            https://github.com/diffblue/cbmc/releases/download/$cbmc_latest_release/ubuntu-20.04-$cbmc_latest_release-Linux.deb
+          curl -o litani.deb -L \
+            https://github.com/awslabs/aws-build-accumulator/releases/download/$litani_latest_release/litani-$litani_latest_release.deb
+
+          sudo apt-get update \
+            && sudo apt-get install --no-install-recommends --yes ./cbmc.deb \
+            && sudo apt-get install --no-install-recommends --yes ./litani.deb \
+            && sudo apt-get install scdoc mandoc
+
+          python3 -m pip install pyyaml jinja2 cbmc-viewer
+
       - name: Run test target in Makefile
         run: |
           cd test/repo
