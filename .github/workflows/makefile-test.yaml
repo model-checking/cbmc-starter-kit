@@ -23,7 +23,7 @@ jobs:
         run: |
           get_latest_release() {
             curl --silent "https://api.github.com/repos/$1/releases/latest" |
-            jq '.tag_name' | tr -d '"'
+            jq -r '.tag_name'
           }
           cbmc_latest_release=$(get_latest_release diffblue/cbmc)
           litani_latest_release=$(get_latest_release awslabs/aws-build-accumulator)
@@ -34,9 +34,11 @@ jobs:
             https://github.com/awslabs/aws-build-accumulator/releases/download/$litani_latest_release/litani-$litani_latest_release.deb
 
           sudo apt-get update \
-            && sudo apt-get install --no-install-recommends --yes ./cbmc.deb \
-            && sudo apt-get install --no-install-recommends --yes ./litani.deb \
-            && sudo apt-get install scdoc mandoc
+            && sudo apt-get install --no-install-recommends --yes \
+                                            ./cbmc.deb \
+                                            ./litani.deb \
+                                            scdoc \
+                                            mandoc
 
           python3 -m pip install pyyaml jinja2 cbmc-viewer
 
