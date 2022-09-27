@@ -130,7 +130,7 @@ jobs:
 
   update-pr:
     needs: build-bottle
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
     - uses: actions/download-artifact@v3
       with:
