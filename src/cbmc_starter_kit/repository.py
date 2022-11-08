@@ -34,7 +34,8 @@ def path_to_ancestor(descendant, ancestor):
 ################################################################
 # Discover the roots of
 #   * the respository and
-#   * the proofs subtree installed by the starter kit.
+#   * the proofs subtree installed by the starter kit
+#   * the directory containing GitHub Actions workflows
 
 def repository_root(cwd='.', abspath=True):
     """Path to root of repository containing current directory.
@@ -69,6 +70,11 @@ def proofs_root(cwd='.', abspath=True):
         if path == root:
             break
     raise UserWarning(f"'{cwd}' has no ancestor named '{proofs}'")
+
+def github_actions_workflows_root(cwd='.', abspath=True):
+    """Path to directory containing GitHub Actions workflows."""
+
+    return repository_root(cwd=cwd, abspath=abspath) / ".github" / "workflows"
 
 ################################################################
 # Discover the set of all source files in the repository that define a
