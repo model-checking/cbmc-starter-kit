@@ -20,6 +20,7 @@ COMMON_MAKEFILE = "Makefile.common"
 TEMPLATE_DEFINES = "Makefile-template-defines"
 PROJECT_DEFINES = "Makefile-project-defines"
 RUN_SCRIPT = "run-cbmc-proofs.py"
+GITHUB_ACTIONS_PROOF_CI = "proof_ci.yaml"
 
 ################################################################
 
