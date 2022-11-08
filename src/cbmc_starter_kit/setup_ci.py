@@ -148,10 +148,10 @@ def main():
     parse_arguments()  # only arguments are --verbose and --debug
 
     repository_root = repository.repository_root()
-    github_root = repository_root / ".github"
+    github_actions_workflows_path = repository.github_actions_workflows_root()
     shutil.copytree(
         util.package_ci_workflow_template_root(),
-        github_root / "workflows",
+        github_actions_workflows_path,
         dirs_exist_ok=True,
     )
     aws_account = util.ask_for_aws_account()
@@ -160,7 +160,7 @@ def main():
     )
     github_repo_owner, github_repo_name = repo_id[-2], repo_id[-1]
     base_cfn_stack_folder = (
-        github_root / "workflows" / util.PROOF_CI_AWS_CFN_STACKS
+        github_actions_workflows_path / util.PROOF_CI_AWS_CFN_STACKS
     )
     try:
         sts_client = boto3.client("sts")
