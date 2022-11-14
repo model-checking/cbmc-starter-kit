@@ -3,13 +3,15 @@
 
 """Methods of manipulating the templates repository."""
 
-from pathlib import Path
 import importlib.util
+from pathlib import Path
 
 from cbmc_starter_kit import repository
 
 REPOSITORY_TEMPLATES = "template-for-repository"
 PROOF_TEMPLATES = "template-for-proof"
+CI_WORKFLOW_TEMPLATES = "template-for-ci-workflow"
+PROOF_CI_AWS_CFN_STACKS = "proof_ci_aws_cfn_stacks"
 PROOF_DIR = "proofs"
 LIB_MODULE = "lib"
 NEGATIVE_TESTS = "negative_tests"
@@ -67,6 +69,9 @@ def package_repository_template_root():
 
 def package_proof_template_root():
     return package_root() / PROOF_TEMPLATES
+
+def package_ci_workflow_template_root():
+    return package_root() / CI_WORKFLOW_TEMPLATES
 
 ################################################################
 # Ask the user for set up information
