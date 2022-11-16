@@ -21,6 +21,8 @@ TEMPLATE_DEFINES = "Makefile-template-defines"
 PROJECT_DEFINES = "Makefile-project-defines"
 RUN_SCRIPT = "run-cbmc-proofs.py"
 GITHUB_ACTIONS_PROOF_CI = "proof_ci.yaml"
+CFN_STACK_OIDC = "proof-ci-Oidc"
+CFN_STACK_PIPELINE = "proof-ci-Pipeline"
 
 ################################################################
 
