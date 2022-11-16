@@ -86,18 +86,18 @@ def deploy_ci_infrastructure(
     project_specific_hash = hashlib.md5(
         f"{github_repo_owner}-{github_repo_name}".encode("utf-8")
     ).hexdigest()[:15]
-    if not _stack_exists(cf_client, "proof-ci-Oidc"):
+    if not _stack_exists(cf_client, util.CFN_STACK_OIDC):
         deploy_stack(
             cf_client,
             params={
-                "StackName": "proof-ci-Oidc",
+                "StackName": util.CFN_STACK_OIDC,
                 "TemplateBody": _parse_template(
                     cf_client,
-                    base_cfn_stack_folder / "proof-ci-Oidc.yaml",
+                    base_cfn_stack_folder / f"{util.CFN_STACK_OIDC}.yaml",
                 ),
             },
         )
-    pipeline_stack = f"proof-ci-Pipeline-{project_specific_hash}"
+    pipeline_stack = f"{util.CFN_STACK_PIPELINE}-{project_specific_hash}"
     ci_artifacts_bucket_name = f"proof-ci-artifacts-{project_specific_hash}"
     deploy_stack(
         cf_client,
@@ -105,7 +105,7 @@ def deploy_ci_infrastructure(
             "StackName": pipeline_stack,
             "TemplateBody": _parse_template(
                 cf_client,
-                base_cfn_stack_folder / "proof-ci-Pipeline.yaml",
+                base_cfn_stack_folder / f"{util.CFN_STACK_PIPELINE}.yaml",
             ),
             "Parameters": [
                 {"ParameterKey": k, "ParameterValue": v}
