@@ -19,7 +19,7 @@ common_options="--help -h --verbose --debug --version"
 
 setup_options=""
 setup_proof_options=""
-update_options="--cbmc-root --starter-kit-root --no-migrate --no-test-removal --no-update --remove-starter-kit-submodule --remove-litani-submodule"
+update_options="--cbmc-root --starter-kit-root --no-test-removal --no-update"
 
 _core_autocomplete()
 {
