@@ -37,7 +37,6 @@ SRCDIR ?= {}
 LITANI_TEXT = """
 # How to invoke litani.
 # Use "litani" when litani is present in PATH.
-# Use an absolute path when litani is included as a git submodule.
 #
 LITANI ?= {}
 """

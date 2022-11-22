@@ -56,13 +56,6 @@ def parse_arguments():
          'help': """
           Remove the starter kit submodule if it is present.
           Normally just recommend removal."""},
-        {'flag': '--remove-litani-submodule',
-         'action': 'store_true',
-         'help': """
-          Remove the litani submodule and update the definition of LITANI in
-          Makefile-template-defines if the litani submodule is present and
-          the litani command is in PATH.
-          Normally just recommend removal."""},
     ]
     args = arguments.create_parser(
         options=options,
@@ -211,34 +204,22 @@ def check_for_starter_kit_submodule(cbmc_root, remove=False):
 
     remove_submodule(cbmc_root, "starter kit", starter_path)
 
-def check_for_litani_submodule(cbmc_root, remove=False):
-    litani_path = repository.litani_root(repo=cbmc_root, abspath=False)
-    if not litani_path:
-        logging.debug("Found litani submodule is not installed")
+def check_for_litani(cbmc_root):
+    if shutil.which('litani'):
+        for fyle in (util.TEMPLATE_DEFINES, util.PROJECT_DEFINES):
+            update_litani_makefile_variable(cbmc_root, Path(util.PROOF_DIR) / fyle)
         return
-
-    litani_command = shutil.which('litani')
-    if not litani_command:
-        logging.debug("Found litani command is not installed")
-        system = platform.system()
-        if system == "Darwin":
-            logging.warning("Consider replacing the litani submodule with the litani command "
-                            "available via 'brew install litani'")
-        if system == "Linux":
-            logging.warning("Consider replacing the litani submodule with the litani command "
-                            "available via 'apt install litani*.deb'")
-            logging.warning("Download the litani package litani*.deb from the release page "
-                            "https://github.com/awslabs/aws-build-accumulator/releases/latest")
-        return
-
-    if not remove:
-        logging.warning("Consider using --remove-litani-submodule to remove the litani submodule "
-                        "and update makefiles to use the litani command")
-        return
-
-    remove_submodule(cbmc_root, "litani", litani_path)
-    update_litani_makefile_variable(cbmc_root, Path(util.PROOF_DIR)/util.TEMPLATE_DEFINES)
-    update_litani_makefile_variable(cbmc_root, Path(util.PROOF_DIR)/util.PROJECT_DEFINES)
+    logging.debug("Found litani command is not installed")
+    system = platform.system()
+    if system == "Darwin":
+        logging.warning("Consider installing the litani command available via "
+                        "'brew install litani'")
+    if system == "Linux":
+        logging.warning("Consider installing the litani command available via "
+                        "'apt install litani*.deb'")
+        logging.warning("Download the litani Debian package from "
+                        "https://github.com/awslabs/aws-build-accumulator/releases/latest")
+    return
 
 ################################################################
 
@@ -259,7 +240,7 @@ def main():
         if not args.no_update:
             update(args.cbmc_root)
         check_for_starter_kit_submodule(args.cbmc_root, args.remove_starter_kit_submodule)
-        check_for_litani_submodule(args.cbmc_root, args.remove_litani_submodule)
+        check_for_litani(args.cbmc_root)
     except UserWarning:
         starter_kit = repository.starter_kit_root(repo=args.cbmc_root)
         if starter_kit and (starter_kit / "setup.cfg").exists():
