@@ -71,40 +71,6 @@ def proofs_root(cwd='.', abspath=True):
     raise UserWarning(f"'{cwd}' has no ancestor named '{proofs}'")
 
 ################################################################
-# Discover the roots of
-#   * the starter kit submodule
-
-def submodule_root(url, submodules=None, repo='.', abspath=True):
-    """Look up path to root of submodule url in submodules."""
-
-    url = url.lower()
-    repo = repository_root(repo)
-    submodules = submodules or git.Repo(repo).submodules
-
-    for submodule in submodules:
-        if not submodule.url.lower() in [url, url+".git"]:
-            continue
-        return repo/submodule.path if abspath else Path(submodule.path)
-
-    logging.debug("Can't find submodule '%s'", url)
-    logging.debug("Found submodules = %s", submodules)
-    return None
-
-def starter_kit_root(submodules=None, repo='.', abspath=True):
-    """Root of starter kit submodule."""
-
-    repo = repository_root(repo)
-    submodules = submodules or git.Repo(repo).submodules
-    old_starter1 = 'https://github.com/awslabs/aws-templates-for-cbmc-proofs'
-    old_starter2 = 'git@github.com:awslabs/aws-templates-for-cbmc-proofs'
-    new_starter1 = 'https://github.com/model-checking/cbmc-starter-kit'
-    new_starter2 = 'git@github.com:model-checking/cbmc-starter-kit'
-    return (submodule_root(old_starter1, submodules, repo, abspath) or
-            submodule_root(old_starter2, submodules, repo, abspath) or
-            submodule_root(new_starter1, submodules, repo, abspath) or
-            submodule_root(new_starter2, submodules, repo, abspath))
-
-################################################################
 # Discover the set of all source files in the repository that define a
 # function named func.
 
