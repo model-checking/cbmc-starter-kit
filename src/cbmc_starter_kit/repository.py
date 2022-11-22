@@ -72,7 +72,6 @@ def proofs_root(cwd='.', abspath=True):
 
 ################################################################
 # Discover the roots of
-#   * the litani submodule
 #   * the starter kit submodule
 
 def submodule_root(url, submodules=None, repo='.', abspath=True):
@@ -90,17 +89,6 @@ def submodule_root(url, submodules=None, repo='.', abspath=True):
     logging.debug("Can't find submodule '%s'", url)
     logging.debug("Found submodules = %s", submodules)
     return None
-
-
-def litani_root(submodules=None, repo='.', abspath=True):
-    """Root of litani submodule."""
-
-    repo = repository_root(repo)
-    submodules = submodules or git.Repo(repo).submodules
-    litani1 = 'https://github.com/awslabs/aws-build-accumulator'
-    litani2 = 'git@github.com:awslabs/aws-build-accumulator'
-    return (submodule_root(litani1, submodules, repo, abspath) or
-            submodule_root(litani2, submodules, repo, abspath))
 
 def starter_kit_root(submodules=None, repo='.', abspath=True):
     """Root of starter kit submodule."""
