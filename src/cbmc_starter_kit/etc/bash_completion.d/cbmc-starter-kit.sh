@@ -20,7 +20,6 @@ common_options="--help -h --verbose --debug --version"
 setup_options=""
 setup_proof_options=""
 update_options="--cbmc-root --starter-kit-root --no-migrate --no-test-removal --no-update --remove-starter-kit-submodule --remove-litani-submodule"
-migrate_options="--proofdir --remove"
 
 _core_autocomplete()
 {
@@ -55,12 +54,6 @@ _update_autocomplete()
   _core_autocomplete "$update_options"
 }
 
-_migrate_autocomplete()
-{
-  _core_autocomplete "$migrate_options"
-}
-
 complete -F _setup_autocomplete cbmc-starter-kit-setup
 complete -F _setup_proof_autocomplete cbmc-starter-kit-setup-proof
 complete -F _update_autocomplete cbmc-starter-kit-update
-complete -F _migrate_autocomplete cbmc-starter-kit-migrate-license
