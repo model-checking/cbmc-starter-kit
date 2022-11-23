@@ -20,6 +20,7 @@ class TestSummarizeResults(unittest.TestCase):
     def test_print_proof_results(self, mock):
         summarize.print_proof_results(self.run_file)
         expected_calls = [
+            unittest.mock.call("## Summary of CBMC proof results"),
             unittest.mock.call(
                 "| Status  | Count |\n"
                 "|---------|-------|\n"
