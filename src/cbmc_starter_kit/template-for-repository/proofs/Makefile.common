@@ -257,7 +257,7 @@ CBMC_FLAG_FLUSH ?= --flush
 
 # CBMC flags used for property checking and coverage checking
 
-CBMCFLAGS += $(CBMC_FLAG_UNWIND) $(CBMC_UNWINDSET) $(CBMC_FLAG_FLUSH)
+CBMCFLAGS += $(CBMC_UNWINDSET) $(CBMC_FLAG_FLUSH)
 
 # CBMC flags used for property checking
 
