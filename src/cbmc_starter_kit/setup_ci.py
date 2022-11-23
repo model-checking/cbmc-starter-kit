@@ -10,7 +10,6 @@ import hashlib
 import json
 import logging
 import shutil
-import sys
 import re
 
 import botocore.exceptions
@@ -56,11 +55,11 @@ def parse_arguments():
                 If you have created a large runner for your repo, you can
                 specify its name."""
         }, {
-        'flag': '--deploy-aws-infrastructure',
-        'action': 'store_true',
+        'flag': '--aws-account-id',
+        'type': lambda x: x if x.isdigit() and len(x) == 12 else False,
         'help': """
-                Deploy AWS CloudFormation stacks that contain the minimal set of
-                resources, so that users can view CI artifacts online."""
+                ID of the AWS account where AWS CloudFormation stacks can be
+                deployed, in order to enable online viewing of CI artifacts."""
         }, {
         'flag': '--cbmc',
         'metavar': '<latest>|<X.Y.Z>',
@@ -194,12 +193,11 @@ def deploy_stacks(cf_client, owner, repo, base_cfn_stack_folder):
             aws_cloudfront_domain = output["OutputValue"]
     return aws_cloudfront_domain
 
-def deploy_aws_infrastructure(repository_root, github_actions_workflows_path):
+def deploy_aws_infrastructure(aws_account_id, repository_root, github_actions_workflows_path):
     """
     Set up the AWS infrastructure to run proofs in CI.
     Return domain of CloudFront distribution that will serve CI artifacts
     """
-    aws_account = util.ask_for_aws_account()
     repo_id = (
         git.Repo(repository_root).remotes.origin.url.split(".git")[0].split("/")
     )
@@ -212,11 +210,9 @@ def deploy_aws_infrastructure(repository_root, github_actions_workflows_path):
         sts_client = boto3.client("sts")
         cf_client = boto3.client("cloudformation")
         response = sts_client.get_caller_identity()
-        aws_account_in_env = response["Account"]
-        if aws_account == aws_account_in_env:
+        if aws_account_id == response["Account"]:
             logging.info(
-                "AWS credentials for account %s found", aws_account_in_env
-            )
+                "AWS credentials for account %s found", response["Account"])
             print("Deploying CI infrastructure...")
             aws_cloudfront_domain = deploy_stacks(
                 cf_client,
@@ -226,8 +222,7 @@ def deploy_aws_infrastructure(repository_root, github_actions_workflows_path):
             )
         else:
             logging.error(
-                "AWS credentials for %s not found", aws_account_in_env
-            )
+                "AWS credentials for %s not found", response["Account"])
     except (
         botocore.exceptions.ClientError,
         botocore.exceptions.NoCredentialsError,
@@ -312,9 +307,9 @@ def main():
         github_actions_workflows_path,
         dirs_exist_ok=True,
     )
-    if args.deploy_aws_infrastructure:
+    if args.aws_account_id:
         aws_cloudfront_domain = deploy_aws_infrastructure(
-            repository_root, github_actions_workflows_path)
+            args.aws_account_id, repository_root, github_actions_workflows_path)
     else:
         aws_cloudfront_domain = "''"
     workflow_path = github_actions_workflows_path / util.GITHUB_ACTIONS_PROOF_CI

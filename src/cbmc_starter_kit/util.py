@@ -89,20 +89,6 @@ def ask_for_function_name():
 
     return input("What is the function name? ").strip()
 
-def ask_for_aws_account():
-    """Ask user for AWS account."""
-
-    while True:
-        aws_account_id = input(
-            "Enter an AWS account number to save and host proof reports: "
-        ).strip()
-        provided_aws_accnt_id_str_len = len(aws_account_id)
-        if provided_aws_accnt_id_str_len != 12:
-            print("AWS account ID is a 12-digit number.")
-            continue
-        print(f"\tAWS account ID: {aws_account_id}")
-        return aws_account_id
-
 def ask_for_source_file(func, cwd=None, repo=None):
     """Ask user to select path to source file defining function func."""
 
