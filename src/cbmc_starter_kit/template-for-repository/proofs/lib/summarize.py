@@ -6,47 +6,35 @@ import json
 import logging
 
 
-DESCRIPTION = """Print 2 tables in GitHub-flavored Markdown format summarizing
-CBMC proof results by status."""
+DESCRIPTION = """Print 2 tables in GitHub-flavored Markdown that summarize
+an execution of CBMC proofs."""
+EPILOG = """The CloudFront domain and the S3 URI should either be specified
+ together or they should not be specified altogether."""
 
 
 def get_args():
     """Parse arguments for summarize script."""
-    parser = argparse.ArgumentParser(description=DESCRIPTION)
-    base_parser = argparse.ArgumentParser(add_help=False)
+    parser = argparse.ArgumentParser(description=DESCRIPTION, epilog=EPILOG)
     for arg in [{
             "flags": ["--run-file"],
             "help": "path to the Litani run.json file",
             "required": True,
-    }]:
-        flags = arg.pop("flags")
-        base_parser.add_argument(*flags, **arg)
-    subparsers = parser.add_subparsers(dest="option", help="Sub-commands")
-    with_aws_subparser = subparsers.add_parser(
-        "with_aws",
-        help="Summaries will include links to AWS-hosted artifacts",
-        parents=[base_parser])
-    for arg in [{
+        }, {
             "flags": ["--cloudfront-domain"],
             "help": "the domain of the Amazon CloudFront distribution that is "
                     "serving CBMC proof reports, which were uploaded to S3"
                     "during the execution of the GitHub Actions workflow."
-                    "For example: d111111abcdef8.cloudfront.net",
-            "required": True,
-    }, {
+                    "Usage of this flag necessitates usage of --s3-uri"
+                    "For example: d111111abcdef8.cloudfront.net"
+        }, {
             "flags": ["--s3-uri"],
             "help": "the key to a directory within a S3 bucket holding all "
                     "artifacts for a CBMC proof report."
-                    "For example: BuildArtifacts/abcdef/final",
-
-            "required": True,
+                    "Usage of this flag necessitates usage of --cloudfront-domain"
+                    "For example: BuildArtifacts/abcdef/final"
     }]:
         flags = arg.pop("flags")
-        with_aws_subparser.add_argument(*flags, **arg)
-    _ = subparsers.add_parser(
-        "without_aws",
-        help="Summaries will contain information only on statuses",
-        parents=[base_parser])
+        parser.add_argument(*flags, **arg)
     return parser.parse_args()
 
 
@@ -159,7 +147,13 @@ def print_proof_results(out_file, cloudfront_domain=None, s3_uri=None):
 
 if __name__ == '__main__':
     args = get_args()
-    if args.option == "with_aws":
+    with_aws = args.cloudfront_domain and args.s3_uri
+    without_aws = not args.cloudfront_domain and not args.s3_uri
+    if not with_aws and not without_aws:
+        raise argparse.ArgumentTypeError(
+            "The CloudFront domain and the S3 URI should either be specified "
+            "together or they should not be specified altogether.")
+    if with_aws:
         CBMC_PROOF_REPORT_HEADER = "Click here to see the CBMC proof report"
         url = f"https://{args.cloudfront_domain}/{args.s3_uri}/index.html"
         print(f"## [{CBMC_PROOF_REPORT_HEADER}]({url})")
@@ -167,5 +161,5 @@ if __name__ == '__main__':
             args.run_file,
             cloudfront_domain=args.cloudfront_domain,
             s3_uri=args.s3_uri)
-    elif args.option == "without_aws":
+    elif without_aws:
         print_proof_results(args.run_file)
