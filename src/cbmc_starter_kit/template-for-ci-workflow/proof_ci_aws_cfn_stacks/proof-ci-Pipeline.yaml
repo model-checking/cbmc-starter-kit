@@ -1,11 +1,9 @@
 Parameters:
-  CiArtifactsBucketName:
-    Type: String
   GitHubRepoOwner:
     Type: String
   GitHubRepoName:
     Type: String
-  ProofActionsRoleName:
+  ProjectIdentifier:
     Type: String
 Resources:
   CiArtifactsBucket:
@@ -17,7 +15,10 @@ Resources:
             ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
       BucketName:
-        Ref: CiArtifactsBucketName
+        Fn::Join:
+          - "-"
+          - - "proof-ci-artifacts"
+            - Ref: ProjectIdentifier
   ProofActionsRole:
     Type: AWS::IAM::Role
     Properties:
@@ -66,7 +67,11 @@ Resources:
                       - /*
             Version: "2012-10-17"
           PolicyName: s3
-      RoleName: !Ref ProofActionsRoleName
+      RoleName:
+        Fn::Join:
+          - "-"
+          - - "proof-ci-actions-role"
+            - Ref: ProjectIdentifier
     DependsOn:
       - CiArtifactsBucket
   ProofCICloudFrontOriginAccessIdentity:
@@ -149,27 +154,43 @@ Resources:
 Outputs:
   CiArtifactsS3Bucket:
     Value:
-      Ref: CiArtifactsBucketName
+      !Ref CiArtifactsBucket
     Export:
-      Name: CiArtifactsS3Bucket
+      Name:
+        Fn::Join:
+          - "-"
+          - - "CiArtifactsS3Bucket"
+            - Ref: ProjectIdentifier
   CiArtifactsS3BucketArn:
     Value:
       Fn::GetAtt:
         - CiArtifactsBucket
         - Arn
     Export:
-      Name: CiArtifactsS3BucketArn
+      Name:
+        Fn::Join:
+          - "-"
+          - - "CiArtifactsS3BucketArn"
+            - Ref: ProjectIdentifier
   ProofActionsRoleArn:
     Value:
       Fn::GetAtt:
         - ProofActionsRole
         - Arn
     Export:
-      Name: ProofActionsRoleArn
+      Name:
+        Fn::Join:
+          - "-"
+          - - "ProofActionsRoleArn"
+            - Ref: ProjectIdentifier
   ProofCIDistributionDomainName:
     Value:
       Fn::GetAtt:
         - ProofCIDistribution
         - DomainName
     Export:
-      Name: ProofCIDistributionDomainName
+      Name:
+        Fn::Join:
+          - "-"
+          - - "ProofCIDistributionDomainName"
+            - Ref: ProjectIdentifier
