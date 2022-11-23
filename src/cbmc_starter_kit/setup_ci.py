@@ -15,11 +15,7 @@ import re
 import botocore.exceptions
 import git
 
-try:
-    import boto3
-except ModuleNotFoundError:
-    logging.error("Install boto3 and try again.")
-    sys.exit(1)
+import boto3
 
 from cbmc_starter_kit import arguments, repository, util
 
