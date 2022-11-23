@@ -71,6 +71,32 @@ def proofs_root(cwd='.', abspath=True):
             break
     raise UserWarning(f"'{cwd}' has no ancestor named '{proofs}'")
 
+def _get_directory_paths(start):
+    """Generate path to subdirectory, only if it is not a git submodule
+
+    This is used in identifying the CBMC proof root subdirectory."""
+    for path in start.iterdir():
+        if not path.is_dir() or git.repo.fun.is_git_dir(path):
+            continue
+        yield path
+
+def get_abspath_to_proofs_root(start):
+    """Return absolute path to CBMC proof root."""
+    for path in _get_directory_paths(start):
+        if path.name == "proofs":
+            return path.absolute()
+        proofs_dir = get_abspath_to_proofs_root(start=path)
+        if proofs_dir:
+            return proofs_dir
+
+def get_relative_path_from_repository_to_proofs_root():
+    """Return str version of absolute path to CBMC proof root.
+
+    This function starts from the root of the repository and traverses all
+    subdirectories.w"""
+    repo_root = repository_root(abspath=True)
+    return str(get_abspath_to_proofs_root(repo_root).relative_to(repo_root))
+
 def github_actions_workflows_root(cwd='.', abspath=True):
     """Path to directory containing GitHub Actions workflows."""
 
