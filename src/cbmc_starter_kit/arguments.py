@@ -8,7 +8,7 @@ import logging
 
 from cbmc_starter_kit import version as starter_kit_version
 
-def create_parser(options=None, description=None, epilog=None):
+def create_parser(options=None, description=None, epilog=None, formatter_class=None):
     """Create a parser for command line arguments."""
 
     options = options or []
@@ -24,7 +24,10 @@ def create_parser(options=None, description=None, epilog=None):
                         'action': 'version', 'version': starter_kit_version.version(),
                         'help': 'Display version and exit'})
 
-    parser = argparse.ArgumentParser(description=description, epilog=epilog)
+    parser = argparse.ArgumentParser(
+        description=description,
+        epilog=epilog,
+        formatter_class=formatter_class)
     for option in options:
         flag = option.pop('flag')
         parser.add_argument(flag, **option)
