@@ -3,7 +3,7 @@ Parameters:
     Type: String
   GitHubRepoName:
     Type: String
-  ProjectIdentifier:
+  GitHubRepoId:
     Type: String
 Resources:
   CiArtifactsBucket:
@@ -18,7 +18,7 @@ Resources:
         Fn::Join:
           - "-"
           - - "proof-ci-artifacts"
-            - Ref: ProjectIdentifier
+            - Ref: GitHubRepoId
   ProofActionsRole:
     Type: AWS::IAM::Role
     Properties:
@@ -71,7 +71,7 @@ Resources:
         Fn::Join:
           - "-"
           - - "proof-ci-actions-role"
-            - Ref: ProjectIdentifier
+            - Ref: GitHubRepoId
     DependsOn:
       - CiArtifactsBucket
   ProofCICloudFrontOriginAccessIdentity:
@@ -160,7 +160,7 @@ Outputs:
         Fn::Join:
           - "-"
           - - "CiArtifactsS3Bucket"
-            - Ref: ProjectIdentifier
+            - Ref: GitHubRepoId
   CiArtifactsS3BucketArn:
     Value:
       Fn::GetAtt:
@@ -171,7 +171,7 @@ Outputs:
         Fn::Join:
           - "-"
           - - "CiArtifactsS3BucketArn"
-            - Ref: ProjectIdentifier
+            - Ref: GitHubRepoId
   ProofActionsRoleArn:
     Value:
       Fn::GetAtt:
@@ -182,7 +182,7 @@ Outputs:
         Fn::Join:
           - "-"
           - - "ProofActionsRoleArn"
-            - Ref: ProjectIdentifier
+            - Ref: GitHubRepoId
   ProofCIDistributionDomainName:
     Value:
       Fn::GetAtt:
@@ -193,4 +193,4 @@ Outputs:
         Fn::Join:
           - "-"
           - - "ProofCIDistributionDomainName"
-            - Ref: ProjectIdentifier
+            - Ref: GitHubRepoId

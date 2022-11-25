@@ -252,12 +252,6 @@ jobs:
         id: s3_uri
         if: ${{ env.AWS_CLOUDFRONT_DOMAIN != '' }}
         run: echo "name=BuildArtifacts/${{ github.event.after }}/final" >> $GITHUB_OUTPUT
-      - name: Set repository identifier
-        id: get_project_settings
-        if: ${{ env.AWS_CLOUDFRONT_DOMAIN != '' }}
-        run: |
-          id=$(echo -n ${{ github.repository_owner }}-${{ fromJson(toJson(github.event.repository)).name }} | md5sum | cut -c1-15)
-          echo "identifier=$id" >> $GITHUB_OUTPUT
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
         if: ${{ env.AWS_CLOUDFRONT_DOMAIN != '' }}
@@ -273,7 +267,7 @@ jobs:
         run: |
           aws s3 sync \
             $PROOFS_DIR/output/latest/html \
-            s3://proof-ci-artifacts-${{ steps.get_project_settings.outputs.identifier }}/${{ steps.s3_uri.outputs.name }} \
+            s3://proof-ci-artifacts-${{ fromJson(toJson(github.event.repository)).id }}/${{ steps.s3_uri.outputs.name }} \
             --only-show-errors
       - name: CBMC proof results
         shell: bash
@@ -281,13 +275,11 @@ jobs:
           if [ -n "${{ env.AWS_CLOUDFRONT_DOMAIN }}" ]
           then
             python3 ${{ env.PROOFS_DIR }}/lib/summarize.py \
-              with_aws \
               --cloudfront-domain ${{ env.AWS_CLOUDFRONT_DOMAIN }} \
               --s3-uri ${{ steps.s3_uri.outputs.name }} \
               --run-file ${{ env.PROOFS_DIR }}/output/latest/html/run.json > summary.md
           else
             python3 ${{ env.PROOFS_DIR }}/lib/summarize.py \
-              without_aws \
               --run-file ${{ env.PROOFS_DIR }}/output/latest/html/run.json > summary.md
           fi
           cat summary.md >> $GITHUB_STEP_SUMMARY

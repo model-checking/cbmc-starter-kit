@@ -91,13 +91,10 @@ def get_repository_details(repo_owner, repo_name):
             print(f"You don't have access to {repo_owner}/{repo_name}")
         elif error.status == 404:
             print(
-                f"{repo_owner}/{repo_name} is either private or doesn't exist"
-            )
+                f"{repo_owner}/{repo_name} is either private or doesn't exist")
             print(
                 "If the repository is private, please run "
-                "`cbmc-starter-kit-setup-ci` without "
-                "`--deploy-aws-infrastructure`"
-            )
+                "`cbmc-starter-kit-setup-ci` without providing an AWS account")
         sys.exit(1)
     except URLError as error:
         print(error.reason)
