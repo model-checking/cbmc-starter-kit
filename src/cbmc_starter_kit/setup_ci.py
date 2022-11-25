@@ -22,14 +22,16 @@ from cbmc_starter_kit import arguments, repository, util
 def parse_arguments():
     """Parse arguments for cbmc-starter-kit-setup-ci command"""
     desc = """
-    Set up GitHub Actions worflow that runs CBMC proofs. The workflow
-    can optionally interact with AWS in order to serve relevant CI artifacts.
+    Adds a worflow and other resource files, such that CBMC proofs are executed
+    in GitHub Actions as part of CI. If your project is a public GitHub repo,
+    you can elect to deploy infrastructure to AWS, so that you can later browse
+    CI artifacts online.
 
-    By default, the most recently released and available version will be used
-    for CBMC, CBMC viewer, Litani and the kissat, cadical SAT solvers.
-    A semantic version can be specified for CBMC, CBMC viewer, Litani
-    (e.g. '5.70.0' for CBMC, '3.6' for CBMC viewer, '1.27.0' for Litani).
-    Known tags can be specified for kissat and cadical (e.g. 'rel-3.0.0' and
+    The most recently released and available versions of CBMC, CBMC viewer,
+    Litani, kissat and cadical will be used by default. In the cases of CBMC,
+    CBMC viewer and Litani, semantic versions can be specified (e.g. '5.71.0'
+    for CBMC, '3.6' for CBMC viewer, '1.27.0' for Litani). In the cases of
+    kissat and cadical, any released tag can be specified (e.g. 'rel-3.0.0' and
     'rel-1.5.3' respectively).
 
     To find semantic versions for these tools or tags for the solvers, visit:
@@ -52,8 +54,10 @@ def parse_arguments():
         'flag': '--aws-account-id',
         'type': lambda x: x if x.isdigit() and len(x) == 12 else False,
         'help': """
-                ID of the AWS account where AWS CloudFormation stacks can be
-                deployed, in order to enable online viewing of CI artifacts."""
+                ID of the AWS account where AWS CloudFormation stacks will be
+                deployed such that CI artifacts can be viewed online.
+                This option should be used only by public GitHub repositories.
+                """
         }, {
         'flag': '--cbmc',
         'metavar': '<latest>|<X.Y.Z>',
@@ -89,14 +93,12 @@ def parse_arguments():
 
 ################################################################
 
-def _parse_template(cf_client, template):
+def _get_template_body(cf_client, cfn_path, stack_name):
+    template = cfn_path / f"{stack_name}.yaml"
     with open(template) as template_fileobj:
         template_data = template_fileobj.read()
     cf_client.validate_template(TemplateBody=template_data)
     return template_data
-
-def _get_template_body(cf_client, cfn_path, stack_name):
-    return _parse_template(cf_client, cfn_path / f"{stack_name}.yaml")
 
 def _stack_exists(cf_client, stack_name):
     stacks = cf_client.list_stacks()["StackSummaries"]
@@ -107,7 +109,7 @@ def _stack_exists(cf_client, stack_name):
             return True
     return False
 
-def deploy_stack(cf_client, params):
+def _deploy_stack(cf_client, params):
     """Update or create AWS CloudFormation stack"""
     stack_name = params["StackName"]
     try:
@@ -133,12 +135,12 @@ def deploy_stack(cf_client, params):
     else:
         logging.info(json.dumps(stack_result, indent=4))
 
-def deploy_stacks(cf_client, owner, repo, cfn_path, project_id):
+def _deploy_stacks(cf_client, cfn_path, repo_owner, repo_name, repo_id):
     """
     Deploy AWS CloudFormation stacks. Return domain of CloudFront distribution
     """
     if not _stack_exists(cf_client, util.CFN_STACK_OIDC):
-        deploy_stack(
+        _deploy_stack(
             cf_client,
             params={
                 "StackName": util.CFN_STACK_OIDC,
@@ -146,8 +148,8 @@ def deploy_stacks(cf_client, owner, repo, cfn_path, project_id):
                     cf_client, cfn_path, util.CFN_STACK_OIDC),
             },
         )
-    pipeline_stack = f"{util.CFN_STACK_PIPELINE}-{project_id}"
-    deploy_stack(
+    pipeline_stack = f"{util.CFN_STACK_PIPELINE}-{repo_id}"
+    _deploy_stack(
         cf_client,
         params={
             "StackName": pipeline_stack,
@@ -156,20 +158,21 @@ def deploy_stacks(cf_client, owner, repo, cfn_path, project_id):
             "Parameters": [
                 {"ParameterKey": k, "ParameterValue": v}
                 for k, v in {
-                    "GitHubRepoOwner": owner,
-                    "GitHubRepoName": repo,
-                    "ProjectIdentifier": project_id
+                    "GitHubRepoOwner": repo_owner,
+                    "GitHubRepoName": repo_name,
+                    "GitHubRepoId": str(repo_id)
                 }.items()
             ],
             "Capabilities": ["CAPABILITY_NAMED_IAM"],
             "Tags": [
-                {"Key": "owner", "Value": owner}, {"Key": "repo", "Value": repo}
+                {"Key": "owner", "Value": repo_owner},
+                {"Key": "repo", "Value": repo_name}
             ],
         },
     )
     print(
         "Visit:\n\n"
-        f"https://github.com/{owner}/{repo}/settings/secrets/actions\n")
+        f"https://github.com/{repo_owner}/{repo_name}/settings/secrets/actions\n")
     print(
         "and add a \"PROOF_CI_IAM_ROLE\" secret to your GitHub repository's "
         "secrets used in GitHub Actions.\nThe secret must have this value:\n")
@@ -184,7 +187,7 @@ def deploy_stacks(cf_client, owner, repo, cfn_path, project_id):
             aws_cloudfront_domain = output["OutputValue"]
     return aws_cloudfront_domain
 
-def deploy(aws_account_id, repo_owner, repo_name, cfn_path, project_id):
+def deploy(aws_account_id, cfn_path, repo_owner, repo_name, repo_id):
     """
     Deploy to AWS the infrastructure in the form of AWS CFN stacks needed to run
     CBMC proofs as part of CI.
@@ -200,8 +203,8 @@ def deploy(aws_account_id, repo_owner, repo_name, cfn_path, project_id):
             logging.info(
                 "AWS credentials for account %s found", response["Account"])
             print("Deploying CI infrastructure to AWS CloudFormation...")
-            aws_cloudfront_domain = deploy_stacks(
-                cf_client, repo_owner, repo_name, cfn_path, project_id)
+            aws_cloudfront_domain = _deploy_stacks(
+                cf_client, cfn_path, repo_owner, repo_name, repo_id)
         else:
             logging.error(
                 "AWS credentials for %s not found", response["Account"])
@@ -216,17 +219,17 @@ def deploy(aws_account_id, repo_owner, repo_name, cfn_path, project_id):
 
 ################################################################
 
-def read_file_template(path):
+def _read_file_template(path):
     """Read file and return list of lines"""
     with open(path, encoding='utf-8') as data:
         return data.read().splitlines()
 
-def write_file_template(lines, path):
+def _write_file_template(lines, path):
     """Write file at specified path with the provided list of lines"""
     with open(path, "w", encoding='utf-8') as data:
         data.write('\n'.join(lines) + '\n')
 
-def replace_placeholders_in_workflow_template(lines, replacements):
+def _replace_placeholders_in_workflow_template(lines, replacements):
     """Returns a list of new lines, where some lines have had a placeholder
     value appropriately updated."""
     buf = []
@@ -250,7 +253,7 @@ def replace_placeholders_in_workflow_template(lines, replacements):
 
 def patch_proof_ci_workflow(args, aws_cloudfront_domain, proof_ci_path):
     """Patch GitHub Actions workflow with appropriate values"""
-    lines = read_file_template(proof_ci_path)
+    lines = _read_file_template(proof_ci_path)
     proofs_dir = repository.get_relative_path_from_repository_to_proofs_root()
     replacements = {
         "AWS_CLOUDFRONT_DOMAIN": aws_cloudfront_domain,
@@ -262,8 +265,8 @@ def patch_proof_ci_workflow(args, aws_cloudfront_domain, proof_ci_path):
         "LITANI_VERSION": args.litani,
         "PROOFS_DIR": proofs_dir,
     }
-    new_lines = replace_placeholders_in_workflow_template(lines, replacements)
-    write_file_template(new_lines, proof_ci_path)
+    new_lines = _replace_placeholders_in_workflow_template(lines, replacements)
+    _write_file_template(new_lines, proof_ci_path)
 
 ################################################################
 
@@ -302,8 +305,9 @@ def main():
     aws_cloudfront_domain = "''"
     if aws_account_id:
         repo_details = util.get_repository_details(repo_owner, repo_name)
+        repo_id = repo_details["id"]
         aws_cloudfront_domain = deploy(
-            aws_account_id, repo_owner, repo_name, cfn_path, repo_details["id"])
+            aws_account_id, cfn_path, repo_owner, repo_name, repo_id)
 
     patch_proof_ci_workflow(args, aws_cloudfront_domain, workflow_path)
     add_or_update_summarize_module(repo_root, quiet=not args.debug)
