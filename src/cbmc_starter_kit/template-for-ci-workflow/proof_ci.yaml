@@ -21,22 +21,9 @@ on:
 # If your repository has large runners at its disposal, then the value for this
 # key can be set to the name of your large runner. Find more details at:
 # https://docs.github.com/en/actions/using-github-hosted-runners/using-larger-runners
-#
-# If you seek to use AWS to upload CI artifacts to S3 and to later view in your
-# browser an HTML version of the CBMC proof report, then you need to provide
-# values for:
-#
-# - AWS_CLOUDFRONT_DOMAIN can be something like 'd111111abcdef8.cloudfront.net'
-# - AWS_REGION is set to 'us-east-1', but you can change this to the AWS region
-#   in which the necessary AWS CloudFormation stacks have been deployed
-# - AWS_ROLE_DURATION_SECONDS specifies the allotted time for which a session
-#   will be valid for the IAM role that has been configured.
 
 
 env:
-  AWS_CLOUDFRONT_DOMAIN: <__AWS_CLOUDFRONT_DOMAIN__>
-  AWS_REGION: us-east-1
-  AWS_ROLE_DURATION_SECONDS: 3600
   CADICAL_TAG: <__CADICAL_TAG__>
   CBMC_VERSION: <__CBMC_VERSION__>
   CBMC_VIEWER_VERSION: <__CBMC_VIEWER_VERSION__>
@@ -249,40 +236,11 @@ jobs:
         with:
           name: ${{ steps.artifact.outputs.name }}
           path: ${{ steps.artifact.outputs.name }}.zip
-      - name: Set S3 URI
-        id: s3_uri
-        if: ${{ env.AWS_CLOUDFRONT_DOMAIN != '' }}
-        run: echo "name=BuildArtifacts/${{ github.event.after }}/final" >> $GITHUB_OUTPUT
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        if: ${{ env.AWS_CLOUDFRONT_DOMAIN != '' }}
-        with:
-          aws-region: ${{ env.AWS_REGION }}
-          role-duration-seconds: ${{ env.AWS_ROLE_DURATION_SECONDS }}
-          role-session-name: cbmc_ci
-          role-to-assume: ${{ secrets.PROOF_CI_IAM_ROLE }}
-      - name: Upload CBMC proof results to S3
-        id: aws_upload
-        if: ${{ env.AWS_CLOUDFRONT_DOMAIN != '' }}
-        shell: bash
-        run: |
-          aws s3 sync \
-            $PROOFS_DIR/output/latest/html \
-            s3://proof-ci-artifacts-${{ fromJson(toJson(github.event.repository)).id }}/${{ steps.s3_uri.outputs.name }} \
-            --only-show-errors
       - name: CBMC proof results
         shell: bash
         run: |
-          if [ -n "${{ env.AWS_CLOUDFRONT_DOMAIN }}" ]
-          then
-            python3 ${{ env.PROOFS_DIR }}/lib/summarize.py \
-              --cloudfront-domain ${{ env.AWS_CLOUDFRONT_DOMAIN }} \
-              --s3-uri ${{ steps.s3_uri.outputs.name }} \
-              --run-file ${{ env.PROOFS_DIR }}/output/latest/html/run.json > summary.md
-          else
-            python3 ${{ env.PROOFS_DIR }}/lib/summarize.py \
-              --run-file ${{ env.PROOFS_DIR }}/output/latest/html/run.json > summary.md
-          fi
+          python3 ${{ env.PROOFS_DIR }}/lib/summarize.py \
+            --run-file ${{ env.PROOFS_DIR }}/output/latest/html/run.json > summary.md
           cat summary.md >> $GITHUB_STEP_SUMMARY
           cat summary.md
           cat summary.md | [[ $(grep -cim1 -e "fail" -e "in progress") -eq 0 ]] ; echo $?
