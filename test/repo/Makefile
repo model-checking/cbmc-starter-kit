@@ -7,18 +7,9 @@ REPO = https://github.com/FreeRTOS/coreHTTP.git
 REPO_CBMC_ROOT = test/cbmc
 REPO_PROOF_ROOT = $(REPO_CBMC_ROOT)/proofs
 REPO_PROOFS = --proofs \
-  HTTPClient_AddRangeHeader \
-  HTTPClient_ReadHeader \
-  HTTPClient_strerror \
   findHeaderFieldParserCallback \
   findHeaderOnHeaderCompleteCallback \
   findHeaderValueParserCallback \
-  httpParserOnBodyCallback \
-  httpParserOnHeaderFieldCallback \
-  httpParserOnHeaderValueCallback \
-  httpParserOnHeadersCompleteCallback \
-  httpParserOnMessageBeginCallback \
-  httpParserOnMessageCompleteCallback \
   httpParserOnStatusCallback
 
 REPO_ROOT = /tmp/repo
