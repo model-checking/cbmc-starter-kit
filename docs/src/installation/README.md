@@ -137,6 +137,17 @@ cbmc-starter-kit-migrate-license --remove
 See [cbmc-starter-kit-migrate-license](../reference-manual/cbmc-starter-kit-migrate-license.md)
 for more information.
 
+## Running CBMC proofs as part of CI
+
+The starter kit offers GitHub repositories with the ability to run CBMC proofs
+in GitHub Actions. If your CBMC proofs are compute-intensive, you will need to
+create a large runner for your repository(
+[more details on large runners in GitHub Actions](https://docs.github.com/en/actions/using-github-hosted-runners/using-larger-runners)
+) in order to be able to run all proofs.
+
+See [cbmc-starter-kit-setup-ci](../reference-manual/cbmc-starter-kit-setup-ci.md)
+for more information.
+
 ## Installation notes
 
 If you have difficulty installing these tools, please let us know by
