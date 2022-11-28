@@ -22,28 +22,22 @@ REPO_PROOFS = --proofs \
   httpParserOnStatusCallback
 
 REPO_ROOT = /tmp/repo
-LITANI_ROOT = /tmp/litani
 CONFIG_ROOT = /tmp/config
 REPORT_ROOT = /tmp/reports
 REPORT_ROOT1 = $(REPORT_ROOT)1
 REPORT_ROOT2 = $(REPORT_ROOT)2
 
-LITANI = $(LITANI_ROOT)/litani
 CONFIG = $(CONFIG_ROOT)/tests/config/config.py
 
 default:
 	@ echo "Run test with 'make test'"
 
-test: clone-repo clone-litani clone-config run1 install-starter update-starter run2 compare
+test: clone-repo clone-config run1 install-starter update-starter run2 compare
 
 clone-repo:
 	$(RM) -r $(REPO_ROOT)
 	git clone $(REPO) $(REPO_ROOT)
 	cd $(REPO_ROOT) && git submodule update --init --checkout --recursive
-
-clone-litani:
-	$(RM) -r $(LITANI_ROOT)
-	git clone https://github.com/awslabs/aws-build-accumulator $(LITANI_ROOT)
 
 # The config.py command is currently in the config branch of a fork
 clone-config:
@@ -59,10 +53,10 @@ update-starter:
 
 run:
 	$(RM) -r $(REPORT_ROOT)
-	cd $(REPO_ROOT)/$(REPO_PROOF_ROOT) && $(LITANI) init --project-name "Report"
+	cd $(REPO_ROOT)/$(REPO_PROOF_ROOT) && litani init --project-name "Report"
 	cd $(REPO_ROOT)/$(REPO_PROOF_ROOT) && ./run-cbmc-proofs.py --no-standalone $(REPO_PROOFS)
-	cd $(REPO_ROOT)/$(REPO_PROOF_ROOT) && $(CONFIG) --litani-bindir $(LITANI_ROOT) --report-root $(REPORT_ROOT)
-	cd $(REPO_ROOT)/$(REPO_PROOF_ROOT) && $(LITANI) run-build
+	cd $(REPO_ROOT)/$(REPO_PROOF_ROOT) && $(CONFIG) --report-root $(REPORT_ROOT)
+	cd $(REPO_ROOT)/$(REPO_PROOF_ROOT) && litani run-build
 
 run1:
 	$(MAKE) REPORT_ROOT=$(REPORT_ROOT1) run
