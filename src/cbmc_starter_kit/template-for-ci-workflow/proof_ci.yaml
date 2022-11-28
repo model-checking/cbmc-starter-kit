@@ -44,6 +44,7 @@ env:
   KISSAT_TAG: <__KISSAT_TAG__>
   LITANI_VERSION: <__LITANI_VERSION__>
   PROOFS_DIR: <__PROOFS_DIR__>
+  RUN_CBMC_PROOFS_COMMAND: ./run-cbmc-proofs.py
 
 
 jobs:
@@ -225,7 +226,7 @@ jobs:
         env:
           EXTERNAL_SAT_SOLVER: kissat
         working-directory: ${{ env.PROOFS_DIR }}
-        run: ./run-cbmc-proofs.py
+        run: ${{ env.RUN_CBMC_PROOFS_COMMAND }}
       - name: Set name for zip artifact with CBMC proof results
         id: artifact
         if: ${{ env.AWS_CLOUDFRONT_DOMAIN == '' }}
