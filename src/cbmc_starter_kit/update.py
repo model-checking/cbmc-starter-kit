@@ -64,7 +64,9 @@ def parse_arguments():
           the litani command is in PATH.
           Normally just recommend removal."""},
     ]
-    args = arguments.create_parser(options, desc).parse_args()
+    args = arguments.create_parser(
+        options=options,
+        description=desc).parse_args()
     arguments.configure_logging(args)
     return args
 

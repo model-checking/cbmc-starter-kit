@@ -127,7 +127,10 @@ def main():
     kit.
     """
 
-    args = arguments.create_parser(options, desc, epilog).parse_args()
+    args = arguments.create_parser(
+        options=options,
+        description=desc,
+        epilog=epilog).parse_args()
     arguments.configure_logging(args)
 
     paths = find_apache_references(args.proofdir)

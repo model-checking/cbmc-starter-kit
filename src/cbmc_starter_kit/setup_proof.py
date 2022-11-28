@@ -18,7 +18,9 @@ from cbmc_starter_kit import util
 def parse_arguments():
     desc = "Set up CBMC proof infrastructure for a proof."
     options = []
-    args = arguments.create_parser(options, desc).parse_args()
+    args = arguments.create_parser(
+        options=options,
+        description=desc).parse_args()
     arguments.configure_logging(args)
     return args
 
