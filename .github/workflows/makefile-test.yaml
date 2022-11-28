@@ -19,29 +19,31 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+      - name: Install latest CBMC
+        id: install_latest_cbmc
+        shell: bash
         run: |
-          get_latest_release() {
-            curl --silent "https://api.github.com/repos/$1/releases/latest" |
-            jq -r '.tag_name'
-          }
-          cbmc_latest_release=$(get_latest_release diffblue/cbmc)
-          litani_latest_release=$(get_latest_release awslabs/aws-build-accumulator)
-
-          curl -o cbmc.deb -L \
-            https://github.com/diffblue/cbmc/releases/download/$cbmc_latest_release/ubuntu-20.04-$cbmc_latest_release-Linux.deb
-          curl -o litani.deb -L \
-            https://github.com/awslabs/aws-build-accumulator/releases/download/$litani_latest_release/litani-$litani_latest_release.deb
-
-          sudo apt-get update \
-            && sudo apt-get install --no-install-recommends --yes \
-                                            ./cbmc.deb \
-                                            ./litani.deb \
-                                            scdoc \
-                                            mandoc
-
-          python3 -m pip install pyyaml jinja2 cbmc-viewer
-
+          # Search within 5 most recent releases for latest available package
+          CBMC_REL="https://api.github.com/repos/diffblue/cbmc/releases?page=1&per_page=5"
+          CBMC_DEB=$(curl -s $CBMC_REL | jq -r '.[].assets[].browser_download_url' | grep -e 'ubuntu-20.04' | head -n 1)
+          CBMC_ARTIFACT_NAME=$(basename $CBMC_DEB)
+          curl -o $CBMC_ARTIFACT_NAME -L $CBMC_DEB
+          sudo dpkg -i $CBMC_ARTIFACT_NAME
+          rm ./$CBMC_ARTIFACT_NAME
+      - name: Install latest Litani
+        id: install_latest_litani
+        shell: bash
+        run: |
+          # Search within 5 most recent releases for latest available package
+          LITANI_REL="https://api.github.com/repos/awslabs/aws-build-accumulator/releases?page=1&per_page=5"
+          LITANI_DEB=$(curl -s $LITANI_REL | jq -r '.[].assets[0].browser_download_url' | head -n 1)
+          DBN_PKG_FILENAME=$(basename $LITANI_DEB)
+          curl -L $LITANI_DEB -o $DBN_PKG_FILENAME
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes ./$DBN_PKG_FILENAME
+          rm ./$DBN_PKG_FILENAME
+      - name: Install dependencies
+        run: python3 -m pip install pyyaml jinja2 cbmc-viewer
       - name: Run test target in Makefile
         run: |
           cd test/repo
