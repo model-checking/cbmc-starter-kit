@@ -31,7 +31,7 @@ jobs:
       - name: Parse config file
         run: |
           CONFIG_FILE='.github/workflows/proof_ci_resources/config.yaml'
-          for setting in cadical-tag cbmc-version cbmc-viewer-version kissat-tag litani-version proofs-dir run-cbmc-proofs-command; do
+          for setting in aws-cloudfront-domain aws-region aws-role-duration-seconds cadical-tag cbmc-version cbmc-viewer-version kissat-tag litani-version proofs-dir run-cbmc-proofs-command; do
             VAR=$(echo $setting | tr "[:lower:]" "[:upper:]" | tr - _)
             echo "${VAR}"=$(yq .$setting $CONFIG_FILE) >> $GITHUB_ENV
           done
@@ -171,11 +171,40 @@ jobs:
         with:
           name: ${{ steps.artifact.outputs.name }}
           path: ${{ steps.artifact.outputs.name }}.zip
+      - name: Set S3 URI
+        id: s3_uri
+        if: ${{ env.AWS_CLOUDFRONT_DOMAIN != '' }}
+        run: echo "name=BuildArtifacts/${{ github.event.after }}/final" >> $GITHUB_OUTPUT
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        if: ${{ env.AWS_CLOUDFRONT_DOMAIN != '' }}
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: ${{ env.AWS_ROLE_DURATION_SECONDS }}
+          role-session-name: cbmc_ci
+          role-to-assume: ${{ secrets.PROOF_CI_IAM_ROLE }}
+      - name: Upload CBMC proof results to S3
+        id: aws_upload
+        if: ${{ env.AWS_CLOUDFRONT_DOMAIN != '' }}
+        shell: bash
+        run: |
+          aws s3 sync \
+            $PROOFS_DIR/output/latest/html \
+            s3://proof-ci-artifacts-${{ fromJson(toJson(github.event.repository)).id }}/${{ steps.s3_uri.outputs.name }} \
+            --only-show-errors
       - name: CBMC proof results
         shell: bash
         run: |
-          python3 ${{ env.PROOFS_DIR }}/lib/summarize.py \
-            --run-file ${{ env.PROOFS_DIR }}/output/latest/html/run.json > summary.md
+          if [ -n "${{ env.AWS_CLOUDFRONT_DOMAIN }}" ]
+          then
+            python3 ${{ env.PROOFS_DIR }}/lib/summarize.py \
+              --cloudfront-domain ${{ env.AWS_CLOUDFRONT_DOMAIN }} \
+              --s3-uri ${{ steps.s3_uri.outputs.name }} \
+              --run-file ${{ env.PROOFS_DIR }}/output/latest/html/run.json > summary.md
+          else
+            python3 ${{ env.PROOFS_DIR }}/lib/summarize.py \
+              --run-file ${{ env.PROOFS_DIR }}/output/latest/html/run.json > summary.md
+          fi
           cat summary.md >> $GITHUB_STEP_SUMMARY
           cat summary.md
           cat summary.md | [[ $(grep -cim1 -e "fail" -e "in progress") -eq 0 ]] ; echo $?

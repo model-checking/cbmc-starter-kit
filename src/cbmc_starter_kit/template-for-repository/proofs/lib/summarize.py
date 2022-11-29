@@ -8,19 +8,41 @@ import logging
 
 DESCRIPTION = """Print 2 tables in GitHub-flavored Markdown that summarize
 an execution of CBMC proofs."""
+EPILOG = """The CloudFront domain and the S3 URI should either be specified
+ together or they should not be specified altogether."""
 
 
 def get_args():
     """Parse arguments for summarize script."""
-    parser = argparse.ArgumentParser(description=DESCRIPTION)
+    parser = argparse.ArgumentParser(description=DESCRIPTION, epilog=EPILOG)
     for arg in [{
             "flags": ["--run-file"],
             "help": "path to the Litani run.json file",
             "required": True,
+        }, {
+            "flags": ["--cloudfront-domain"],
+            "help": "the domain of the Amazon CloudFront distribution that is "
+                    "serving CBMC proof reports, which were uploaded to S3"
+                    "during the execution of the GitHub Actions workflow."
+                    "Usage of this flag necessitates usage of --s3-uri"
+                    "For example: d111111abcdef8.cloudfront.net"
+        }, {
+            "flags": ["--s3-uri"],
+            "help": "the key to a directory within a S3 bucket holding all "
+                    "artifacts for a CBMC proof report."
+                    "Usage of this flag necessitates usage of --cloudfront-domain"
+                    "For example: BuildArtifacts/abcdef/final"
     }]:
         flags = arg.pop("flags")
         parser.add_argument(*flags, **arg)
-    return parser.parse_args()
+    args = parser.parse_args()
+    with_aws = args.cloudfront_domain and args.s3_uri
+    without_aws = not args.cloudfront_domain and not args.s3_uri
+    if not (with_aws or without_aws):
+        parser.error(
+            "The CloudFront domain and the S3 URI should either be specified "
+            "together or they should not be specified altogether.")
+    return args
 
 
 def _get_max_length_per_column_list(data):
@@ -65,7 +87,7 @@ def _get_rendered_table(data):
     return "".join(table)
 
 
-def _get_status_and_proof_summaries(run_dict):
+def _get_status_and_proof_summaries(run_dict, cloudfront_domain=None, s3_uri=None):
     """Parse a dict representing a Litani run and create lists summarizing the
     proof results.
 
@@ -73,7 +95,14 @@ def _get_status_and_proof_summaries(run_dict):
     ----------
     run_dict
         A dictionary representing a Litani run.
-
+    cloudfront_domain
+        A string representing the domain of the CloudFront distribution, which
+        serves CBMC proof results that areuploaded to an associated S3 bucket.
+        For example: d111111abcdef8.cloudfront.net
+    s3_uri
+        The key to a directory within a S3 bucket holding all artifacts for a
+        CBMC proof report.
+        For example: BuildArtifacts/abcdef/final
 
     Returns
     -------
@@ -83,6 +112,8 @@ def _get_status_and_proof_summaries(run_dict):
     """
     count_statuses = {}
     proofs = [["Proof", "Status"]]
+    if cloudfront_domain:
+        proofs[0].append("CBMC proof report")
     for proof_pipeline in run_dict["pipelines"]:
         status_pretty_name = proof_pipeline["status"].title().replace("_", " ")
         try:
@@ -91,13 +122,20 @@ def _get_status_and_proof_summaries(run_dict):
             count_statuses[status_pretty_name] = 1
         proof = proof_pipeline["name"]
         proofs.append([proof, status_pretty_name])
+    if cloudfront_domain:
+        for i in range(1, len(proofs)):
+            proof = proofs[i][0]
+            final_report = f"https://{cloudfront_domain}/{s3_uri}"
+            viewer_proof_artifact = f"artifacts/{proof}/report/html/index.html"
+            viewer_html_report_url = f"{final_report}/{viewer_proof_artifact}"
+            proofs[i].append(f"[Details]({viewer_html_report_url})")
     statuses = [["Status", "Count"]]
     for status, count in count_statuses.items():
         statuses.append([status, str(count)])
     return [statuses, proofs]
 
 
-def print_proof_results(out_file):
+def print_proof_results(out_file, cloudfront_domain=None, s3_uri=None):
     """
     Print 2 strings that summarize the proof results.
     When printing, each string will render as a GitHub flavored Markdown table.
@@ -107,7 +145,7 @@ def print_proof_results(out_file):
         with open(out_file, encoding='utf-8') as run_json:
             run_dict = json.load(run_json)
             summaries = _get_status_and_proof_summaries(
-                run_dict)
+                run_dict, cloudfront_domain=cloudfront_domain, s3_uri=s3_uri)
             for summary in summaries:
                 print(_get_rendered_table(summary))
     except Exception as ex: # pylint: disable=broad-except
@@ -116,4 +154,14 @@ def print_proof_results(out_file):
 
 if __name__ == '__main__':
     args = get_args()
-    print_proof_results(args.run_file)
+    without_aws = not args.cloudfront_domain and not args.s3_uri
+    if without_aws:
+        print_proof_results(args.run_file)
+        exit(0)
+    CBMC_PROOF_REPORT_HEADER = "Click here to see the CBMC proof report"
+    url = f"https://{args.cloudfront_domain}/{args.s3_uri}/index.html"
+    print(f"## [{CBMC_PROOF_REPORT_HEADER}]({url})")
+    print_proof_results(
+        args.run_file,
+        cloudfront_domain=args.cloudfront_domain,
+        s3_uri=args.s3_uri)
