@@ -1,3 +1,6 @@
+aws-cloudfront-domain: <__AWS_CLOUDFRONT_DOMAIN__>
+aws-region: us-east-1
+aws-role-duration-seconds: 3600
 cadical-tag: <__CADICAL_TAG__>
 cbmc-version: <__CBMC_VERSION__>
 cbmc-viewer-version: <__CBMC_VIEWER_VERSION__>
