@@ -4,13 +4,18 @@
 """Methods of manipulating the templates repository."""
 
 import importlib.util
+import json
+import sys
 from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.request import urlopen
 
 from cbmc_starter_kit import repository
 
 REPOSITORY_TEMPLATES = "template-for-repository"
 PROOF_TEMPLATES = "template-for-proof"
 CI_WORKFLOW_TEMPLATES = "template-for-ci-workflow"
+PROOF_CI_AWS_CFN_STACKS = "proof_ci_aws_cfn_stacks"
 PROOF_DIR = "proofs"
 LIB_MODULE = "lib"
 NEGATIVE_TESTS = "negative_tests"
@@ -74,6 +79,29 @@ def package_proof_template_root():
 
 def package_ci_workflow_template_root():
     return package_root() / CI_WORKFLOW_TEMPLATES
+
+def get_repository_details(repo_owner, repo_name):
+    endpoint = f"https://api.github.com/repos/{repo_owner}/{repo_name}"
+    try:
+        with urlopen(endpoint, timeout=10) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as error:
+        print(error.status, error.reason)
+        if error.status == 403:
+            print(f"You don't have access to {repo_owner}/{repo_name}")
+        elif error.status == 404:
+            print(
+                f"{repo_owner}/{repo_name} is either private or doesn't exist")
+            print(
+                "If the repository is private, please run "
+                "`cbmc-starter-kit-setup-ci` without providing an AWS account")
+        sys.exit(1)
+    except URLError as error:
+        print(error.reason)
+        sys.exit(1)
+    except TimeoutError:
+        print("Request timed out")
+        sys.exit(1)
 
 ################################################################
 # Ask the user for set up information

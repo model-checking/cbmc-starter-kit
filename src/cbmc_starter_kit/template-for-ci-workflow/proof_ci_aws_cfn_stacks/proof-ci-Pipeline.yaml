@@ -1,0 +1,196 @@
+Parameters:
+  GitHubRepoOwner:
+    Type: String
+  GitHubRepoName:
+    Type: String
+  GitHubRepoId:
+    Type: String
+Resources:
+  CiArtifactsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - BucketKeyEnabled: false
+            ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      BucketName:
+        Fn::Join:
+          - "-"
+          - - "proof-ci-artifacts"
+            - Ref: GitHubRepoId
+  ProofActionsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              StringLike:
+                token.actions.githubusercontent.com:sub:
+                  - Fn::Join:
+                      - ""
+                      - - "repo:"
+                        - Ref: GitHubRepoOwner
+                        - "/"
+                        - Ref: GitHubRepoName
+                        - :*
+            Effect: Allow
+            Principal:
+              Federated:
+                Fn::ImportValue: GitHubOidcProviderArn
+        Version: "2012-10-17"
+      Description: This role is used by GitHub Actions to upload Litani HTML reports.
+      MaxSessionDuration: 7200
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - s3:ListBucket
+                Effect: Allow
+                Resource:
+                  Fn::GetAtt:
+                    - CiArtifactsBucket
+                    - Arn
+              - Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                Effect: Allow
+                Resource:
+                  Fn::Join:
+                    - ""
+                    - - Fn::GetAtt:
+                          - CiArtifactsBucket
+                          - Arn
+                      - /*
+            Version: "2012-10-17"
+          PolicyName: s3
+      RoleName:
+        Fn::Join:
+          - "-"
+          - - "proof-ci-actions-role"
+            - Ref: GitHubRepoId
+    DependsOn:
+      - CiArtifactsBucket
+  ProofCICloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: Origin Access Identity to be granted read-access to S3 bucket with CI artifacts
+  ProofCICloudFrontOAIPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        !Ref CiArtifactsBucket
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetObject
+            Effect: Allow
+            Principal:
+              CanonicalUser:
+                Fn::GetAtt:
+                  - ProofCICloudFrontOriginAccessIdentity
+                  - S3CanonicalUserId
+            Resource:
+              Fn::Join:
+                - ""
+                - - Fn::GetAtt:
+                      - CiArtifactsBucket
+                      - Arn
+                  - /*
+        Version: "2012-10-17"
+    DependsOn:
+      - ProofCICloudFrontOriginAccessIdentity
+  ProofCIDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          TargetOriginId:
+            Fn::GetAtt:
+              - ProofCICloudFrontOriginAccessIdentity
+              - Id
+          ViewerProtocolPolicy: redirect-to-https
+        DefaultRootObject: index.html
+        Enabled: true
+        Origins:
+          - ConnectionAttempts: 3
+            ConnectionTimeout: 10
+            DomainName:
+              Fn::Join:
+                - ""
+                - - !Ref CiArtifactsBucket
+                  - .s3.
+                  - Ref: AWS::Region
+                  - .amazonaws.com
+            Id:
+              Fn::GetAtt:
+                - ProofCICloudFrontOriginAccessIdentity
+                - Id
+            OriginShield:
+              Enabled: false
+              OriginShieldRegion:
+                Ref: AWS::Region
+            S3OriginConfig:
+              OriginAccessIdentity:
+                Fn::Join:
+                  - ""
+                  - - origin-access-identity/cloudfront/
+                    - Fn::GetAtt:
+                        - ProofCICloudFrontOriginAccessIdentity
+                        - Id
+    DependsOn:
+      - ProofCICloudFrontOriginAccessIdentity
+Outputs:
+  CiArtifactsS3Bucket:
+    Value:
+      !Ref CiArtifactsBucket
+    Export:
+      Name:
+        Fn::Join:
+          - "-"
+          - - "CiArtifactsS3Bucket"
+            - Ref: GitHubRepoId
+  CiArtifactsS3BucketArn:
+    Value:
+      Fn::GetAtt:
+        - CiArtifactsBucket
+        - Arn
+    Export:
+      Name:
+        Fn::Join:
+          - "-"
+          - - "CiArtifactsS3BucketArn"
+            - Ref: GitHubRepoId
+  ProofActionsRoleArn:
+    Value:
+      Fn::GetAtt:
+        - ProofActionsRole
+        - Arn
+    Export:
+      Name:
+        Fn::Join:
+          - "-"
+          - - "ProofActionsRoleArn"
+            - Ref: GitHubRepoId
+  ProofCIDistributionDomainName:
+    Value:
+      Fn::GetAtt:
+        - ProofCIDistribution
+        - DomainName
+    Export:
+      Name:
+        Fn::Join:
+          - "-"
+          - - "ProofCIDistributionDomainName"
+            - Ref: GitHubRepoId

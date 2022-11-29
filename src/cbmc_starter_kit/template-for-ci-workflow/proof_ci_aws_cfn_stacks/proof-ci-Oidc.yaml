@@ -1,0 +1,16 @@
+Resources:
+  GithubOIDC:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      ThumbprintList:
+        # Source: https://github.blog/changelog/2022-01-13-github-actions-update-on-oidc-based-deployments-to-aws/
+        - 6938fd4d98bab03faadb97b34396831e3780aea1
+      ClientIdList:
+        - sts.amazonaws.com
+      Url: https://token.actions.githubusercontent.com
+Outputs:
+  GitHubOidcProviderArn:
+    Value:
+      Ref: GithubOIDC
+    Export:
+      Name: GitHubOidcProviderArn
