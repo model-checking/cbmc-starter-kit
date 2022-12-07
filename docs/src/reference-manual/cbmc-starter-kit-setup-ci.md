@@ -8,13 +8,13 @@
 
 ```
 cbmc-starter-kit-setup-ci [-h]
-  --github-actions-runner <ubuntu-20.04>|<name-of-your-Ubuntu-20.04-large-runner>
-  [--cbmc <latest>|<X.Y.Z>]
-  [--cbmc-viewer <latest>|<X.Y>]
-  [--litani <latest>|<X.Y.Z>]
-  [--kissat <latest>|<TAG>]
-  [--cadical <latest>|<TAG>] [--verbose]
-  [--debug] [--version]
+  --github-actions-runner <name-of-GitHub-hosted-runner-operating-on-Ubuntu-20.04>
+  [--cbmc <X.Y.Z>]
+  [--cbmc-viewer <X.Y>]
+  [--litani <X.Y.Z>]
+  [--kissat <TAG>]
+  [--cadical <TAG>]
+  [--verbose] [--debug] [--version]
 ```
 
 ## Description
