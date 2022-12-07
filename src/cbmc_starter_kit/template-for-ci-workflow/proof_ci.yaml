@@ -8,31 +8,12 @@ on:
 
 # USAGE
 #
-# By default, the most recently released and available version will be used
-# for CBMC, CBMC viewer, Litani and for the kissat, cadical SAT solvers.
+# If you need to use different versions for tools like CBMC, modify this file:
+# .github/workflows/proof_ci_resources/config.yaml
 #
-# A semantic version can be specified for CBMC, CBMC viewer, Litani
-# (e.g. '5.70.0' for CBMC, '3.6' for CBMC viewer, '1.27.0' for Litani).
-# Known tags can be specified for kissat and cadical (e.g. 'rel-3.0.0' and
-# 'rel-1.5.3' respectively).
-#
-# GITHUB_ACTIONS_RUNNER is the name of the GitHub-hosted runner (e.g. 'ubuntu-20.04')
-# that will execute this workflow. THe runner must be on Ubuntu 20.04
-# If your repository has large runners at its disposal, then the value for this
-# key can be set to the name of your large runner. Find more details at:
-# https://docs.github.com/en/actions/using-github-hosted-runners/using-larger-runners
-
-
-env:
-  CADICAL_TAG: <__CADICAL_TAG__>
-  CBMC_VERSION: <__CBMC_VERSION__>
-  CBMC_VIEWER_VERSION: <__CBMC_VIEWER_VERSION__>
-  GITHUB_ACTIONS_RUNNER: <__GITHUB_ACTIONS_RUNNER__>
-  KISSAT_TAG: <__KISSAT_TAG__>
-  LITANI_VERSION: <__LITANI_VERSION__>
-  PROOFS_DIR: <__PROOFS_DIR__>
-  RUN_CBMC_PROOFS_COMMAND: ./run-cbmc-proofs.py
-
+# If you want the CI to use a different GitHub-hosted runner (which must still
+# be running Ubuntu 20.04), modify the value of this key:
+# jobs.run_cbmc_proofs.runs-on
 
 jobs:
   run_cbmc_proofs:
@@ -47,8 +28,19 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: 'recursive'
+      - name: Parse config file
+        run: |
+          CONFIG_FILE='.github/workflows/proof_ci_resources/config.yaml'
+          cat << EOF >> $GITHUB_ENV
+          CADICAL_TAG=$(yq .cadical-tag $CONFIG_FILE)
+          CBMC_VERSION=$(yq .cbmc-version $CONFIG_FILE)
+          CBMC_VIEWER_VERSION=$(yq .cbmc-viewer-version $CONFIG_FILE)
+          KISSAT_TAG=$(yq .kissat-tag $CONFIG_FILE)
+          LITANI_VERSION=$(yq .litani-version $CONFIG_FILE)
+          PROOFS_DIR=$(yq .proofs-dir $CONFIG_FILE)
+          RUN_CBMC_PROOFS_COMMAND=$(yq .run-cbmc-proofs-command $CONFIG_FILE)
+          EOF
       - name: Ensure CBMC, CBMC viewer, Litani versions have been specified
-        id: ensure_versions
         if: ${{ env.CBMC_VERSION == '' || env.CBMC_VIEWER_VERSION == '' || env.LITANI_VERSION == '' }}
         shell: bash
         run: |
@@ -65,9 +57,8 @@ jobs:
             echo "You must specify a Litani version (e.g. 'latest' or '1.27.0')"
             should_exit=true
           fi
-          if should_exit=true; then exit 1; fi
+          if [[ "$should_exist" == true ]]; then exit 1; fi
       - name: Install latest CBMC
-        id: install_latest_cbmc
         if: ${{ env.CBMC_VERSION == 'latest' }}
         shell: bash
         run: |
@@ -78,10 +69,7 @@ jobs:
           curl -o $CBMC_ARTIFACT_NAME -L $CBMC_DEB
           sudo dpkg -i $CBMC_ARTIFACT_NAME
           rm ./$CBMC_ARTIFACT_NAME
-          LATEST_CBMC_VERSION=$(basename $(echo $CBMC_DEB | sed  's/ubuntu-20.04-cbmc-//' | sed 's/-Linux.deb//'))
-          echo "version=$LATEST_CBMC_VERSION" >> $GITHUB_OUTPUT
       - name: Install CBMC ${{ env.CBMC_VERSION }}
-        id: install_cbmc_version
         if: ${{ env.CBMC_VERSION != 'latest' }}
         shell: bash
         run: |
@@ -89,18 +77,14 @@ jobs:
             https://github.com/diffblue/cbmc/releases/download/cbmc-${{ env.CBMC_VERSION }}/ubuntu-20.04-cbmc-${{ env.CBMC_VERSION }}-Linux.deb
           sudo dpkg -i ./cbmc.deb
           rm ./cbmc.deb
-          echo "version=${{ env.CBMC_VERSION }}" >> $GITHUB_OUTPUT
       - name: Install latest CBMC viewer
-        id: install_latest_cbmc_viewer
         if: ${{ env.CBMC_VIEWER_VERSION == 'latest' }}
         shell: bash
         run: |
           CBMC_VIEWER_REL="https://api.github.com/repos/model-checking/cbmc-viewer/releases/latest"
           CBMC_VIEWER_VERSION=$(curl -s $CBMC_VIEWER_REL | jq -r .name | sed  's/viewer-//')
           pip3 install cbmc-viewer==$CBMC_VIEWER_VERSION
-          echo "version=$CBMC_VIEWER_VERSION" >> $GITHUB_OUTPUT
       - name: Install CBMC viewer ${{ env.CBMC_VIEWER_VERSION }}
-        id: install_cbmc_viewer_version
         if: ${{ env.CBMC_VIEWER_VERSION != 'latest' }}
         shell: bash
         run: |
@@ -108,9 +92,7 @@ jobs:
           sudo apt-get install --no-install-recommends --yes \
             build-essential universal-ctags
           pip3 install cbmc-viewer==${{ env.CBMC_VIEWER_VERSION }}
-          echo "version=${{ env.CBMC_VIEWER_VERSION }}" >> $GITHUB_OUTPUT
       - name: Install latest Litani
-        id: install_latest_litani
         if: ${{ env.LITANI_VERSION == 'latest' }}
         shell: bash
         run: |
@@ -122,10 +104,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --no-install-recommends --yes ./$DBN_PKG_FILENAME
           rm ./$DBN_PKG_FILENAME
-          LATEST_LITANI_VERSION=$(basename $(echo $LITANI_DEB | sed  's/litani-//' | sed 's/.deb//'))
-          echo "version=$LATEST_LITANI_VERSION" >> $GITHUB_OUTPUT
       - name: Install Litani ${{ env.LITANI_VERSION }}
-        id: install_litani_version
         if: ${{ env.LITANI_VERSION != 'latest' }}
         shell: bash
         run: |
@@ -134,9 +113,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --no-install-recommends --yes ./litani.deb
           rm ./litani.deb
-          echo "version=${{ env.LITANI_VERSION }}" >> $GITHUB_OUTPUT
       - name: Install ${{ env.KISSAT_TAG }} kissat
-        id: install_kissat_version
         if: ${{ env.KISSAT_TAG != '' }}
         shell: bash
         run: |
@@ -155,9 +132,7 @@ jobs:
             && cd build \
             && make -j;
           echo "$(pwd)" >> $GITHUB_PATH
-          echo "version=$KISSAT_TAG_NAME" >> $GITHUB_OUTPUT
       - name: Install ${{ env.CADICAL_TAG }} cadical
-        id: install_cadical_version
         if: ${{ env.CADICAL_TAG != '' }}
         shell: bash
         run: |
@@ -176,39 +151,7 @@ jobs:
             && cd build \
             && make -j;
           echo "$(pwd)" >> $GITHUB_PATH
-          echo "version=$CADICAL_TAG_NAME" >> $GITHUB_OUTPUT
-      - name: List versions of installed tools
-        id: list_cbmc_proof_tool_versions
-        shell: bash
-        run: |
-          if [ -n "${{ steps.install_latest_cbmc.outputs.version }}" ]
-          then
-            echo "CBMC ${{ steps.install_latest_cbmc.outputs.version }}"
-          else
-            echo "CBMC ${{ steps.install_cbmc_version.outputs.version }}"
-          fi
-          if [ -n "${{ steps.install_latest_cbmc_viewer.outputs.version }}" ]
-          then
-            echo "CBMC viewer ${{ steps.install_latest_cbmc_viewer.outputs.version }}"
-          else
-            echo "CBMC viewer ${{ steps.install_cbmc_viewer_version.outputs.version }}"
-          fi
-          if [ -n "${{ steps.install_latest_litani.outputs.version }}" ]
-          then
-            echo "Litani ${{ steps.install_latest_litani.outputs.version }}"
-          else
-            echo "Litani ${{ steps.install_litani_version.outputs.version }}"
-          fi
-          if [ -n "${{ steps.install_kissat_version.outputs.version }}" ]
-          then
-            echo "kissat ${{ steps.install_kissat_version.outputs.version }}"
-          fi
-          if [ -n "${{ steps.install_cadical_version.outputs.version }}" ]
-          then
-            echo "cadical ${{ steps.install_cadical_version.outputs.version }}"
-          fi
       - name: Run CBMC proofs
-        id: run_cbmc_proofs
         shell: bash
         env:
           EXTERNAL_SAT_SOLVER: kissat
@@ -220,7 +163,6 @@ jobs:
         run: |
           echo "name=cbmc_proof_results_${{ fromJson(toJson(github.event.repository)).name }}_$(date +%Y_%m_%d_%H_%M_%S)" >> $GITHUB_OUTPUT
       - name: Create zip artifact with CBMC proof results
-        id: create_zip
         if: ${{ env.AWS_CLOUDFRONT_DOMAIN == '' }}
         shell: bash
         run: |
@@ -230,7 +172,6 @@ jobs:
             && popd \
             && mv $FINAL_REPORT_DIR/${{ steps.artifact.outputs.name }}.zip .
       - name: Upload zip artifact of CBMC proof results to GitHub Actions
-        id: gh_upload
         if: ${{ env.AWS_CLOUDFRONT_DOMAIN == '' }}
         uses: actions/upload-artifact@v3
         with:
