@@ -140,10 +140,11 @@ for more information.
 ## Running CBMC proofs as part of CI
 
 The starter kit offers GitHub repositories with the ability to run CBMC proofs
-in GitHub Actions. If your CBMC proofs are compute-intensive, you will need to
-create a large runner for your repository(
-[more details on large runners in GitHub Actions](https://docs.github.com/en/actions/using-github-hosted-runners/using-larger-runners)
-) in order to be able to run all proofs.
+in GitHub Actions. If the proofs are unable to run in
+[GitHub's standard Runner](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
+you may need to constrain some proofs' parallelism with the
+[`EXPENSIVE`](https://model-checking.github.io/cbmc-starter-kit/tutorial/index.html#the-makefile)
+setting, or [create a Large Runner for your repository](https://docs.github.com/en/actions/using-github-hosted-runners/using-larger-runners).
 
 See [cbmc-starter-kit-setup-ci](../reference-manual/cbmc-starter-kit-setup-ci.md)
 for more information.

@@ -7,23 +7,27 @@
 ## Synopsis
 
 ```
-cbmc-starter-kit-setup-ci [-h] --github-actions-runner
-                                 <ubuntu-20.04>|<name-of-your-Ubuntu-20.04-large-runner>
-                                 [--cbmc <latest>|<X.Y.Z>]
-                                 [--cbmc-viewer <latest>|<X.Y>]
-                                 [--litani <latest>|<X.Y.Z>]
-                                 [--kissat <latest>|<TAG>]
-                                 [--cadical <latest>|<TAG>] [--verbose]
-                                 [--debug] [--version]
+cbmc-starter-kit-setup-ci [-h]
+  --github-actions-runner <ubuntu-20.04>|<name-of-your-Ubuntu-20.04-large-runner>
+  [--cbmc <latest>|<X.Y.Z>]
+  [--cbmc-viewer <latest>|<X.Y>]
+  [--litani <latest>|<X.Y.Z>]
+  [--kissat <latest>|<TAG>]
+  [--cadical <latest>|<TAG>] [--verbose]
+  [--debug] [--version]
 ```
 
 ## Description
 
-This script adds a GitHub Actions workflow to your GitHub repository, such that
-either the standard GitHub-hosted Ubuntu 20.04 runner or a larger Ubuntu 20.04
-runner (
-[more details on large runners in GitHub Actions](https://docs.github.com/en/actions/using-github-hosted-runners/using-larger-runners)
-) execute CBMC proofs as part of your project's CI phase.
+This script will copy a GitHub Action workflow to `.github/workflows` of your
+repository. The workflow will runs CBMC proofs on every push event.
+
+The workflow must be executed in a GitHub-hosted Ubuntu 20.04 runner. If the
+proofs are unable to run in
+[GitHub's standard Runner](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
+you may need to constrain some proofs' parallelism with the
+[`EXPENSIVE`](https://model-checking.github.io/cbmc-starter-kit/tutorial/index.html#the-makefile)
+setting, or [create a Large Runner for your repository](https://docs.github.com/en/actions/using-github-hosted-runners/using-larger-runners).
 
 The script offers users with the option of specifying custom versions and tags
 for all tools being used inside of the CI.
@@ -38,21 +42,3 @@ execution of CBMC proofs, is available to be downloaded at this "Summary" page.
 
 If a CBMC proof fails, the GitHub Actions workflow will fail at the
 "CBMC proof results" step.
-
-## Options
-
-`--verbose`
-
-* Verbose output.
-
-`--debug`
-
-* Debugging output.
-
-`--version`
-
-* Display version number and exit.
-
-`--help, -h`
-
-* Print the help message and exit.

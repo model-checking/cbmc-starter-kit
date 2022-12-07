@@ -1,0 +1,7 @@
+cadical-tag: <__CADICAL_TAG__>
+cbmc-version: <__CBMC_VERSION__>
+cbmc-viewer-version: <__CBMC_VIEWER_VERSION__>
+kissat-tag: <__KISSAT_TAG__>
+litani-version: <__LITANI_VERSION__>
+proofs-dir: <__PROOFS_DIR__>
+run-cbmc-proofs-command: ./run-cbmc-proofs.py
