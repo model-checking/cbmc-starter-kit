@@ -31,7 +31,6 @@ jobs:
       - name: Parse config file
         run: |
           CONFIG_FILE='.github/workflows/proof_ci_resources/config.yaml'
-          touch $CONFIG_FILE
           for setting in cadical-tag cbmc-version cbmc-viewer-version kissat-tag litani-version proofs-dir run-cbmc-proofs-command; do
             VAR=$(echo $setting | tr "[:lower:]" "[:upper:]" | tr - _)
             echo "${VAR}"=$(yq .$setting $CONFIG_FILE) >> $GITHUB_ENV
