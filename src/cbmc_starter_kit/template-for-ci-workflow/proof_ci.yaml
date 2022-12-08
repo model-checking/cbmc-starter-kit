@@ -52,7 +52,7 @@ jobs:
             echo "You must specify a Litani version (e.g. 'latest' or '1.27.0')"
             should_exit=true
           fi
-          if [[ "$should_exist" == true ]]; then exit 1; fi
+          if [[ "$should_exit" == true ]]; then exit 1; fi
       - name: Install latest CBMC
         if: ${{ env.CBMC_VERSION == 'latest' }}
         shell: bash
