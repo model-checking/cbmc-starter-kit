@@ -31,17 +31,12 @@ jobs:
       - name: Parse config file
         run: |
           CONFIG_FILE='.github/workflows/proof_ci_resources/config.yaml'
-          cat << EOF >> $GITHUB_ENV
-          CADICAL_TAG=$(yq .cadical-tag $CONFIG_FILE)
-          CBMC_VERSION=$(yq .cbmc-version $CONFIG_FILE)
-          CBMC_VIEWER_VERSION=$(yq .cbmc-viewer-version $CONFIG_FILE)
-          KISSAT_TAG=$(yq .kissat-tag $CONFIG_FILE)
-          LITANI_VERSION=$(yq .litani-version $CONFIG_FILE)
-          PROOFS_DIR=$(yq .proofs-dir $CONFIG_FILE)
-          RUN_CBMC_PROOFS_COMMAND=$(yq .run-cbmc-proofs-command $CONFIG_FILE)
-          EOF
+          touch $CONFIG_FILE
+          for setting in cadical-tag cbmc-version cbmc-viewer-version kissat-tag litani-version proofs-dir run-cbmc-proofs-command; do
+            VAR=$(echo $setting | tr "[:lower:]" "[:upper:]" | tr - _)
+            echo "${VAR}"=$(yq .$setting $CONFIG_FILE) >> $GITHUB_ENV
+          done
       - name: Ensure CBMC, CBMC viewer, Litani versions have been specified
-        if: ${{ env.CBMC_VERSION == '' || env.CBMC_VIEWER_VERSION == '' || env.LITANI_VERSION == '' }}
         shell: bash
         run: |
           should_exit=false
