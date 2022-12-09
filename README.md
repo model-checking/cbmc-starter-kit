@@ -30,11 +30,11 @@ gives installation instructions that we repeat here.
 On MacOS, we recommend using brew to install the starter kit with
 ```
 brew tap aws/tap
-brew install cbmc-starter kit
+brew install cbmc-starter-kit
 ```
 and upgrade to the latest version with
 ```
-brew upgrade cbmc-starter kit
+brew upgrade cbmc-starter-kit
 ```
 In these instructions, the first line taps an AWS repository that hosts the starter kit.
 The [brew home page](https://brew.sh/) gives instructions for installing brew.
