@@ -15,6 +15,7 @@ _TOOLS = [
     "cbmc",
     "cbmc-viewer",
     "cbmc-starter-kit-update",
+    "kissat",
     "litani",
 ]
 
