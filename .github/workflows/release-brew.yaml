@@ -81,6 +81,11 @@ jobs:
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+
       - name: Checkout PR
         run: |
           brew tap ${{ env.TAP }}
