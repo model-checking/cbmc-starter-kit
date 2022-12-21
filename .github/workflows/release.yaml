@@ -26,6 +26,38 @@ jobs:
             exit 1
           fi
       - name: Create release
-        uses: ncipollo/release-action@v1
+        # The GitHub action actions/create-release is deprecated:
+        #    https://github.com/actions/create-release
+        # GitHub recommends ncipollo/release-action@v1, but that
+        # action fails to trigger the release workflows for brew and
+        # pypi, perhaps because it does not trigger the expected kind
+        # of release event.
+        uses: actions/create-release@v1
         with:
-          bodyFile: .github/workflows/release.md
+          tag_name: starterkit-${{ env.TAG_VERSION }}
+          release_name: starterkit-${{ env.TAG_VERSION }}
+          body: |
+            This is the CBMC Starter Kit version ${{ env.TAG_VERSION }}.
+
+            The [CBMC starter kit](https://model-checking.github.io/cbmc-starter-kit/) makes it easy to add [CBMC](https://github.com/diffblue/cbmc) verification to a software project. See the [starter kit tutorial](https://model-checking.github.io/cbmc-training/starter-kit/overview/index.html) for an example of how to use the starter kit.
+
+            On MacOS, you can install with brew.  Install with
+            ```
+              brew tap aws/tap
+              brew install cbmc-starter-kit
+            ```
+            and upgrade to the latest version with
+            ```
+              brew upgrade cbmc-starter-kit
+            ```
+
+            On all machines, you can install with pip.  Install with
+            ```
+              python3 -m pip install cbmc-starter-kit
+            ```
+            and upgrade to the latest version with
+            ```
+              python3 -m pip install --upgrade cbmc-starter-kit
+            ```
+          draft: false
+          prerelease: false
