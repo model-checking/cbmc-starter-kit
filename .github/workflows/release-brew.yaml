@@ -82,9 +82,9 @@ jobs:
         uses: Homebrew/actions/setup-homebrew@master
 
       - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+        # The GitHub action actions/setup-python@v4 installs CPython 3.10
+        run: |
+          brew install --overwrite python@3.10
 
       - name: Checkout PR
         run: |
