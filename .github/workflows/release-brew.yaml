@@ -116,12 +116,13 @@ jobs:
           echo "file_name=$(jq -r '."${{ env.TAP }}/${{ env.FORMULA }}".bottle.tags[].filename' *.json)" >> $GITHUB_ENV
 
       - name: Upload bottles as artifact
-        uses: actions/upload-artifact@main
+        uses: actions/upload-artifact@v3
         with:
           name: bottles
           path: '*.bottle.*'
 
       - name: Upload release binary
+        # this github action is deprecated, but there is no obvious replacement
         uses: actions/upload-release-asset@v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
