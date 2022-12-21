@@ -107,15 +107,13 @@ jobs:
       - name: Get Package Path
         id: get_package_path
         run: |
-          bottle_name="$(ls *.tar.gz)"
-          echo "::set-output name=bottle::$bottle_name"
+          echo "bottle=$(ls *.tar.gz)" >> $GITHUB_ENV
 
       - name: Get File Name
         id: get_file_name
         run: |
           brew install jq
-          file_name="$(cat *.json | jq -r '."${{ env.TAP }}/${{ env.FORMULA }}".bottle.tags[].filename')"
-          echo "::set-output name=file_name::$file_name"
+          echo "file_name=$(jq -r '."${{ env.TAP }}/${{ env.FORMULA }}".bottle.tags[].filename' *.json)" >> $GITHUB_ENV
 
       - name: Upload bottles as artifact
         uses: actions/upload-artifact@main
@@ -129,8 +127,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{ steps.get_package_path.outputs.bottle }}
-          asset_name: ${{ steps.get_file_name.outputs.file_name }}
+          asset_path: ${{ env.bottle }}
+          asset_name: ${{ env.file_name }}
           asset_content_type: application/x-gzip
 
   update-pr:
