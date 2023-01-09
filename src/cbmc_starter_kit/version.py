@@ -3,6 +3,8 @@
 
 """Version number."""
 
+import os
+
 NAME = "CBMC starter kit"
 NUMBER = "2.8.8"
 VERSION = f"{NAME} {NUMBER}"
@@ -21,3 +23,13 @@ def copy_with_version(src, dst):
         data = srcfile.read()
     with open(dst, 'w', encoding='utf-8') as dstfile:
         dstfile.write(data.replace(REPLACE_TARGET, version()))
+
+def update_existing_version_in_workflow_file(workflow):
+    tmp_file = f"{workflow}~"
+    with open(workflow) as src, open(tmp_file, "w") as dst:
+        for line in src:
+            if line.startswith(f"# {NAME}"):
+                print(version(), file=dst)
+            else:
+                print(line, file=dst)
+    os.rename(tmp_file, workflow)
