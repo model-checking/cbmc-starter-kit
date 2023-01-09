@@ -11,9 +11,7 @@ import platform
 import re
 import shutil
 
-from cbmc_starter_kit import arguments
-from cbmc_starter_kit import util
-from cbmc_starter_kit import version
+from cbmc_starter_kit import arguments, repository, util, version
 
 ################################################################
 
@@ -118,6 +116,13 @@ def check_for_litani(cbmc_root):
                         "https://github.com/awslabs/aws-build-accumulator/releases/latest")
     return
 
+def check_for_proof_ci_workflow():
+    workflow_root = repository.github_actions_workflows_root()
+    path_to_workflow_in_customer_repo = workflow_root / "proof_ci.yaml"
+    if path_to_workflow_in_customer_repo.exists():
+        version.update_existing_version_in_workflow_file(
+            path_to_workflow_in_customer_repo)
+
 ################################################################
 
 def main():
@@ -134,6 +139,8 @@ def main():
     if not args.no_update:
         update(args.cbmc_root)
     check_for_litani(args.cbmc_root)
+    check_for_proof_ci_workflow()
+
 
 ################################################################
 
