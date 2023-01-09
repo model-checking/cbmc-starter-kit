@@ -10,7 +10,7 @@ import shutil
 from argparse import RawDescriptionHelpFormatter
 
 
-from cbmc_starter_kit import arguments, repository, util
+from cbmc_starter_kit import arguments, repository, util, version
 
 ################################################################
 
@@ -153,6 +153,7 @@ def main():
 
     patch_proof_ci_config(config, args)
     patch_proof_ci_workflow(workflow, args.github_actions_runner)
+    version.copy_with_version(workflow, workflow)
 
     repo_root = repository.repository_root()
     copy_lib_directory(repo_root)
