@@ -97,23 +97,22 @@ def _get_status_and_proof_summaries(run_dict):
     return [statuses, proofs]
 
 
-def print_proof_results(out_file):
+def main(out_file):
     """
     Print 2 strings that summarize the proof results.
     When printing, each string will render as a GitHub flavored Markdown table.
     """
     print("## Summary of CBMC proof results")
-    try:
-        with open(out_file, encoding='utf-8') as run_json:
-            run_dict = json.load(run_json)
-            summaries = _get_status_and_proof_summaries(
-                run_dict)
-            for summary in summaries:
-                print(_get_rendered_table(summary))
-    except Exception as ex: # pylint: disable=broad-except
-        logging.critical("Could not print results. Exception: %s", str(ex))
+    with open(out_file, encoding='utf-8') as run_json:
+        run_dict = json.load(run_json)
+    summaries = _get_status_and_proof_summaries(run_dict)
+    for summary in summaries:
+        print(_get_rendered_table(summary))
 
 
 if __name__ == '__main__':
     args = get_args()
-    print_proof_results(args.run_file)
+    try:
+        main(args.run_file)
+    except Exception as ex: # pylint: disable=broad-except
+        logging.critical("Could not print results. Exception: %s", str(ex))
