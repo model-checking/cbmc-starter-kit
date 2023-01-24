@@ -175,7 +175,4 @@ jobs:
         shell: bash
         run: |
           python3 ${{ env.PROOFS_DIR }}/lib/summarize.py \
-            --run-file ${{ env.PROOFS_DIR }}/output/latest/html/run.json > summary.md
-          cat summary.md >> $GITHUB_STEP_SUMMARY
-          cat summary.md
-          cat summary.md | [[ $(grep -cim1 -e "fail" -e "in progress") -eq 0 ]] ; echo $?
+            --run-file ${{ env.PROOFS_DIR }}/output/latest/html/run.json

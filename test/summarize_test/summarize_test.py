@@ -18,23 +18,23 @@ class TestSummarizeResults(unittest.TestCase):
 
     @unittest.mock.patch('builtins.print')
     def test_print_proof_results(self, mock):
-        summarize.print_proof_results(self.run_file)
+        with self.assertRaises(SystemExit):
+            summarize.print_proof_results(self.run_file)
         expected_calls = [
-            unittest.mock.call("## Summary of CBMC proof results"),
             unittest.mock.call(
+                "## Summary of CBMC proof results\n\n"
                 "| Status  | Count |\n"
                 "|---------|-------|\n"
                 "| Fail    | 1     |\n"
                 "| Success | 1     |\n"
-                "\n"),
-            unittest.mock.call(
+                "\n"
                 "| Proof             | Status  |\n"
                 "|-------------------|---------|\n"
                 "| pipe-will-fail    | Fail    |\n"
                 "| pipe-will-succeed | Success |\n"
                 "\n")
         ]
-        self.assertEqual(expected_calls, mock.call_args_list)
+        self.assertEqual(expected_calls[0], mock.call_args_list[0])
 
 
 if __name__ == '__main__':

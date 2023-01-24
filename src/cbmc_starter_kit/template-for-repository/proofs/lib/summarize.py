@@ -4,6 +4,8 @@
 import argparse
 import json
 import logging
+import os
+import sys
 
 
 DESCRIPTION = """Print 2 tables in GitHub-flavored Markdown that summarize
@@ -97,22 +99,39 @@ def _get_status_and_proof_summaries(run_dict):
     return [statuses, proofs]
 
 
-def main(out_file):
+def print_proof_results(out_file):
     """
     Print 2 strings that summarize the proof results.
     When printing, each string will render as a GitHub flavored Markdown table.
     """
-    print("## Summary of CBMC proof results")
+    output = "## Summary of CBMC proof results\n\n"
     with open(out_file, encoding='utf-8') as run_json:
         run_dict = json.load(run_json)
-    summaries = _get_status_and_proof_summaries(run_dict)
-    for summary in summaries:
-        print(_get_rendered_table(summary))
+    status_table, proof_table = _get_status_and_proof_summaries(run_dict)
+    for summary in (status_table, proof_table):
+        output += _get_rendered_table(summary)
+
+    print(output)
+
+    github_summary_file = os.getenv("GITHUB_STEP_SUMMARY")
+    if github_summary_file:
+        with open(github_summary_file, "a") as handle:
+            print(output, file=handle)
+            handle.flush()
+    else:
+        logging.warning(
+            "$GITHUB_STEP_SUMMARY not set, not writing summary file")
+
+    not_passed = [
+        (status, count) for (status, count) in status_table[1:]
+        if count and (status != "Success")]
+    if not_passed:
+        sys.exit(1)
 
 
 if __name__ == '__main__':
     args = get_args()
     try:
-        main(args.run_file)
+        print_proof_results(args.run_file)
     except Exception as ex: # pylint: disable=broad-except
         logging.critical("Could not print results. Exception: %s", str(ex))
