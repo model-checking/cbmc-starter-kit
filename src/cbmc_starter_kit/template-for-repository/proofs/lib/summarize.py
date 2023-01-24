@@ -112,6 +112,7 @@ def print_proof_results(out_file):
         output += _get_rendered_table(summary)
 
     print(output)
+    sys.stdout.flush()
 
     github_summary_file = os.getenv("GITHUB_STEP_SUMMARY")
     if github_summary_file:
@@ -122,15 +123,22 @@ def print_proof_results(out_file):
         logging.warning(
             "$GITHUB_STEP_SUMMARY not set, not writing summary file")
 
+    msg = (
+        "Click the 'Summary' button to view a Markdown table "
+        "summarizing all proof results")
     not_passed = [
         (status, count) for (status, count) in status_table[1:]
         if count and (status != "Success")]
     if not_passed:
+        logging.error("Not all proofs passed.")
+        logging.error(msg)
         sys.exit(1)
+    logging.info(msg)
 
 
 if __name__ == '__main__':
     args = get_args()
+    logging.basicConfig(format="%(levelname)s: %(message)s")
     try:
         print_proof_results(args.run_file)
     except Exception as ex: # pylint: disable=broad-except
