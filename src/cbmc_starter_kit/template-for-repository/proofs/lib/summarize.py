@@ -91,8 +91,9 @@ def _get_status_and_proof_summaries(run_dict):
             count_statuses[status_pretty_name] += 1
         except KeyError:
             count_statuses[status_pretty_name] = 1
-        proof = proof_pipeline["name"]
-        proofs.append([proof, status_pretty_name])
+        if proof_pipeline["name"] == "print_tool_versions":
+            continue
+        proofs.append([proof_pipeline["name"], status_pretty_name])
     statuses = [["Status", "Count"]]
     for status, count in count_statuses.items():
         statuses.append([status, str(count)])
