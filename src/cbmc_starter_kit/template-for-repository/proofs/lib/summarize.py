@@ -127,10 +127,7 @@ def print_proof_results(out_file):
     msg = (
         "Click the 'Summary' button to view a Markdown table "
         "summarizing all proof results")
-    not_passed = [
-        (status, count) for (status, count) in status_table[1:]
-        if count and (status != "Success")]
-    if not_passed:
+    if run_dict["status"] != "success":
         logging.error("Not all proofs passed.")
         logging.error(msg)
         sys.exit(1)
