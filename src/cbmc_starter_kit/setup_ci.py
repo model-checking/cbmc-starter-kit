@@ -66,6 +66,11 @@ def parse_arguments():
         "metavar": '<TAG>',
         'default': 'latest',
         'help': 'Use this tag of cadical in CI. default: %(default)s'
+        }, {
+        'flag': '--no-upload-report',
+        "action": 'store_true',
+        "default": False,
+        'help': 'Do not upload proof report archive to GitHub',
         }]
     args = arguments.create_parser(
         options=options,
@@ -102,6 +107,7 @@ def patch_proof_ci_config(config, args):
         "KISSAT_TAG": args.kissat,
         "LITANI_VERSION": args.litani,
         "PROOFS_DIR": proofs_dir,
+        "UPLOAD_REPORTS": str(not args.no_upload_reports).lower(),
     }
     new_lines = _replace_placeholders_in_config_template(lines, replacements)
     with open(config, "w", encoding='utf-8') as data:
@@ -135,6 +141,7 @@ def copy_lib_directory(repo_root):
     shutil.copytree(src, dst, dirs_exist_ok=True)
 
 ################################################################
+
 
 def main():
     """

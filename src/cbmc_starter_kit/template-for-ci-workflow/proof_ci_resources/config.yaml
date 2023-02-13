@@ -4,4 +4,5 @@ cbmc-viewer-version: <__CBMC_VIEWER_VERSION__>
 kissat-tag: <__KISSAT_TAG__>
 litani-version: <__LITANI_VERSION__>
 proofs-dir: <__PROOFS_DIR__>
+upload-reports: <__UPLOAD_REPORTS__>
 run-cbmc-proofs-command: ./run-cbmc-proofs.py

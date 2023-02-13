@@ -158,11 +158,11 @@ jobs:
         run: ${{ env.RUN_CBMC_PROOFS_COMMAND }}
       - name: Set name for zip artifact with CBMC proof results
         id: artifact
-        if: ${{ env.AWS_CLOUDFRONT_DOMAIN == '' }}
+        if: ${{ env.UPLOAD_REPORTS == 'true' }}
         run: |
           echo "name=cbmc_proof_results_${{ fromJson(toJson(github.event.repository)).name }}_$(date +%Y_%m_%d_%H_%M_%S)" >> $GITHUB_OUTPUT
       - name: Create zip artifact with CBMC proof results
-        if: ${{ env.AWS_CLOUDFRONT_DOMAIN == '' }}
+        if: ${{ env.UPLOAD_REPORTS == 'true' }}
         shell: bash
         run: |
           FINAL_REPORT_DIR=$PROOFS_DIR/output/latest/html
@@ -171,7 +171,7 @@ jobs:
             && popd \
             && mv $FINAL_REPORT_DIR/${{ steps.artifact.outputs.name }}.zip .
       - name: Upload zip artifact of CBMC proof results to GitHub Actions
-        if: ${{ env.AWS_CLOUDFRONT_DOMAIN == '' }}
+        if: ${{ env.UPLOAD_REPORTS == 'true' }}
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.artifact.outputs.name }}
