@@ -156,13 +156,18 @@ jobs:
           EXTERNAL_SAT_SOLVER: kissat
         working-directory: ${{ env.PROOFS_DIR }}
         run: ${{ env.RUN_CBMC_PROOFS_COMMAND }}
+      - name: Check repository visibility
+        shell: bash
+        run: |
+          VIZ="${{ fromJson(toJson(github.event.repository)).visibility }}";
+          echo "REPO_VISIBILITY=${VIZ}" | tee -a "${GITHUB_ENV}";
       - name: Set name for zip artifact with CBMC proof results
         id: artifact
-        if: ${{ env.AWS_CLOUDFRONT_DOMAIN == '' }}
+        if: ${{ env.REPO_VISIBILITY == 'public' }}
         run: |
           echo "name=cbmc_proof_results_${{ fromJson(toJson(github.event.repository)).name }}_$(date +%Y_%m_%d_%H_%M_%S)" >> $GITHUB_OUTPUT
       - name: Create zip artifact with CBMC proof results
-        if: ${{ env.AWS_CLOUDFRONT_DOMAIN == '' }}
+        if: ${{ env.REPO_VISIBILITY == 'public' }}
         shell: bash
         run: |
           FINAL_REPORT_DIR=$PROOFS_DIR/output/latest/html
@@ -171,7 +176,7 @@ jobs:
             && popd \
             && mv $FINAL_REPORT_DIR/${{ steps.artifact.outputs.name }}.zip .
       - name: Upload zip artifact of CBMC proof results to GitHub Actions
-        if: ${{ env.AWS_CLOUDFRONT_DOMAIN == '' }}
+        if: ${{ env.REPO_VISIBILITY == 'public' }}
         uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.artifact.outputs.name }}
