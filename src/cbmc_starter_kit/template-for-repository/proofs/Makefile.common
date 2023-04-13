@@ -455,8 +455,9 @@ endif
 # If any loops remain after loop contracts have been applied, CBMC might try
 # to unwind the program indefinetly, because we do not pass default unwind
 # (i.e., --unwind 1) to CBMC when in DFCC mode.
-# We must not use default unwind with DFCC mode, because loops introduced during
-# contract instrumentation must be dynamically unwind during symex.
+# We must not use a default unwind command in DFCC mode, because contract instrumentation
+# introduces loops encoding write set inclusion checks that must be dynamically unwound during
+# symex.
 ifneq ($(strip $(USE_DYNAMIC_FRAMES)),)
 ifneq ($(strip $(APPLY_LOOP_CONTRACTS)),)
   UNWIND_0500_FLAGS=$(CBMC_UNWINDSET) $(CBMC_CPROVER_LIBRARY_UNWINDSET) $(CBMC_FLAG_UNWINDING_ASSERTIONS)
