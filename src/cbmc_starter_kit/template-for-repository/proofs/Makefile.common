@@ -451,6 +451,12 @@ ifdef APPLY_LOOP_CONTRACTS
 endif
 
 # The default unwind should only be used in DFCC mode without loop contracts.
+# When loop contracts are applied, we only unwind specified loops.
+# If any loops remain after loop contracts have been applied, CBMC might try
+# to unwind the program indefinetly, because we do not pass default unwind
+# (i.e., --unwind 1) to CBMC when in DFCC mode.
+# We must not use default unwind with DFCC mode, because loops introduced during
+# contract instrumentation must be dynamically unwind during symex.
 ifneq ($(strip $(USE_DYNAMIC_FRAMES)),)
 ifneq ($(strip $(APPLY_LOOP_CONTRACTS)),)
   UNWIND_0500_FLAGS=$(CBMC_UNWINDSET) $(CBMC_CPROVER_LIBRARY_UNWINDSET) $(CBMC_FLAG_UNWINDING_ASSERTIONS)
@@ -805,7 +811,7 @@ ifdef CBMCFLAGS
   ifeq ($(strip $(CODE_CONTRACTS)),)
     CBMCFLAGS += $(CBMC_UNWINDSET) $(CBMC_CPROVER_LIBRARY_UNWINDSET) $(CBMC_DEFAULT_UNWIND) $(CBMC_OPT_CONFIG_LIBRARY)
   else ifeq ($(strip $(USE_DYNAMIC_FRAMES)),)
-    CBMCFLAGS += $(CBMC_CPROVER_LIBRARY_UNWINDSET) $(CBMC_DEFAULT_UNWIND) $(CBMC_OPT_CONFIG_LIBRARY)
+    CBMCFLAGS += $(CBMC_CPROVER_LIBRARY_UNWINDSET) $(CBMC_OPT_CONFIG_LIBRARY)
   endif
 endif
 
