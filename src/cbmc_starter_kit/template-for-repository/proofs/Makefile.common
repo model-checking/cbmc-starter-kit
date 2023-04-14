@@ -450,6 +450,24 @@ ifdef APPLY_LOOP_CONTRACTS
   endif
 endif
 
+# The default unwind should only be used in DFCC mode without loop contracts.
+# When loop contracts are applied, we only unwind specified loops.
+# If any loops remain after loop contracts have been applied, CBMC might try
+# to unwind the program indefinetly, because we do not pass default unwind
+# (i.e., --unwind 1) to CBMC when in DFCC mode.
+# We must not use a default unwind command in DFCC mode, because contract instrumentation
+# introduces loops encoding write set inclusion checks that must be dynamically unwound during
+# symex.
+ifneq ($(strip $(USE_DYNAMIC_FRAMES)),)
+ifneq ($(strip $(APPLY_LOOP_CONTRACTS)),)
+  UNWIND_0500_FLAGS=$(CBMC_UNWINDSET) $(CBMC_CPROVER_LIBRARY_UNWINDSET) $(CBMC_FLAG_UNWINDING_ASSERTIONS)
+  UNWIND_0500_DESC="$(PROOF_UID): unwinding specified subset of loops"
+else
+  UNWIND_0500_FLAGS=$(CBMC_UNWINDSET) $(CBMC_CPROVER_LIBRARY_UNWINDSET) $(CBMC_DEFAULT_UNWIND) $(CBMC_FLAG_UNWINDING_ASSERTIONS)
+  UNWIND_0500_DESC="$(PROOF_UID): unwinding all loops"
+endif
+endif
+
 # Silence makefile output (eg, long litani commands) unless VERBOSE is set.
 ifndef VERBOSE
     MAKEFLAGS := $(MAKEFLAGS) -s
@@ -713,13 +731,13 @@ $(HARNESS_GOTO)0500.goto: $(HARNESS_GOTO)0400.goto
 ifneq ($(strip $(USE_DYNAMIC_FRAMES)),)
 	$(LITANI) add-job \
 	  --command \
-	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(CBMC_UNWINDSET) $(CBMC_CPROVER_LIBRARY_UNWINDSET) $(CBMC_DEFAULT_UNWIND) $(CBMC_FLAG_UNWINDING_ASSERTIONS) $^ $@' \
+	    '$(GOTO_INSTRUMENT) $(CBMC_VERBOSITY) $(UNWIND_0500_FLAGS) $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
 	  --stdout-file $(LOGDIR)/unwind_loops-log.txt \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
-	  --description "$(PROOF_UID): unwinding all loops"
+	  --description $(UNWIND_0500_DESC)
 else ifneq ($(strip $(CODE_CONTRACTS)),)
 	$(LITANI) add-job \
 	  --command \
@@ -735,7 +753,7 @@ else
 	  --command 'cp $^ $@' \
 	  --inputs $^ \
 	  --outputs $@ \
-	  --stdout-file $(LOGDIR)/linking-library-models-log.txt \
+	  --stdout-file $(LOGDIR)/unwind_loops-log.txt \
 	  --pipeline-name "$(PROOF_UID)" \
 	  --ci-stage build \
 	  --description "$(PROOF_UID): not unwinding loops"
@@ -794,7 +812,7 @@ ifdef CBMCFLAGS
   ifeq ($(strip $(CODE_CONTRACTS)),)
     CBMCFLAGS += $(CBMC_UNWINDSET) $(CBMC_CPROVER_LIBRARY_UNWINDSET) $(CBMC_DEFAULT_UNWIND) $(CBMC_OPT_CONFIG_LIBRARY)
   else ifeq ($(strip $(USE_DYNAMIC_FRAMES)),)
-    CBMCFLAGS += $(CBMC_CPROVER_LIBRARY_UNWINDSET) $(CBMC_DEFAULT_UNWIND) $(CBMC_OPT_CONFIG_LIBRARY)
+    CBMCFLAGS += $(CBMC_CPROVER_LIBRARY_UNWINDSET) $(CBMC_OPT_CONFIG_LIBRARY)
   endif
 endif
 
