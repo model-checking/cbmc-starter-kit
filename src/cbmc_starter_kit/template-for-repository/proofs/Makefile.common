@@ -211,10 +211,13 @@ CHECKFLAGS += $(USE_EXTERNAL_SAT_SOLVER)
 
 ifeq ($(strip $(ENABLE_POOLS)),)
   POOL =
+  INIT_POOLS =
 else ifeq ($(strip $(EXPENSIVE)),)
   POOL =
+  INIT_POOLS =
 else
   POOL = --pool expensive
+  INIT_POOLS = --pools expensive:1
 endif
 
 # Similar to the pool feature above. If Litani is new enough, enable
@@ -915,7 +918,7 @@ litani-path:
 _goto: $(HARNESS_GOTO).goto
 goto:
 	@ echo Running 'litani init'
-	$(LITANI) init --project $(PROJECT_NAME)
+	$(LITANI) init $(INIT_POOLS) --project $(PROJECT_NAME)
 	@ echo Running 'litani add-job'
 	$(MAKE) -B _goto
 	@ echo Running 'litani build'
@@ -924,7 +927,7 @@ goto:
 _result: $(LOGDIR)/result.txt
 result:
 	@ echo Running 'litani init'
-	$(LITANI) init --project $(PROJECT_NAME)
+	$(LITANI) init $(INIT_POOLS) --project $(PROJECT_NAME)
 	@ echo Running 'litani add-job'
 	$(MAKE) -B _result
 	@ echo Running 'litani build'
@@ -933,7 +936,7 @@ result:
 _property: $(LOGDIR)/property.xml
 property:
 	@ echo Running 'litani init'
-	$(LITANI) init --project $(PROJECT_NAME)
+	$(LITANI) init $(INIT_POOLS) --project $(PROJECT_NAME)
 	@ echo Running 'litani add-job'
 	$(MAKE) -B _property
 	@ echo Running 'litani build'
@@ -942,7 +945,7 @@ property:
 _coverage: $(LOGDIR)/coverage.xml
 coverage:
 	@ echo Running 'litani init'
-	$(LITANI) init --project $(PROJECT_NAME)
+	$(LITANI) init $(INIT_POOLS) --project $(PROJECT_NAME)
 	@ echo Running 'litani add-job'
 	$(MAKE) -B _coverage
 	@ echo Running 'litani build'
@@ -951,7 +954,7 @@ coverage:
 _report: $(PROOFDIR)/report
 report:
 	@ echo Running 'litani init'
-	$(LITANI) init --project $(PROJECT_NAME)
+	$(LITANI) init $(INIT_POOLS) --project $(PROJECT_NAME)
 	@ echo Running 'litani add-job'
 	$(MAKE) -B _report
 	@ echo Running 'litani build'

@@ -18,7 +18,10 @@ PROJECT_SOURCES += $(SRCDIR)/<__PATH_TO_SOURCE_FILE__>
 # EXPENSIVE variable. With new enough versions of the proof tools, this will
 # restrict the number of EXPENSIVE CBMC jobs running at once. See the
 # documentation in Makefile.common under the "Job Pools" heading for details.
+# You may also choose to set ENABLE_POOLS right here, or else set it on the
+# command-line (see Makefile.common).
 # EXPENSIVE = true
+# ENABLE_POOLS = true
 
 # If you require access to a file-local ("static") function or object to conduct
 # your proof, set the following (and do not include the original source file
