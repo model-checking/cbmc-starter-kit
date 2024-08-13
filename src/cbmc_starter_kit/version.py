@@ -6,7 +6,7 @@
 import os
 
 NAME = "CBMC starter kit"
-NUMBER = "2.10"
+NUMBER = "2.11"
 VERSION = f"{NAME} {NUMBER}"
 
 REPLACE_TARGET = '_CBMC_STARTER_KIT_VERSION_'
