@@ -15,7 +15,7 @@ jobs:
       id-token: write
       contents: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install dependencies
         run: python3 -m pip install --upgrade pip build setuptools wheel twine
       - name: Build pip package
