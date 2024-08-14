@@ -1,0 +1,77 @@
+Description: >
+  Enable storage of access tokens in AWS Secrets Manager and access to the PAT
+  from the GitHub workflows in model-checking/cbmc-starter-kit.
+
+Parameters:
+  GithubRepoOrganization:
+    Type: String
+    Description: GitHub organization for the CBMC starter kit
+    Default: model-checking
+  CbmcStarterKitRepoName:
+    Type: String
+    Description: GitHub repository for CBMC starter kit
+    Default: cbmc-starter-kit
+  CbmcStarterKitPublicationTag:
+    Type: String
+    Description: GitHub tag for CBMC starter kit triggering the GitHub publication workflow
+    Default: starterkit-*
+
+Resources:
+
+  BrewBotEmail:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: BOT_EMAIL
+      Description: >
+        The email address to use with Homebrew commits.
+
+  BrewToken:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: RELEASE_CI_ACCESS_TOKEN
+      Description: >
+        GitHub access token.
+
+  PypiToken:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: PYPI_ACCESS_TOKEN
+      Description: >
+        Pypi access token.
+
+  PublisherTokenReader:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: PublisherTokenReader
+      Description: >
+        This role can retrieve the personal access token for the model
+        checking publisher in the Microsoft Marketplace.
+
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !ImportValue GithubIdentityProvider
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              StringLike:
+                token.actions.githubusercontent.com:sub:
+                  !Sub repo:${GithubRepoOrganization}/${CbmcStarterKitRepoName}:ref:refs/tags/${CbmcStarterKitPublicationTag}
+
+      Policies:
+        - PolicyName: PublisherTokenAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref BrewBotEmail
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref BrewToken
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref PypiToken

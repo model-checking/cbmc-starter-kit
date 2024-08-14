@@ -1,0 +1,23 @@
+Description:
+  Register the GitHub identity provider with the AWS security token service.
+
+Resources:
+  GithubIdentityProvider:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url:
+        # The GitHub identity provider supporting OIDC
+        https://token.actions.githubusercontent.com
+      ThumbprintList:
+        # The GitHub certification authority (the signature of its certificate)
+        - 6938fd4d98bab03faadb97b34396831e3780aea1
+      ClientIdList:
+        # The AWS security token service
+        - sts.amazonaws.com
+
+
+Outputs:
+  GithubIdentityProvider:
+    Value: !Ref GithubIdentityProvider
+    Export:
+      Name: GithubIdentityProvider
