@@ -458,7 +458,7 @@ endif
 # The default unwind should only be used in DFCC mode without loop contracts.
 # When loop contracts are applied, we only unwind specified loops.
 # If any loops remain after loop contracts have been applied, CBMC might try
-# to unwind the program indefinetly, because we do not pass default unwind
+# to unwind the program indefinitely, because we do not pass default unwind
 # (i.e., --unwind 1) to CBMC when in DFCC mode.
 # We must not use a default unwind command in DFCC mode, because contract instrumentation
 # introduces loops encoding write set inclusion checks that must be dynamically unwound during
