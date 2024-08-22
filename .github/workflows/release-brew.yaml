@@ -66,8 +66,12 @@ jobs:
 
       - name: Fetch secrets
         run: |
-          echo "BOT_EMAIL=$(aws secretsmanager get-secret-value --secret-id BOT_EMAIL | jq -r '.SecretString')" >> $GITHUB_ENV
-          echo "HOMEBREW_GITHUB_API_TOKEN=$(aws secretsmanager get-secret-value --secret-id RELEASE_CI_ACCESS_TOKEN | jq -r '.SecretString')" >> $GITHUB_ENV
+          bot_email=$(aws secretsmanager get-secret-value --secret-id BOT_EMAIL | jq -r '.SecretString')
+          echo "::add-mask::$bot_email"
+          echo "BOT_EMAIL=$bot_email" >> $GITHUB_ENV
+          homebrew_github_api_token=$(aws secretsmanager get-secret-value --secret-id RELEASE_CI_ACCESS_TOKEN | jq -r '.SecretString')
+          echo "::add-mask::$homebrew_github_api_token"
+          echo "HOMEBREW_GITHUB_API_TOKEN=$homebrew_github_api_token" >> $GITHUB_ENV
 
       - name: Configure git user name and email
         run: |
@@ -102,8 +106,12 @@ jobs:
 
       - name: Fetch secrets
         run: |
-          echo "FORK_REPO=https://$(aws secretsmanager get-secret-value --secret-id RELEASE_CI_ACCESS_TOKEN | jq -r '.SecretString')@github.com/${{ env.BOT_USER }}/homebrew-$(echo ${{ env.TAP }} |cut -d / -f 2).git" >> $GITHUB_ENV
-          echo "GITHUB_TOKEN=$(aws secretsmanager get-secret-value --secret-id RELEASE_CI_ACCESS_TOKEN | jq -r '.SecretString')" >> $GITHUB_ENV
+          fork_repo="https://$(aws secretsmanager get-secret-value --secret-id RELEASE_CI_ACCESS_TOKEN | jq -r '.SecretString')@github.com/${{ env.BOT_USER }}/homebrew-$(echo ${{ env.TAP }} |cut -d / -f 2).git"
+          echo "::add-mask::$fork_repo"
+          echo "FORK_REPO=$fork_repo" >> $GITHUB_ENV
+          github_token="$(aws secretsmanager get-secret-value --secret-id RELEASE_CI_ACCESS_TOKEN | jq -r '.SecretString')"
+          echo "::add-mask::$github_token"
+          echo "GITHUB_TOKEN=$github_token" >> $GITHUB_ENV
 
       - name: Set up Python
         # The GitHub action actions/setup-python@v4 installs CPython 3.10
@@ -173,8 +181,12 @@ jobs:
 
     - name: Fetch secrets
       run: |
-        echo "BOT_EMAIL=$(aws secretsmanager get-secret-value --secret-id BOT_EMAIL | jq -r '.SecretString')" >> $GITHUB_ENV
-        echo "FORK_REPO=https://$(aws secretsmanager get-secret-value --secret-id RELEASE_CI_ACCESS_TOKEN | jq -r '.SecretString')@github.com/${{ env.BOT_USER }}/homebrew-$(echo ${{ env.TAP }} |cut -d / -f 2).git" >> $GITHUB_ENV
+        bot_email="$(aws secretsmanager get-secret-value --secret-id BOT_EMAIL | jq -r '.SecretString')"
+        echo "::add-mask::$bot_email"
+        echo "BOT_EMAIL=$bot_email" >> $GITHUB_ENV
+        fork_repo="https://$(aws secretsmanager get-secret-value --secret-id RELEASE_CI_ACCESS_TOKEN | jq -r '.SecretString')@github.com/${{ env.BOT_USER }}/homebrew-$(echo ${{ env.TAP }} |cut -d / -f 2).git"
+        echo "::add-mask::$fork_repo"
+        echo "FORK_REPO=$fork_repo" >> $GITHUB_ENV
 
     - name: Configure git user name and email
       run: |

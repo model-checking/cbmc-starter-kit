@@ -36,7 +36,9 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Fetch secrets
         run: |
-          echo "GITHUB_TOKEN=$(aws secretsmanager get-secret-value --secret-id RELEASE_CI_ACCESS_TOKEN | jq -r '.SecretString')" >> $GITHUB_ENV
+          github_token="$(aws secretsmanager get-secret-value --secret-id RELEASE_CI_ACCESS_TOKEN | jq -r '.SecretString')"
+          echo "::add-mask::$github_token"
+          echo "GITHUB_TOKEN=$github_token" >> $GITHUB_ENV
       - name: Create release
         uses: actions/create-release@v1
         with:
