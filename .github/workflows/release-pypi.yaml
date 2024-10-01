@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: python3 -m pip install --upgrade pip build setuptools wheel twine
+        run: python3 -m pip install --upgrade pip build setuptools wheel
       - name: Build pip package
         run: python3 -m build
       - name: Authenticate GitHub workflow to AWS
@@ -30,9 +30,6 @@ jobs:
           github_token="$(aws secretsmanager get-secret-value --secret-id RELEASE_CI_ACCESS_TOKEN | jq -r '.SecretString')"
           echo "::add-mask::$github_token"
           echo "GITHUB_TOKEN=$github_token" >> $GITHUB_ENV
-          twine_password="$(aws secretsmanager get-secret-value --secret-id PYPI_ACCESS_TOKEN | jq -r '.SecretString')"
-          echo "::add-mask::$twine_password"
-          echo "TWINE_PASSWORD=$twine_password" >> $GITHUB_ENV
       - name: Get Package Name
         id: get_package_name
         run: |
@@ -45,7 +42,5 @@ jobs:
           asset_path: dist/${{ steps.get_package_name.outputs.package_name }}
           asset_name: ${{ steps.get_package_name.outputs.package_name }}
           asset_content_type: application/zip
-      - name: Upload to PyPi
-        env:
-          TWINE_USERNAME: __token__
-        run: python3 -m twine upload dist/*
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
