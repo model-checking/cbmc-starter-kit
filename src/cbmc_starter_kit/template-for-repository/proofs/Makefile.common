@@ -407,9 +407,29 @@ ifdef STRING_ABSTRACTION
   endif
 endif
 
+# User simpler invalid pointer model for contracts with DFCC.
+#
+# Removes offset nondeterminism for invalid pointers created in failure paths
+# of the __CPROVER_is_fresh predicate. Improves performance for some proofs.
+# Unsound because of reduced nondeterminism.
+DFCC_SIMPLE_INVALID_POINTER_MODEL ?=
+ifdef DFCC_SIMPLE_INVALID_POINTER_MODEL
+  ifneq ($(strip $(DFCC_SIMPLE_INVALID_POINTER_MODEL)),)
+    CBMC_DFCC_SIMPLE_INVALID_POINTER_MODEL := --dfcc-simple-invalid-pointer-model
+  endif
+endif
+
+# Activate debug assertions in the DFCC contracts support library.
+DFCC_DEBUG_LIB ?=
+ifdef DFCC_DEBUG_LIB
+  ifneq ($(strip $(DFCC_DEBUG_LIB)),)
+    CBMC_DFCC_DEBUG_LIB := --dfcc-debug-lib
+  endif
+endif
+
 # Optional configuration library flags
 OPT_CONFIG_LIBRARY ?=
-CBMC_OPT_CONFIG_LIBRARY := $(CBMC_FLAG_MALLOC_MAY_FAIL) $(CBMC_STRING_ABSTRACTION)
+CBMC_OPT_CONFIG_LIBRARY := $(CBMC_FLAG_MALLOC_MAY_FAIL) $(CBMC_STRING_ABSTRACTION) $(DFCC_SIMPLE_INVALID_POINTER_MODEL) $(DFCC_DEBUG_LIB)
 
 # Proof writers could add function contracts in their source code.
 # These contracts are ignored by default, but may be enabled in two distinct
