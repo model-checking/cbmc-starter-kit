@@ -139,6 +139,8 @@ jobs:
       - name: Get Package Path
         id: get_package_path
         run: |
+          double_dash_bottle=$(ls *.tar.gz)
+          mv $double_dash_bottle $(echo $double_dash_bottle | sed 's/--/-/')
           echo "bottle_name=$(ls *.tar.gz)" >> $GITHUB_OUTPUT
 
       - name: Upload bottles as artifact
