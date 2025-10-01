@@ -21,7 +21,7 @@ jobs:
       - name: Build pip package
         run: python3 -m build
       - name: Authenticate GitHub workflow to AWS
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ env.AWS_ROLE }}
           aws-region: ${{ env.AWS_REGION }}
