@@ -5,6 +5,9 @@ on:
   push:
     branches: [ master ]
 
+permissions:
+  contents: read
+
 jobs:
   run-tests:
     if: "!contains(github.event.pull_request.labels.*.name, 'no-test')"
