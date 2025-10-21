@@ -7,6 +7,10 @@ on:
     branches:
       - 'documentation'
 
+permissions:
+  contents: write
+  pages: write
+
 jobs:
   publish:
     runs-on: macos-latest
