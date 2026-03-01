@@ -144,7 +144,7 @@ jobs:
           echo "bottle_name=$(ls *.tar.gz)" >> $GITHUB_OUTPUT
 
       - name: Upload bottles as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: bottle-${{ matrix.os }}
           path: '*.bottle.*'
